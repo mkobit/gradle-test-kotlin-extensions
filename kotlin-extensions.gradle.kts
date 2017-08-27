@@ -1,7 +1,3 @@
-plugins {
-  kotlin("jvm")
-}
-
-dependencies {
-  api(kotlin("stdlib-jre8"))
+apply {
+  plugin("org.jetbrains.kotlin.jvm")
 }
