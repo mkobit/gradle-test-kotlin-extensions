@@ -8,6 +8,7 @@ import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import com.nhaarman.mockito_kotlin.whenever
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import org.assertj.core.api.Assertions.assertThatIllegalStateException
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
@@ -188,6 +189,22 @@ internal class GradleRunnerExtensionTest {
   }
 
   @Test
+  internal fun `build extension - cannot use forwardOutput and a forwardStdOutput writer`() {
+    val mockWriter: Writer = mock()
+    assertThatIllegalArgumentException().isThrownBy {
+      mockGradleRunner.buildWith(forwardOutput = true, forwardStdOutput = mockWriter)
+    }
+  }
+
+  @Test
+  internal fun `build extension - cannot use forwardOutput and a forwardStdError writer`() {
+    val mockWriter: Writer = mock()
+    assertThatIllegalArgumentException().isThrownBy {
+      mockGradleRunner.buildWith(forwardOutput = true, forwardStdError = mockWriter)
+    }
+  }
+
+  @Test
   internal fun `build and fail extension - no arguments provided`() {
     mockGradleRunner.buildAndFailWith()
 
@@ -319,5 +336,22 @@ internal class GradleRunnerExtensionTest {
 
     verify(mockCall, times(1)).invoke(mockGradleRunner)
     verify(mockGradleRunner, times(1)).buildAndFail()
+  }
+
+
+  @Test
+  internal fun `build and fail extension - cannot use forwardOutput and a forwardStdOutput writer`() {
+    val mockWriter: Writer = mock()
+    assertThatIllegalArgumentException().isThrownBy {
+      mockGradleRunner.buildAndFailWith(forwardOutput = true, forwardStdOutput = mockWriter)
+    }
+  }
+
+  @Test
+  internal fun `build and fail extension - cannot use forwardOutput and a forwardStdError writer`() {
+    val mockWriter: Writer = mock()
+    assertThatIllegalArgumentException().isThrownBy {
+      mockGradleRunner.buildAndFailWith(forwardOutput = true, forwardStdError = mockWriter)
+    }
   }
 }
