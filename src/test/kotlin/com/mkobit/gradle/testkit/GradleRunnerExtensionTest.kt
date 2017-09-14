@@ -2,21 +2,41 @@ package com.mkobit.gradle.testkit
 
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.never
+import com.nhaarman.mockito_kotlin.times
+import com.nhaarman.mockito_kotlin.verify
+import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 import com.nhaarman.mockito_kotlin.whenever
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatIllegalStateException
+import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import testsupport.BooleanSource
+import java.io.File
+import java.io.Writer
+import java.net.URI
 import java.nio.file.Paths
 
 internal class GradleRunnerExtensionTest {
 
+  private lateinit var mockGradleRunner: GradleRunner
+  private lateinit var mockBuildResult: BuildResult
+
+  @BeforeEach
+  internal fun setUp() {
+    mockBuildResult = mock()
+    mockGradleRunner = mock {
+      on { build() } doReturn mockBuildResult
+    }
+  }
+
   @Test
   internal fun `resolve path from projectDir`() {
     val projectDirPath = Paths.get("a")
-    val mockGradleRunner: GradleRunner = mock {
-      on { projectDir } doReturn projectDirPath.toFile()
-    }
+    whenever(mockGradleRunner.projectDir).thenReturn(projectDirPath.toFile())
 
     val resolvePath = Paths.get("b")
     val actual = mockGradleRunner.resolveFromProjectDir(resolvePath)
@@ -27,9 +47,142 @@ internal class GradleRunnerExtensionTest {
 
   @Test
   internal fun `cannot resolve path when projectDir not set`() {
-    val mockGradleRunner: GradleRunner = mock()
     whenever(mockGradleRunner.projectDir).thenReturn(null)
 
     assertThatIllegalStateException().isThrownBy { mockGradleRunner.resolveFromProjectDir(Paths.get("a")) }
+  }
+
+  @Test
+  internal fun `build extension - no arguments provided`() {
+    mockGradleRunner.buildWith()
+
+    verify(mockGradleRunner, times(1)).withPluginClasspath()
+    verify(mockGradleRunner, times(1)).build()
+    verifyNoMoreInteractions(mockGradleRunner)
+  }
+
+  @Test
+  internal fun `build extension - with projectDir`() {
+    val mockFile: File = mock()
+    mockGradleRunner.buildWith(projectDir = mockFile)
+
+    verify(mockGradleRunner, times(1)).withProjectDir(mockFile)
+    verify(mockGradleRunner, times(1)).build()
+  }
+
+  @Test
+  internal fun `build extension - with args`() {
+    val args = listOf<String>()
+    mockGradleRunner.buildWith(arguments = args)
+    verify(mockGradleRunner, times(1)).withArguments(args)
+    verify(mockGradleRunner, times(1)).build()
+  }
+
+  @ParameterizedTest
+  @BooleanSource
+  internal fun `build extension - with debug`(boolean: Boolean) {
+    mockGradleRunner.buildWith(debug = boolean)
+
+    verify(mockGradleRunner, times(1)).withDebug(boolean)
+    verify(mockGradleRunner, times(1)).build()
+  }
+
+  @Test
+  internal fun `build extension - with distribution`() {
+    val mockUri = mock<URI>()
+    mockGradleRunner.buildWith(distribution = mockUri)
+
+    verify(mockGradleRunner, times(1)).withGradleDistribution(mockUri)
+    verify(mockGradleRunner, times(1)).build()
+  }
+
+  @ParameterizedTest
+  @BooleanSource
+  internal fun `build extension - with forwardOutput`(boolean: Boolean) {
+    mockGradleRunner.buildWith(forwardOutput = boolean)
+
+    if (boolean) {
+      verify(mockGradleRunner, times(1)).forwardOutput()
+    } else {
+      verify(mockGradleRunner, never()).forwardOutput()
+    }
+    verify(mockGradleRunner, times(1)).build()
+  }
+
+  @Test
+  internal fun `build extension - with installation`() {
+    val mockFile = mock<File>()
+    mockGradleRunner.buildWith(installation = mockFile)
+
+    verify(mockGradleRunner, times(1)).withGradleInstallation(mockFile)
+    verify(mockGradleRunner, times(1)).build()
+  }
+
+  @Test
+  internal fun `build extension - with versionNumber`() {
+    val version = "version"
+    mockGradleRunner.buildWith(versionNumber = version)
+
+    verify(mockGradleRunner, times(1)).withGradleVersion(version)
+    verify(mockGradleRunner, times(1)).build()
+  }
+
+  @Test
+  internal fun `build extension - with forwardStdError`() {
+    val mockWriter = mock<Writer>()
+    mockGradleRunner.buildWith(forwardStdError = mockWriter)
+
+    verify(mockGradleRunner, times(1)).forwardStdError(mockWriter)
+    verify(mockGradleRunner, times(1)).build()
+  }
+
+  @Test
+  internal fun `build extension - with forwardStdOutput`() {
+    val mockWriter = mock<Writer>()
+    mockGradleRunner.buildWith(forwardStdOutput = mockWriter)
+
+    verify(mockGradleRunner, times(1)).forwardStdOutput(mockWriter)
+    verify(mockGradleRunner, times(1)).build()
+  }
+
+  @ParameterizedTest
+  @BooleanSource
+  internal fun `build extension - with usePluginClasspath`(boolean: Boolean) {
+    mockGradleRunner.buildWith(usePluginClasspath = boolean)
+
+    if (boolean) {
+      verify(mockGradleRunner, times(1)).withPluginClasspath()
+    } else {
+      verify(mockGradleRunner, never()).withPluginClasspath()
+    }
+    verify(mockGradleRunner, times(1)).build()
+  }
+
+  @Test
+  internal fun `build extension - with testKitDir`() {
+    val mockFile = mock<File>()
+    mockGradleRunner.buildWith(testKitDir = mockFile)
+
+    verify(mockGradleRunner, times(1)).withTestKitDir(mockFile)
+    verify(mockGradleRunner, times(1)).build()
+  }
+
+  @Test
+  internal fun `build extension - with pluginClasspath`() {
+    val mockFileIterator: Iterable<File> = mock()
+    mockGradleRunner.buildWith(pluginClasspath = mockFileIterator)
+
+    verify(mockGradleRunner, times(1)).withPluginClasspath(mockFileIterator)
+    verify(mockGradleRunner, never()).withPluginClasspath()
+    verify(mockGradleRunner, times(1)).build()
+  }
+
+  @Test
+  internal fun `build extension - with configuration`() {
+    val mockCall: GradleRunner.() -> Unit = mock()
+    mockGradleRunner.buildWith(configuration = mockCall)
+
+    verify(mockCall, times(1)).invoke(mockGradleRunner)
+    verify(mockGradleRunner, times(1)).build()
   }
 }
