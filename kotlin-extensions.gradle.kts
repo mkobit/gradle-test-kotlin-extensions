@@ -6,5 +6,5 @@ apply {
 val kotlinVersion by rootProject
 
 dependencies {
-  implementation(kotlin("stdlib-jre8", kotlinVersion as String))
+  api(kotlin("stdlib-jre8", kotlinVersion as String))
 }
