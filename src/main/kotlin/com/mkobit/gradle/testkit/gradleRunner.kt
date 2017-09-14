@@ -26,7 +26,7 @@ fun buildAndFail(projectDirectory: File, vararg arguments: String): BuildResult 
  * @throws IllegalStateException when [GradleRunner.getProjectDir] is `null`
  * @throws IllegalArgumentException when [other] is an absolute path
  */
-fun GradleRunner.resolve(other: Path): Path {
+fun GradleRunner.resolveFromProjectDir(other: Path): Path {
   require(!other.isAbsolute) { "Path $other must not be absolute" }
   val projectDirectory: File = projectDir ?: throw IllegalStateException("projectDir must not be null to resolve path")
   return projectDirectory.toPath().resolve(other)
