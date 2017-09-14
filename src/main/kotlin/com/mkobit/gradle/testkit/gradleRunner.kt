@@ -49,12 +49,46 @@ fun GradleRunner.buildWith(
   }
 }
 
-fun buildAndFailWith(projectDirectory: File, vararg arguments: String): BuildResult {
-  return GradleRunner.create()
-    .withPluginClasspath()
-    .withProjectDir(projectDirectory)
-    .withArguments(*arguments)
-    .buildAndFail()
+fun GradleRunner.buildAndFailWith(
+  projectDir: File? = null,
+  arguments: List<String>? = null,
+  debug: Boolean? = null,
+  distribution: URI? = null,
+  forwardOutput: Boolean? = null,
+  installation: File? = null,
+  versionNumber: String? = null,
+  forwardStdError: Writer? = null,
+  forwardStdOutput: Writer? = null,
+  usePluginClasspath: Boolean = true,
+  testKitDir: File? = null,
+  pluginClasspath: Iterable<File>? = null,
+  configuration: GradleRunner.() -> Unit = {}
+): BuildResult {
+  require(!(forwardOutput == true && forwardStdOutput != null)) { "Cannot specify both forwardOutput and forwardStdOutput" }
+  require(!(forwardOutput == true && forwardStdError != null)) { "Cannot specify both forwardOutput and forwardStdError" }
+  return this.run {
+    arguments?.let { withArguments(it) }
+    debug?.let { withDebug(it) }
+
+    if (forwardOutput == true) {
+      forwardOutput()
+    }
+    forwardStdError?.let { forwardStdError(it) }
+    forwardStdOutput?.let { forwardStdOutput(it) }
+    distribution?.let { withGradleDistribution(it) }
+    installation?.let { withGradleInstallation(it) }
+    versionNumber?.let { withGradleVersion(it) }
+    // pluginClasspath takes precendence over usePluginClasspath
+    pluginClasspath?.let { withPluginClasspath(pluginClasspath) }
+    if (usePluginClasspath && pluginClasspath == null) {
+      withPluginClasspath()
+    }
+    projectDir?.let { withProjectDir(it) }
+    testKitDir?.let { withTestKitDir(it) }
+
+    configuration()
+    buildAndFail()
+  }
 }
 
 /**

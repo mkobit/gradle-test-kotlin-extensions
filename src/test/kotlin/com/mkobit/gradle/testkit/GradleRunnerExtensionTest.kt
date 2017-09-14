@@ -30,6 +30,7 @@ internal class GradleRunnerExtensionTest {
     mockBuildResult = mock()
     mockGradleRunner = mock {
       on { build() } doReturn mockBuildResult
+      on { buildAndFail() } doReturn mockBuildResult
     }
   }
 
@@ -184,5 +185,139 @@ internal class GradleRunnerExtensionTest {
 
     verify(mockCall, times(1)).invoke(mockGradleRunner)
     verify(mockGradleRunner, times(1)).build()
+  }
+
+  @Test
+  internal fun `build and fail extension - no arguments provided`() {
+    mockGradleRunner.buildAndFailWith()
+
+    verify(mockGradleRunner, times(1)).withPluginClasspath()
+    verify(mockGradleRunner, times(1)).buildAndFail()
+    verifyNoMoreInteractions(mockGradleRunner)
+  }
+
+  @Test
+  internal fun `build and fail extension - with projectDir`() {
+    val mockFile: File = mock()
+    mockGradleRunner.buildAndFailWith(projectDir = mockFile)
+
+    verify(mockGradleRunner, times(1)).withProjectDir(mockFile)
+    verify(mockGradleRunner, times(1)).buildAndFail()
+  }
+
+  @Test
+  internal fun `build and fail extension - with args`() {
+    val args = listOf<String>()
+    mockGradleRunner.buildAndFailWith(arguments = args)
+    verify(mockGradleRunner, times(1)).withArguments(args)
+    verify(mockGradleRunner, times(1)).buildAndFail()
+  }
+
+  @ParameterizedTest
+  @BooleanSource
+  internal fun `build and fail extension - with debug`(boolean: Boolean) {
+    mockGradleRunner.buildAndFailWith(debug = boolean)
+
+    verify(mockGradleRunner, times(1)).withDebug(boolean)
+    verify(mockGradleRunner, times(1)).buildAndFail()
+  }
+
+  @Test
+  internal fun `build and fail extension - with distribution`() {
+    val mockUri = mock<URI>()
+    mockGradleRunner.buildAndFailWith(distribution = mockUri)
+
+    verify(mockGradleRunner, times(1)).withGradleDistribution(mockUri)
+    verify(mockGradleRunner, times(1)).buildAndFail()
+  }
+
+  @ParameterizedTest
+  @BooleanSource
+  internal fun `build and fail extension - with forwardOutput`(boolean: Boolean) {
+    mockGradleRunner.buildAndFailWith(forwardOutput = boolean)
+
+    if (boolean) {
+      verify(mockGradleRunner, times(1)).forwardOutput()
+    } else {
+      verify(mockGradleRunner, never()).forwardOutput()
+    }
+    verify(mockGradleRunner, times(1)).buildAndFail()
+  }
+
+  @Test
+  internal fun `build and fail extension - with installation`() {
+    val mockFile = mock<File>()
+    mockGradleRunner.buildAndFailWith(installation = mockFile)
+
+    verify(mockGradleRunner, times(1)).withGradleInstallation(mockFile)
+    verify(mockGradleRunner, times(1)).buildAndFail()
+  }
+
+  @Test
+  internal fun `build and fail extension - with versionNumber`() {
+    val version = "version"
+    mockGradleRunner.buildAndFailWith(versionNumber = version)
+
+    verify(mockGradleRunner, times(1)).withGradleVersion(version)
+    verify(mockGradleRunner, times(1)).buildAndFail()
+  }
+
+  @Test
+  internal fun `build and fail extension - with forwardStdError`() {
+    val mockWriter = mock<Writer>()
+    mockGradleRunner.buildAndFailWith(forwardStdError = mockWriter)
+
+    verify(mockGradleRunner, times(1)).forwardStdError(mockWriter)
+    verify(mockGradleRunner, times(1)).buildAndFail()
+  }
+
+  @Test
+  internal fun `build and fail extension - with forwardStdOutput`() {
+    val mockWriter = mock<Writer>()
+    mockGradleRunner.buildAndFailWith(forwardStdOutput = mockWriter)
+
+    verify(mockGradleRunner, times(1)).forwardStdOutput(mockWriter)
+    verify(mockGradleRunner, times(1)).buildAndFail()
+  }
+
+  @ParameterizedTest
+  @BooleanSource
+  internal fun `build and fail extension - with usePluginClasspath`(boolean: Boolean) {
+    mockGradleRunner.buildAndFailWith(usePluginClasspath = boolean)
+
+    if (boolean) {
+      verify(mockGradleRunner, times(1)).withPluginClasspath()
+    } else {
+      verify(mockGradleRunner, never()).withPluginClasspath()
+    }
+    verify(mockGradleRunner, times(1)).buildAndFail()
+  }
+
+  @Test
+  internal fun `build and fail extension - with testKitDir`() {
+    val mockFile = mock<File>()
+    mockGradleRunner.buildAndFailWith(testKitDir = mockFile)
+
+    verify(mockGradleRunner, times(1)).withTestKitDir(mockFile)
+    verify(mockGradleRunner, times(1)).buildAndFail()
+  }
+
+  @Test
+  internal fun `build and fail extension - with pluginClasspath`() {
+    val mockFileIterator: Iterable<File> = mock()
+    mockGradleRunner.buildAndFailWith(pluginClasspath = mockFileIterator)
+
+    verify(mockGradleRunner, times(1)).withPluginClasspath(mockFileIterator)
+    verify(mockGradleRunner, never()).withPluginClasspath()
+    verify(mockGradleRunner, times(1)).buildAndFail()
+  }
+
+  @Test
+  internal fun `build and fail extension - with configuration`() {
+    val mockCall: GradleRunner.() -> Unit = mock()
+    mockGradleRunner.buildAndFailWith(configuration = mockCall)
+
+    verify(mockCall, times(1)).invoke(mockGradleRunner)
+    verify(mockGradleRunner, times(1)).buildAndFail()
   }
 }
