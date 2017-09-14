@@ -1,4 +1,4 @@
-package com.mkobit.gradle.testkit
+package com.mkobit.gradle.testkit.runner
 
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner

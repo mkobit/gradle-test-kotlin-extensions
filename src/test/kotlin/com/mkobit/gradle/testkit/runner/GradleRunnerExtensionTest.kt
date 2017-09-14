@@ -1,4 +1,4 @@
-package com.mkobit.gradle.testkit
+package com.mkobit.gradle.testkit.runner
 
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
