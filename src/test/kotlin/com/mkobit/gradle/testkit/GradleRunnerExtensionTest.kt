@@ -182,7 +182,7 @@ internal class GradleRunnerExtensionTest {
   @Test
   internal fun `build extension - with configuration`() {
     val mockCall: GradleRunner.() -> Unit = mock()
-    mockGradleRunner.buildWith(configuration = mockCall)
+    mockGradleRunner.buildWith(additionalConfiguration = mockCall)
 
     verify(mockCall, times(1)).invoke(mockGradleRunner)
     verify(mockGradleRunner, times(1)).build()
@@ -332,7 +332,7 @@ internal class GradleRunnerExtensionTest {
   @Test
   internal fun `build and fail extension - with configuration`() {
     val mockCall: GradleRunner.() -> Unit = mock()
-    mockGradleRunner.buildAndFailWith(configuration = mockCall)
+    mockGradleRunner.buildAndFailWith(additionalConfiguration = mockCall)
 
     verify(mockCall, times(1)).invoke(mockGradleRunner)
     verify(mockGradleRunner, times(1)).buildAndFail()

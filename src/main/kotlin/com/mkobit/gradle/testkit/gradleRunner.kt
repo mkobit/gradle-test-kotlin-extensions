@@ -7,6 +7,25 @@ import java.io.Writer
 import java.net.URI
 import java.nio.file.Path
 
+/**
+ * Configure and execute a [GradleRunner.build].
+ * @param projectDir if not `null`, sets the project directory - see [GradleRunner.withProjectDir]
+ * @param arguments if not `null`, sets the argument to pass to the build - see [GradleRunner.withArguments]
+ * @param debug - if not `null`, runs the build in process so it is debuggable - see [GradleRunner.withDebug]
+ * @param distribution - if not `null`, use the specified distribution - see [GradleRunner.withGradleDistribution]
+ * @param forwardOutput - if not `null`, forwards the output to the running processes standard out - see [GradleRunner.forwardOutput]
+ * @param installation - if not `null`, use the specified installation - see [GradleRunner.withGradleInstallation]
+ * @param versionNumber - if not `null`, use the specified version from Gradle's servers - see [GradleRunner.withGradleVersion]
+ * @param forwardStdError- if not `null`, forwards build process `stdErr` to the supplied `Writer` - see [GradleRunner.forwardStdError]
+ * @param forwardStdOutput- if not `null`, forwards build process `stdOut` to the supplied `Writer` - see [GradleRunner.forwardStdOutput]
+ * @param usePluginClasspath- if `true`, uses the plugin classpath provided by the `java-gradle-plugin`.
+ * Defaults to `true`. See [GradleRunner.withPluginClasspath].
+ * @param testKitDir if not `null`, use the specified directory for TestKit storage needs - see [GradleRunner.withTestKitDir]
+ * @param pluginClasspath if not `null`, sets the classpath files to use - see [GradleRunner.withPluginClasspath]
+ * @param additionalConfiguration the additional configuration to apply to the `GradleRunner` before execution
+ * @throws IllegalArgumentException when both [forwardOutput] and [forwardStdOutput] are specified
+ * @throws IllegalArgumentException when both [forwardOutput] and [forwardStdError] are specified
+ */
 fun GradleRunner.buildWith(
   projectDir: File? = null,
   arguments: List<String>? = null,
@@ -20,7 +39,7 @@ fun GradleRunner.buildWith(
   usePluginClasspath: Boolean = true,
   testKitDir: File? = null,
   pluginClasspath: Iterable<File>? = null,
-  configuration: GradleRunner.() -> Unit = {}
+  additionalConfiguration: GradleRunner.() -> Unit = {} // would this be more clear if it accepted the GradleRunner?
 ): BuildResult {
   require(!(forwardOutput == true && forwardStdOutput != null)) { "Cannot specify both forwardOutput and forwardStdOutput" }
   require(!(forwardOutput == true && forwardStdError != null)) { "Cannot specify both forwardOutput and forwardStdError" }
@@ -36,7 +55,7 @@ fun GradleRunner.buildWith(
     distribution?.let { withGradleDistribution(it) }
     installation?.let { withGradleInstallation(it) }
     versionNumber?.let { withGradleVersion(it) }
-    // pluginClasspath takes precendence over usePluginClasspath
+    // pluginClasspath takes precedence over usePluginClasspath
     pluginClasspath?.let { withPluginClasspath(pluginClasspath) }
     if (usePluginClasspath && pluginClasspath == null) {
       withPluginClasspath()
@@ -44,11 +63,30 @@ fun GradleRunner.buildWith(
     projectDir?.let { withProjectDir(it) }
     testKitDir?.let { withTestKitDir(it) }
 
-    configuration()
+    additionalConfiguration()
     build()
   }
 }
 
+/**
+ * Configure and execute a [GradleRunner.buildAndFail].
+ * @param projectDir if not `null`, sets the project directory - see [GradleRunner.withProjectDir]
+ * @param arguments if not `null`, sets the argument to pass to the build - see [GradleRunner.withArguments]
+ * @param debug - if not `null`, runs the build in process so it is debuggable - see [GradleRunner.withDebug]
+ * @param distribution - if not `null`, use the specified distribution - see [GradleRunner.withGradleDistribution]
+ * @param forwardOutput - if not `null`, forwards the output to the running processes standard out - see [GradleRunner.forwardOutput]
+ * @param installation - if not `null`, use the specified installation - see [GradleRunner.withGradleInstallation]
+ * @param versionNumber - if not `null`, use the specified version from Gradle's servers - see [GradleRunner.withGradleVersion]
+ * @param forwardStdError- if not `null`, forwards build process `stdErr` to the supplied `Writer` - see [GradleRunner.forwardStdError]
+ * @param forwardStdOutput- if not `null`, forwards build process `stdOut` to the supplied `Writer` - see [GradleRunner.forwardStdOutput]
+ * @param usePluginClasspath- if `true`, uses the plugin classpath provided by the `java-gradle-plugin`.
+ * Defaults to `true`. See [GradleRunner.withPluginClasspath].
+ * @param testKitDir if not `null`, use the specified directory for TestKit storage needs - see [GradleRunner.withTestKitDir]
+ * @param pluginClasspath if not `null`, sets the classpath files to use - see [GradleRunner.withPluginClasspath]
+ * @param additionalConfiguration the additional configuration to apply to the `GradleRunner` before execution
+ * @throws IllegalArgumentException when both [forwardOutput] and [forwardStdOutput] are specified
+ * @throws IllegalArgumentException when both [forwardOutput] and [forwardStdError] are specified
+ */
 fun GradleRunner.buildAndFailWith(
   projectDir: File? = null,
   arguments: List<String>? = null,
@@ -62,7 +100,7 @@ fun GradleRunner.buildAndFailWith(
   usePluginClasspath: Boolean = true,
   testKitDir: File? = null,
   pluginClasspath: Iterable<File>? = null,
-  configuration: GradleRunner.() -> Unit = {}
+  additionalConfiguration: GradleRunner.() -> Unit = {}
 ): BuildResult {
   require(!(forwardOutput == true && forwardStdOutput != null)) { "Cannot specify both forwardOutput and forwardStdOutput" }
   require(!(forwardOutput == true && forwardStdError != null)) { "Cannot specify both forwardOutput and forwardStdError" }
@@ -78,7 +116,7 @@ fun GradleRunner.buildAndFailWith(
     distribution?.let { withGradleDistribution(it) }
     installation?.let { withGradleInstallation(it) }
     versionNumber?.let { withGradleVersion(it) }
-    // pluginClasspath takes precendence over usePluginClasspath
+    // pluginClasspath takes precedence over usePluginClasspath
     pluginClasspath?.let { withPluginClasspath(pluginClasspath) }
     if (usePluginClasspath && pluginClasspath == null) {
       withPluginClasspath()
@@ -86,7 +124,7 @@ fun GradleRunner.buildAndFailWith(
     projectDir?.let { withProjectDir(it) }
     testKitDir?.let { withTestKitDir(it) }
 
-    configuration()
+    additionalConfiguration()
     buildAndFail()
   }
 }
