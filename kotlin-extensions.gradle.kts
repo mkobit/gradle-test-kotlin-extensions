@@ -1,5 +1,6 @@
 apply {
   plugin("org.jetbrains.kotlin.jvm")
+  plugin("org.jetbrains.dokka")
 }
 
 val kotlinVersion by rootProject
