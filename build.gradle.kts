@@ -86,20 +86,13 @@ java {
 }
 
 val main = java.sourceSets["main"]!!
+// No Java in main source set
+main.java.setSrcDirs(emptyList<Any>())
 
 val sourcesJar by tasks.creating(Jar::class) {
   classifier = "sources"
   from(main.allSource)
   description = "Assembles a JAR of the source code"
-  group = JavaBasePlugin.DOCUMENTATION_GROUP
-}
-
-val javadocJar by tasks.creating(Jar::class) {
-  classifier = "javadoc"
-  val javadoc by tasks.getting(Javadoc::class)
-  dependsOn(javadoc)
-  from(javadoc.destinationDir)
-  description = "Assembles a JAR of the generated Javadoc"
   group = JavaBasePlugin.DOCUMENTATION_GROUP
 }
 
@@ -110,9 +103,12 @@ val dokka by tasks.getting(DokkaTask::class) {
   sourceDirs = main.kotlin.srcDirs
 }
 
-javadocJar.apply {
+val javadocJar by tasks.creating(Jar::class) {
   dependsOn(dokka)
   from(dokka.outputDirectory)
+  classifier = "javadoc"
+  description = "Assembles a JAR of the generated Javadoc"
+  group = JavaBasePlugin.DOCUMENTATION_GROUP
 }
 
 tasks["assemble"].dependsOn(sourcesJar, javadocJar)
