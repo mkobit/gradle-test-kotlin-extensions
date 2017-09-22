@@ -1,0 +1,12 @@
+pluginManagement {
+  it.resolutionStrategy {
+    it.eachPlugin {
+      if (it.requested.id.id.startsWith('org.jetbrains.kotlin')) {
+        it.useVersion("${kotlinVersion}")
+      }
+    }
+  }
+}
+
+rootProject.name = 'gradle-kotlin-testing-extensions'
+
