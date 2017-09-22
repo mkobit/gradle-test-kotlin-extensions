@@ -35,7 +35,7 @@ tasks {
 }
 
 version = "0.1.0"
-group = "com.mkobit.gradle.testkit"
+group = "com.mkobit.gradle.test"
 repositories {
   jcenter()
   mavenCentral()
