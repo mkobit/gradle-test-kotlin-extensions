@@ -55,6 +55,7 @@ val junitTestRuntimeOnlyArtifacts: Map<String, Map<String, String>> by rootProje
 dependencies {
   api(gradleApi())
   api(gradleTestKit())
+  api(kotlin("stdlib-jre8", kotlinVersion as String))
   testImplementation(kotlin("reflect", kotlinVersion as String))
   testImplementation("org.assertj:assertj-core:3.8.0")
   testImplementation("org.mockito:mockito-core:2.10.0")
@@ -128,8 +129,4 @@ publishing {
 
 tasks.withType(KotlinCompile::class.java) {
   kotlinOptions.jvmTarget = "1.8"
-}
-
-dependencies {
-  api(kotlin("stdlib-jre8", kotlinVersion as String))
 }
