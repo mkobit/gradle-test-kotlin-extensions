@@ -8,5 +8,5 @@ pluginManagement {
   }
 }
 
-rootProject.name = 'gradle-kotlin-testing-extensions'
+rootProject.name = 'gradle-test-kotlin-extensions'
 
