@@ -102,17 +102,17 @@ val javadocJar by tasks.creating(Jar::class) {
   group = JavaBasePlugin.DOCUMENTATION_GROUP
 }
 
-  val dokka by tasks.getting(DokkaTask::class) {
-    dependsOn(main.classesTaskName)
-    outputFormat = "html"
-    outputDirectory = "$buildDir/javadoc"
-    sourceDirs = main.kotlin.srcDirs
-  }
+val dokka by tasks.getting(DokkaTask::class) {
+  dependsOn(main.classesTaskName)
+  outputFormat = "html"
+  outputDirectory = "$buildDir/javadoc"
+  sourceDirs = main.kotlin.srcDirs
+}
 
-  javadocJar.apply {
-    dependsOn(dokka)
-    from(dokka.outputDirectory)
-  }
+javadocJar.apply {
+  dependsOn(dokka)
+  from(dokka.outputDirectory)
+}
 
 tasks["assemble"].dependsOn(sourcesJar, javadocJar)
 
