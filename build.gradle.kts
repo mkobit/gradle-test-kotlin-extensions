@@ -116,7 +116,7 @@ val javadocJar by tasks.creating(Jar::class) {
 
 tasks["assemble"].dependsOn(sourcesJar, javadocJar)
 
-extensions.getByType(PublishingExtension::class.java).apply {
+publishing {
   publications.invoke {
     "library"(MavenPublication::class) {
       from(components["java"])
