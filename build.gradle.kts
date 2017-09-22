@@ -53,19 +53,19 @@ val junitTestImplementationArtifacts: Map<String, Map<String, String>> by rootPr
 val junitTestRuntimeOnlyArtifacts: Map<String, Map<String, String>> by rootProject.extra
 
 dependencies {
-"api"(gradleApi())
-  "api"(gradleTestKit())
-  "testImplementation"(kotlin("reflect", kotlinVersion as String))
-  "testImplementation"("org.assertj:assertj-core:3.8.0")
-  "testImplementation"("org.mockito:mockito-core:2.10.0")
-  "testImplementation"("com.nhaarman:mockito-kotlin:1.5.0")
+  api(gradleApi())
+  api(gradleTestKit())
+  testImplementation(kotlin("reflect", kotlinVersion as String))
+  testImplementation("org.assertj:assertj-core:3.8.0")
+  testImplementation("org.mockito:mockito-core:2.10.0")
+  testImplementation("com.nhaarman:mockito-kotlin:1.5.0")
   junitTestImplementationArtifacts.values.forEach {
-    "testImplementation"(it)
+    testImplementation(it)
   }
   junitTestRuntimeOnlyArtifacts.values.forEach {
-    "testRuntimeOnly"(it)
+    testRuntimeOnly(it)
   }
-  "testImplementation"(kotlin("stdlib-jre8", kotlinVersion as String))
+  testImplementation(kotlin("stdlib-jre8", kotlinVersion as String))
 }
 
 extensions.getByType(JUnitPlatformExtension::class.java).apply {
