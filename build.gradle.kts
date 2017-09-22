@@ -88,7 +88,7 @@ val main = java.sourceSets["main"]!!
 
 val sourcesJar by tasks.creating(Jar::class) {
   classifier = "sources"
-  from(java.sourceSets["main"]!!.allSource)
+  from(main.allSource)
   description = "Assembles a JAR of the source code"
   group = JavaBasePlugin.DOCUMENTATION_GROUP
 }
