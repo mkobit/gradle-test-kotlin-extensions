@@ -1,0 +1,13 @@
+= Gradle Test Kotlin Extensions
+:toc:
+:uri-GradleRunner: https://docs.gradle.org/current/javadoc/org/gradle/testkit/runner/GradleRunner.html
+:uri-testkit: https://docs.gradle.org/current/userguide/test_kit.html
+
+Kotlin extensions and utilities for testing Gradle projects.
+
+== GradleRunner
+
+link:{uri-GradleRunner}[GradleRunner] can be used to execute builds using the link:{uri-testkit}[Gradle TestKit].
+There are a few extensions that make the setup and execution with Kotlin clearer, more concise, and allows for configuring defaults.
+
+TODO - document usage pattern and APIs
