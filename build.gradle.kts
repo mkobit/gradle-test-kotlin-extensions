@@ -1,3 +1,4 @@
+import java.io.ByteArrayOutputStream
 import org.gradle.api.internal.HasConvention
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.junit.platform.console.options.Details
@@ -23,6 +24,26 @@ plugins {
   `maven-publish`
   kotlin("jvm")
   id("com.github.ben-manes.versions") version "0.15.0"
+}
+
+val gitCommitSha: String by lazy {
+  ByteArrayOutputStream().use {
+    project.exec {
+      commandLine("git", "rev-parse", "HEAD")
+      standardOutput = it
+    }
+    it.toString(Charsets.UTF_8.name()).trim()
+  }
+}
+
+tasks.withType(Jar::class.java) {
+  manifest {
+    attributes(mapOf(
+      "Build-Revision" to gitCommitSha,
+      "Implementation-Version" to project.version
+      // TODO: include Gradle version?
+    ))
+  }
 }
 
 val SourceSet.kotlin: SourceDirectorySet
