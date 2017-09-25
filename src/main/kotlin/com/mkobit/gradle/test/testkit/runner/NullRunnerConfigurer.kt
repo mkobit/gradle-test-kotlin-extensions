@@ -3,6 +3,10 @@ package com.mkobit.gradle.test.testkit.runner
 import mu.KotlinLogging
 import org.gradle.testkit.runner.GradleRunner
 
+/**
+ * Null object implementation of [RunnerConfigurer].
+ */
+// TODO: mkobit - can this be used with ServiceLoader?
 object NullRunnerConfigurer : RunnerConfigurer {
 
   private val logger = KotlinLogging.logger {}

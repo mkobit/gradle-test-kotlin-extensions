@@ -39,7 +39,7 @@ fun GradleRunner.buildWith(
   usePluginClasspath: Boolean? = null,
   testKitDir: File? = null,
   pluginClasspath: Iterable<File>? = null,
-  runnerConfigurer: RunnerConfigurer = DefaultRunnerConfigurer()
+  runnerConfigurer: RunnerConfigurer = ServiceLoaderRunnerConfigurer()
 ): BuildResult {
   require(!(forwardOutput == true && forwardStdOutput != null)) { "Cannot specify both forwardOutput and forwardStdOutput" }
   require(!(forwardOutput == true && forwardStdError != null)) { "Cannot specify both forwardOutput and forwardStdError" }
@@ -98,7 +98,7 @@ fun GradleRunner.buildAndFailWith(
   usePluginClasspath: Boolean? = null,
   testKitDir: File? = null,
   pluginClasspath: Iterable<File>? = null,
-  runnerConfigurer: RunnerConfigurer = DefaultRunnerConfigurer()
+  runnerConfigurer: RunnerConfigurer = ServiceLoaderRunnerConfigurer()
 ): BuildResult {
   require(!(forwardOutput == true && forwardStdOutput != null)) { "Cannot specify both forwardOutput and forwardStdOutput" }
   require(!(forwardOutput == true && forwardStdError != null)) { "Cannot specify both forwardOutput and forwardStdError" }
