@@ -18,13 +18,13 @@ import java.nio.file.Path
  * @param versionNumber - if not `null`, use the specified version from Gradle's servers - see [GradleRunner.withGradleVersion]
  * @param forwardStdError- if not `null`, forwards build process `stdErr` to the supplied `Writer` - see [GradleRunner.forwardStdError]
  * @param forwardStdOutput- if not `null`, forwards build process `stdOut` to the supplied `Writer` - see [GradleRunner.forwardStdOutput]
- * @param usePluginClasspath- if `true`, uses the plugin classpath provided by the `java-gradle-plugin`.
- * Defaults to `true`. See [GradleRunner.withPluginClasspath].
+ * @param usePluginClasspath- if `true`, uses the plugin classpath provided by the `java-gradle-plugin`. See [GradleRunner.withPluginClasspath].
  * @param testKitDir if not `null`, use the specified directory for TestKit storage needs - see [GradleRunner.withTestKitDir]
  * @param pluginClasspath if not `null`, sets the classpath files to use - see [GradleRunner.withPluginClasspath]
- * @param additionalConfiguration the additional configuration to apply to the `GradleRunner` before execution
+ * @param runnerConfigurer the additional configuration to apply to the `GradleRunner` before execution
  * @throws IllegalArgumentException when both [forwardOutput] and [forwardStdOutput] are specified
  * @throws IllegalArgumentException when both [forwardOutput] and [forwardStdError] are specified
+ * @throws IllegalArgumentException when [usePluginClasspath] is `true` and [pluginClasspath] is specified
  */
 fun GradleRunner.buildWith(
   projectDir: File? = null,
@@ -36,36 +36,34 @@ fun GradleRunner.buildWith(
   versionNumber: String? = null,
   forwardStdError: Writer? = null,
   forwardStdOutput: Writer? = null,
-  usePluginClasspath: Boolean = true,
+  usePluginClasspath: Boolean? = null,
   testKitDir: File? = null,
   pluginClasspath: Iterable<File>? = null,
-  additionalConfiguration: GradleRunner.() -> Unit = {} // would this be more clear if it accepted the GradleRunner?
+  runnerConfigurer: RunnerConfigurer = DefaultRunnerConfigurer()
 ): BuildResult {
   require(!(forwardOutput == true && forwardStdOutput != null)) { "Cannot specify both forwardOutput and forwardStdOutput" }
   require(!(forwardOutput == true && forwardStdError != null)) { "Cannot specify both forwardOutput and forwardStdError" }
-  return this.run {
-    arguments?.let { withArguments(it) }
-    debug?.let { withDebug(it) }
+  require(!(usePluginClasspath == true && pluginClasspath != null)) { "Cannot specify both usePluginClasspath and forwardStdError" }
+  arguments?.let { withArguments(it) }
+  debug?.let { withDebug(it) }
 
-    if (forwardOutput == true) {
-      forwardOutput()
-    }
-    forwardStdError?.let { forwardStdError(it) }
-    forwardStdOutput?.let { forwardStdOutput(it) }
-    distribution?.let { withGradleDistribution(it) }
-    installation?.let { withGradleInstallation(it) }
-    versionNumber?.let { withGradleVersion(it) }
-    // pluginClasspath takes precedence over usePluginClasspath
-    pluginClasspath?.let { withPluginClasspath(pluginClasspath) }
-    if (usePluginClasspath && pluginClasspath == null) {
-      withPluginClasspath()
-    }
-    projectDir?.let { withProjectDir(it) }
-    testKitDir?.let { withTestKitDir(it) }
-
-    additionalConfiguration()
-    build()
+  if (forwardOutput == true) {
+    forwardOutput()
   }
+  forwardStdError?.let { forwardStdError(it) }
+  forwardStdOutput?.let { forwardStdOutput(it) }
+  distribution?.let { withGradleDistribution(it) }
+  installation?.let { withGradleInstallation(it) }
+  versionNumber?.let { withGradleVersion(it) }
+  pluginClasspath?.let { withPluginClasspath(pluginClasspath) }
+  if (usePluginClasspath == true) {
+    withPluginClasspath()
+  }
+  projectDir?.let { withProjectDir(it) }
+  testKitDir?.let { withTestKitDir(it) }
+
+  runnerConfigurer(this)
+  return build()
 }
 
 /**
@@ -79,13 +77,13 @@ fun GradleRunner.buildWith(
  * @param versionNumber - if not `null`, use the specified version from Gradle's servers - see [GradleRunner.withGradleVersion]
  * @param forwardStdError- if not `null`, forwards build process `stdErr` to the supplied `Writer` - see [GradleRunner.forwardStdError]
  * @param forwardStdOutput- if not `null`, forwards build process `stdOut` to the supplied `Writer` - see [GradleRunner.forwardStdOutput]
- * @param usePluginClasspath- if `true`, uses the plugin classpath provided by the `java-gradle-plugin`.
- * Defaults to `true`. See [GradleRunner.withPluginClasspath].
+ * @param usePluginClasspath- if `true`, uses the plugin classpath provided by the `java-gradle-plugin`. See [GradleRunner.withPluginClasspath].
  * @param testKitDir if not `null`, use the specified directory for TestKit storage needs - see [GradleRunner.withTestKitDir]
  * @param pluginClasspath if not `null`, sets the classpath files to use - see [GradleRunner.withPluginClasspath]
- * @param additionalConfiguration the additional configuration to apply to the `GradleRunner` before execution
+ * @param runnerConfigurer the additional configuration to apply to the `GradleRunner` before execution
  * @throws IllegalArgumentException when both [forwardOutput] and [forwardStdOutput] are specified
  * @throws IllegalArgumentException when both [forwardOutput] and [forwardStdError] are specified
+ * @throws IllegalArgumentException when [usePluginClasspath] is `true` and [pluginClasspath] is specified
  */
 fun GradleRunner.buildAndFailWith(
   projectDir: File? = null,
@@ -97,36 +95,34 @@ fun GradleRunner.buildAndFailWith(
   versionNumber: String? = null,
   forwardStdError: Writer? = null,
   forwardStdOutput: Writer? = null,
-  usePluginClasspath: Boolean = true,
+  usePluginClasspath: Boolean? = null,
   testKitDir: File? = null,
   pluginClasspath: Iterable<File>? = null,
-  additionalConfiguration: GradleRunner.() -> Unit = {}
+  runnerConfigurer: RunnerConfigurer = DefaultRunnerConfigurer()
 ): BuildResult {
   require(!(forwardOutput == true && forwardStdOutput != null)) { "Cannot specify both forwardOutput and forwardStdOutput" }
   require(!(forwardOutput == true && forwardStdError != null)) { "Cannot specify both forwardOutput and forwardStdError" }
-  return this.run {
-    arguments?.let { withArguments(it) }
-    debug?.let { withDebug(it) }
+  require(!(usePluginClasspath == true && pluginClasspath != null)) { "Cannot specify both usePluginClasspath and forwardStdError" }
+  arguments?.let { withArguments(it) }
+  debug?.let { withDebug(it) }
 
-    if (forwardOutput == true) {
-      forwardOutput()
-    }
-    forwardStdError?.let { forwardStdError(it) }
-    forwardStdOutput?.let { forwardStdOutput(it) }
-    distribution?.let { withGradleDistribution(it) }
-    installation?.let { withGradleInstallation(it) }
-    versionNumber?.let { withGradleVersion(it) }
-    // pluginClasspath takes precedence over usePluginClasspath
-    pluginClasspath?.let { withPluginClasspath(pluginClasspath) }
-    if (usePluginClasspath && pluginClasspath == null) {
-      withPluginClasspath()
-    }
-    projectDir?.let { withProjectDir(it) }
-    testKitDir?.let { withTestKitDir(it) }
-
-    additionalConfiguration()
-    buildAndFail()
+  if (forwardOutput == true) {
+    forwardOutput()
   }
+  forwardStdError?.let { forwardStdError(it) }
+  forwardStdOutput?.let { forwardStdOutput(it) }
+  distribution?.let { withGradleDistribution(it) }
+  installation?.let { withGradleInstallation(it) }
+  versionNumber?.let { withGradleVersion(it) }
+  pluginClasspath?.let { withPluginClasspath(pluginClasspath) }
+  if (usePluginClasspath == true) {
+    withPluginClasspath()
+  }
+  projectDir?.let { withProjectDir(it) }
+  testKitDir?.let { withTestKitDir(it) }
+
+  runnerConfigurer(this)
+  return buildAndFail()
 }
 
 /**

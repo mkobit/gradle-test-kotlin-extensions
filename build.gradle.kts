@@ -76,6 +76,7 @@ val junitTestRuntimeOnlyArtifacts: Map<String, Map<String, String>> by rootProje
 dependencies {
   api(gradleApi())
   api(gradleTestKit())
+  implementation("io.github.microutils:kotlin-logging:1.4.6")
   api(kotlin("stdlib-jre8", kotlinVersion as String))
   testImplementation(kotlin("reflect", kotlinVersion as String))
   testImplementation("org.assertj:assertj-core:3.8.0")
