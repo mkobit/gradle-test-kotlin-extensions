@@ -47,7 +47,7 @@ tasks.withType(Jar::class.java) {
 }
 
 val SourceSet.kotlin: SourceDirectorySet
-  get() = (this as HasConvention).convention.getPlugin(KotlinSourceSet::class.java).kotlin
+  get() = withConvention(KotlinSourceSet::class) { kotlin }
 
 tasks {
   "wrapper"(Wrapper::class) {
