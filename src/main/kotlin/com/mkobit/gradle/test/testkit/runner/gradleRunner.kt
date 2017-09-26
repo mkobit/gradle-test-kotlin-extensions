@@ -22,8 +22,8 @@ import java.nio.file.Path
  * @param testKitDir if not `null`, use the specified directory for TestKit storage needs - see [GradleRunner.withTestKitDir]
  * @param pluginClasspath if not `null`, sets the classpath files to use - see [GradleRunner.withPluginClasspath]
  * @param runnerConfigurer the additional configuration to apply to the `GradleRunner` before execution
- * @throws IllegalArgumentException when both [forwardOutput] and [forwardStdOutput] are specified
- * @throws IllegalArgumentException when both [forwardOutput] and [forwardStdError] are specified
+ * @throws IllegalArgumentException when [forwardOutput] is `true` and [forwardStdOutput] is specified
+ * @throws IllegalArgumentException when [forwardOutput] is `true` and [forwardStdError] is specified
  * @throws IllegalArgumentException when [usePluginClasspath] is `true` and [pluginClasspath] is specified
  */
 fun GradleRunner.buildWith(
@@ -81,8 +81,8 @@ fun GradleRunner.buildWith(
  * @param testKitDir if not `null`, use the specified directory for TestKit storage needs - see [GradleRunner.withTestKitDir]
  * @param pluginClasspath if not `null`, sets the classpath files to use - see [GradleRunner.withPluginClasspath]
  * @param runnerConfigurer the additional configuration to apply to the `GradleRunner` before execution
- * @throws IllegalArgumentException when both [forwardOutput] and [forwardStdOutput] are specified
- * @throws IllegalArgumentException when both [forwardOutput] and [forwardStdError] are specified
+ * @throws IllegalArgumentException when [forwardOutput] is `true` and [forwardStdOutput] is specified
+ * @throws IllegalArgumentException when [forwardOutput] is `true` and [forwardStdError] is specified
  * @throws IllegalArgumentException when [usePluginClasspath] is `true` and [pluginClasspath] is specified
  */
 fun GradleRunner.buildAndFailWith(

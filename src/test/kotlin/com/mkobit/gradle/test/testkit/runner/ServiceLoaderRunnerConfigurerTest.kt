@@ -3,7 +3,6 @@ package com.mkobit.gradle.test.testkit.runner
 import com.nhaarman.mockito_kotlin.atLeastOnce
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThatCode
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.BeforeEach
