@@ -133,6 +133,13 @@ val javadocJar by tasks.creating(Jar::class) {
   group = JavaBasePlugin.DOCUMENTATION_GROUP
 }
 
+tasks.withType(Jar::class.java) {
+  from(project.projectDir) {
+    include("LICENSE.txt")
+    into("META-INF")
+  }
+}
+
 tasks["assemble"].dependsOn(sourcesJar, javadocJar)
 
 publishing {
