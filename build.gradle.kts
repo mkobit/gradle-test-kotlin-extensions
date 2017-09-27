@@ -166,18 +166,25 @@ tasks {
 
   val gitTag by creating(Exec::class) {
     description = "Tags the local repository with version ${project.version}"
+    group = PublishingPlugin.PUBLISH_TASK_GROUP
     commandLine("git", "tag", "-a", project.version, "-m", "Gradle created tag for ${project.version}")
   }
 
   val pushGitTag by creating(Exec::class) {
     description = "Pushes Git tag ${project.version} to origin"
+    group = PublishingPlugin.PUBLISH_TASK_GROUP
     dependsOn(gitTag)
     commandLine("git", "push", "origin", "refs/tags/${project.version}")
   }
 
   val bintrayUpload by getting {
     dependsOn(gitDirtyCheck, gitTag)
-    finalizedBy(pushGitTag)
+  }
+
+  "release" {
+    group = PublishingPlugin.PUBLISH_TASK_GROUP
+    description = "Publishes the library and pushes up a Git tag for the current commit"
+    dependsOn(bintrayUpload, pushGitTag)
   }
 }
 
