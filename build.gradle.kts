@@ -1,3 +1,4 @@
+import com.jfrog.bintray.gradle.BintrayExtension
 import java.io.ByteArrayOutputStream
 import org.gradle.api.internal.HasConvention
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -24,7 +25,16 @@ plugins {
   `maven-publish`
   kotlin("jvm")
   id("com.github.ben-manes.versions") version "0.15.0"
+  id("com.jfrog.bintray") version "1.7.3"
 }
+
+version = "0.1.0"
+group = "com.mkobit.gradle.test"
+description = "Kotlin library to aid in writing tests for Gradle"
+
+val projectUrl by extra { "https://github.com/mkobit/gradle-test-kotlin-extensions"}
+val issuesUrl by extra { "https://github.com/mkobit/gradle-test-kotlin-extensions/issues"}
+val scmUrl by extra { "https://github.com/mkobit/gradle-test-kotlin-extensions.git"}
 
 val gitCommitSha: String by lazy {
   ByteArrayOutputStream().use {
@@ -55,8 +65,6 @@ tasks {
   }
 }
 
-version = "0.1.0"
-group = "com.mkobit.gradle.test"
 repositories {
   jcenter()
   mavenCentral()
@@ -140,16 +148,91 @@ tasks.withType(Jar::class.java) {
   }
 }
 
+tasks {
+  val gitDirtyCheck by creating {
+    doFirst {
+      val output = ByteArrayOutputStream().use {
+        exec {
+          commandLine("git", "status", "--porcelain")
+          standardOutput = it
+        }
+        it.toString(Charsets.UTF_8.name()).trim()
+      }
+      if (output.isNotBlank()) {
+        throw GradleException("Workspace is dirty:\n$output")
+      }
+    }
+  }
+
+  val gitTag by creating(Exec::class) {
+    description = "Tags the local repository with version ${project.version}"
+    commandLine("git", "tag", "-a", project.version, "-m", "Gradle created tag for ${project.version}")
+  }
+
+  val pushGitTag by creating(Exec::class) {
+    description = "Pushes Git tag ${project.version} to origin"
+    dependsOn(gitTag)
+    commandLine("git", "push", "origin", "refs/tags/${project.version}")
+  }
+
+  val bintrayUpload by getting {
+    dependsOn(gitDirtyCheck, gitTag)
+    finalizedBy(pushGitTag)
+  }
+}
+
 tasks["assemble"].dependsOn(sourcesJar, javadocJar)
 
+val publicationName = "gradleTestKotlinExtensions"
 publishing {
   publications.invoke {
-    "gradleTestKotlinExtensions"(MavenPublication::class) {
+    publicationName(MavenPublication::class) {
       from(components["java"])
       artifact(sourcesJar)
       artifact(javadocJar)
+      pom.withXml {
+        asNode().apply {
+          appendNode("description", project.description)
+          appendNode("url", projectUrl)
+          appendNode("licenses").apply {
+            appendNode("license").apply {
+              appendNode("name", "The MIT License")
+              appendNode("url", "https://opensource.org/licenses/MIT")
+              appendNode("distribution", "repo")
+            }
+          }
+        }
+      }
     }
   }
+}
+
+// Maven just looks like this, can maybe not even use bintray plugin
+//<distributionManagement>
+//<repository>
+//<id>bintray-mkobit-gradle</id>
+//<name>mkobit-gradle</name>
+//<url>https://api.bintray.com/maven/mkobit/gradle/[PACKAGE_NAME]/;publish=1</url>
+//</repository>
+//</distributionManagement>
+
+bintray {
+  val bintrayUser = project.findProperty("bintrayUser") as String?
+  val bintrayApiKey = project.findProperty("bintrayApiKey") as String?
+  user = bintrayUser
+  key = bintrayApiKey
+  setPublications(publicationName)
+  pkg(delegateClosureOf<BintrayExtension.PackageConfig> {
+    repo = "gradle"
+    name = project.name
+    userOrg = "mkobit"
+
+    setLabels("gradle", "testkit", "kotlin")
+
+    websiteUrl = projectUrl
+    issueTrackerUrl = issuesUrl
+    vcsUrl = scmUrl
+  })
 }
 
 tasks.withType(KotlinCompile::class.java) {
