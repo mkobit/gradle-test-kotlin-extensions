@@ -228,6 +228,7 @@ bintray {
   val bintrayApiKey = project.findProperty("bintrayApiKey") as String?
   user = bintrayUser
   key = bintrayApiKey
+  publish = true
   setPublications(publicationName)
   pkg(delegateClosureOf<BintrayExtension.PackageConfig> {
     repo = "gradle"
