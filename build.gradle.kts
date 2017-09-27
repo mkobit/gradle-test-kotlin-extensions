@@ -137,7 +137,7 @@ tasks["assemble"].dependsOn(sourcesJar, javadocJar)
 
 publishing {
   publications.invoke {
-    "library"(MavenPublication::class) {
+    "gradleTestKotlinExtensions"(MavenPublication::class) {
       from(components["java"])
       artifact(sourcesJar)
       artifact(javadocJar)
