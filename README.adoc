@@ -82,29 +82,28 @@ It also can be configured by system properties for execution
 |Value
 |Effect
 
-|com.mkobit.gradle.test.testkit.runner.DefaultRunnerConfigurer.logLevel
-|quiet
+|`com.mkobit.gradle.test.testkit.runner.DefaultRunnerConfigurer.logLevel`
+|`quiet`
 |Adds `--quiet` argument
 
-|com.mkobit.gradle.test.testkit.runner.DefaultRunnerConfigurer.logLevel
-|warn
+|`com.mkobit.gradle.test.testkit.runner.DefaultRunnerConfigurer.logLevel`
+|`warn`
 |Adds `--warn` argument
 
-|com.mkobit.gradle.test.testkit.runner.DefaultRunnerConfigurer.logLevel
-|info
+|`com.mkobit.gradle.test.testkit.runner.DefaultRunnerConfigurer.logLevel`
+|`info`
 |Adds `--info` argument
 
-|com.mkobit.gradle.test.testkit.runner.DefaultRunnerConfigurer.logLevel
-|debug
+|`com.mkobit.gradle.test.testkit.runner.DefaultRunnerConfigurer.logLevel`
+|`debug`
 |Adds `--debug` argument
 
 
-|com.mkobit.gradle.test.testkit.runner.DefaultRunnerConfigurer.stacktrace
-|stacktrace
+|`com.mkobit.gradle.test.testkit.runner.DefaultRunnerConfigurer.stacktrace`
+|`stacktrace`
 |Adds `--stacktrace` argument
 
-|com.mkobit.gradle.test.testkit.runner.DefaultRunnerConfigurer.stacktrace
-|full-stacktrace
+|`com.mkobit.gradle.test.testkit.runner.DefaultRunnerConfigurer.stacktrace`
+|`full-stacktrace`
 |Adds `--full-stacktrace` argument
-
 |===
