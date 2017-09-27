@@ -21,6 +21,18 @@ Kotlin extensions and utilities for testing Gradle projects.
 
 == Usage
 
+.Add as a dependency
+[source, kotlin]
+----
+repositories {
+  jcenter()
+}
+
+dependencies {
+  testImplementation("com.mkobit.gradle.test:gradle-test-kotlin-extensions:0.1.0")
+}
+----
+
 [[gradleRunner-extensions]]
 === GradleRunner extensions
 

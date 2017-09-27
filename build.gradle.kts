@@ -236,7 +236,7 @@ bintray {
     userOrg = "mkobit"
 
     setLabels("gradle", "testkit", "kotlin")
-
+    desc = project.description
     websiteUrl = projectUrl
     issueTrackerUrl = issuesUrl
     vcsUrl = scmUrl
