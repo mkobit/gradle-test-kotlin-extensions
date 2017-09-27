@@ -10,12 +10,12 @@
 :uri-javaGradle-plugin: {uri-gradle-userguide}/javaGradle_plugin.html
 :uri-build-status-image: https://circleci.com/gh/mkobit/gradle-test-kotlin-extensions/tree/master.svg?style=svg
 :circle-ci-status-badge: image:{uri-build-status-image}["CircleCI", link="https://circleci.com/gh/mkobit/gradle-test-kotlin-extensions/tree/master"]
-:uri-version-badge-image:
-:uri-bintray-package:
-:version-badge: image:{uri-version-badge-image}["Plugin Version", link="{uri-bintrary-package}"]
+:uri-version-badge-image: https://api.bintray.com/packages/mkobit/gradle/gradle-test-kotlin-extensions/images/download.svg
+:uri-bintray-package: https://bintray.com/mkobit/gradle/gradle-test-kotlin-extensions/_latestVersion
+:version-badge: image:{uri-version-badge-image}["Latest Release Version", link="{uri-bintray-package}"]
 
-{circle-ci-status-badge}
 {version-badge}
+{circle-ci-status-badge}
 
 Kotlin extensions and utilities for testing Gradle projects.
 
