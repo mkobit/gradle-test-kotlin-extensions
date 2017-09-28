@@ -32,9 +32,9 @@ version = "0.1.0"
 group = "com.mkobit.gradle.test"
 description = "Kotlin library to aid in writing tests for Gradle"
 
-val projectUrl by extra { "https://github.com/mkobit/gradle-test-kotlin-extensions"}
-val issuesUrl by extra { "https://github.com/mkobit/gradle-test-kotlin-extensions/issues"}
-val scmUrl by extra { "https://github.com/mkobit/gradle-test-kotlin-extensions.git"}
+val projectUrl by extra { "https://github.com/mkobit/gradle-test-kotlin-extensions" }
+val issuesUrl by extra { "https://github.com/mkobit/gradle-test-kotlin-extensions/issues" }
+val scmUrl by extra { "https://github.com/mkobit/gradle-test-kotlin-extensions.git" }
 
 val gitCommitSha: String by lazy {
   ByteArrayOutputStream().use {
@@ -62,6 +62,7 @@ val SourceSet.kotlin: SourceDirectorySet
 tasks {
   "wrapper"(Wrapper::class) {
     gradleVersion = "4.2"
+    distributionType = Wrapper.DistributionType.ALL
   }
 }
 
@@ -141,14 +142,22 @@ val javadocJar by tasks.creating(Jar::class) {
   group = JavaBasePlugin.DOCUMENTATION_GROUP
 }
 
-tasks.withType(Jar::class.java) {
-  from(project.projectDir) {
-    include("LICENSE.txt")
-    into("META-INF")
-  }
-}
-
 tasks {
+  withType(Jar::class.java) {
+    from(project.projectDir) {
+      include("LICENSE.txt")
+      into("META-INF")
+    }
+  }
+
+  withType(KotlinCompile::class.java) {
+    kotlinOptions.jvmTarget = "1.8"
+  }
+
+  "assemble" {
+    dependsOn(sourcesJar, javadocJar)
+  }
+
   val gitDirtyCheck by creating {
     doFirst {
       val output = ByteArrayOutputStream().use {
@@ -187,8 +196,6 @@ tasks {
     dependsOn(bintrayUpload, pushGitTag)
   }
 }
-
-tasks["assemble"].dependsOn(sourcesJar, javadocJar)
 
 val publicationName = "gradleTestKotlinExtensions"
 publishing {
@@ -241,8 +248,4 @@ bintray {
     issueTrackerUrl = issuesUrl
     vcsUrl = scmUrl
   })
-}
-
-tasks.withType(KotlinCompile::class.java) {
-  kotlinOptions.jvmTarget = "1.8"
 }
