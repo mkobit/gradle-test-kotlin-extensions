@@ -15,7 +15,7 @@ buildscript {
   }
   dependencies {
     // TODO: load from properties or script plugin
-    classpath("org.junit.platform:junit-platform-gradle-plugin:1.0.0")
+    classpath("org.junit.platform:junit-platform-gradle-plugin:1.0.1")
     classpath("org.jetbrains.dokka:dokka-gradle-plugin:0.9.15")
   }
 }
@@ -24,7 +24,7 @@ plugins {
   `java-library`
   `maven-publish`
   kotlin("jvm")
-  id("com.github.ben-manes.versions") version "0.15.0"
+  id("com.github.ben-manes.versions") version "0.17.0"
   id("com.jfrog.bintray") version "1.7.3"
 }
 
@@ -46,22 +46,12 @@ val gitCommitSha: String by lazy {
   }
 }
 
-tasks.withType(Jar::class.java) {
-  manifest {
-    attributes(mapOf(
-      "Build-Revision" to gitCommitSha,
-      "Implementation-Version" to project.version
-      // TODO: include Gradle version?
-    ))
-  }
-}
-
 val SourceSet.kotlin: SourceDirectorySet
   get() = withConvention(KotlinSourceSet::class) { kotlin }
 
 tasks {
   "wrapper"(Wrapper::class) {
-    gradleVersion = "4.2"
+    gradleVersion = "4.3"
     distributionType = Wrapper.DistributionType.ALL
   }
 }
@@ -89,7 +79,7 @@ dependencies {
   api(kotlin("stdlib-jre8", kotlinVersion as String))
   testImplementation(kotlin("reflect", kotlinVersion as String))
   testImplementation("org.assertj:assertj-core:3.8.0")
-  testImplementation("org.mockito:mockito-core:2.10.0")
+  testImplementation("org.mockito:mockito-core:2.11.0")
   testImplementation("com.nhaarman:mockito-kotlin:1.5.0")
   junitTestImplementationArtifacts.values.forEach {
     testImplementation(it)
@@ -242,7 +232,8 @@ bintray {
     name = project.name
     userOrg = "mkobit"
 
-    setLabels("gradle", "testkit", "kotlin")
+    setLabels("gradle", "test", "plugins", "kotlin")
+    setLicenses("MIT")
     desc = project.description
     websiteUrl = projectUrl
     issueTrackerUrl = issuesUrl
