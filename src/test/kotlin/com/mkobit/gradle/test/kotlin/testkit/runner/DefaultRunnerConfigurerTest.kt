@@ -1,4 +1,4 @@
-package com.mkobit.gradle.test.testkit.runner
+package com.mkobit.gradle.test.kotlin.testkit.runner
 
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.anyOrNull
@@ -51,7 +51,7 @@ internal class DefaultRunnerConfigurerTest {
   @MethodSource("stacktraceOptions")
   @ParameterizedTest(name = "{0} then {1} is passed into arguments")
   internal fun `stacktrace property is set to`(configurationValue: String, expectedOption: String) {
-    whenever(mockPropertyLoader.getProperty(eq("com.mkobit.gradle.test.testkit.runner.DefaultRunnerConfigurer.stacktrace"), anyOrNull()))
+    whenever(mockPropertyLoader.getProperty(eq("com.mkobit.gradle.test.kotlin.testkit.runner.DefaultRunnerConfigurer.stacktrace"), anyOrNull()))
       .thenReturn(configurationValue)
     whenever(mockGradleRunner.arguments).thenReturn(emptyList())
 
@@ -78,7 +78,7 @@ internal class DefaultRunnerConfigurerTest {
     whenever(mockGradleRunner.arguments).thenReturn(originalArguments)
 
     // TODO: mkobit - figure out better way to test this without knowing this property
-    whenever(mockPropertyLoader.getProperty(eq("com.mkobit.gradle.test.testkit.runner.DefaultRunnerConfigurer.stacktrace"), anyOrNull()))
+    whenever(mockPropertyLoader.getProperty(eq("com.mkobit.gradle.test.kotlin.testkit.runner.DefaultRunnerConfigurer.stacktrace"), anyOrNull()))
       .thenReturn("stacktrace")
 
     defaultRunnerConfigurer(mockGradleRunner)
@@ -94,7 +94,7 @@ internal class DefaultRunnerConfigurerTest {
   @MethodSource("logLevelOptions")
   @ParameterizedTest(name = "{0} then {1} is passed into arguments")
   internal fun `logLevel property is set to`(configurationValue: String, expectedOption: String) {
-    whenever(mockPropertyLoader.getProperty(eq("com.mkobit.gradle.test.testkit.runner.DefaultRunnerConfigurer.logLevel"), anyOrNull()))
+    whenever(mockPropertyLoader.getProperty(eq("com.mkobit.gradle.test.kotlin.testkit.runner.DefaultRunnerConfigurer.logLevel"), anyOrNull()))
     .thenReturn(configurationValue)
     whenever(mockGradleRunner.arguments).thenReturn(emptyList())
 

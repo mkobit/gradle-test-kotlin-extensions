@@ -1,5 +1,6 @@
-package com.mkobit.gradle.test.testkit.runner
+package com.mkobit.gradle.test.kotlin.testkit.runner
 
+import com.mkobit.gradle.test.kotlin.testkit.runner.ServiceLoaderRunnerConfigurer
 import com.nhaarman.mockito_kotlin.atLeastOnce
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify

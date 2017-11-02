@@ -1,4 +1,4 @@
-package com.mkobit.gradle.test.testkit.runner
+package com.mkobit.gradle.test.kotlin.testkit.runner
 
 import mu.KotlinLogging
 import org.gradle.testkit.runner.GradleRunner

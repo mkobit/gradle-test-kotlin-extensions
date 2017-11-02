@@ -24,6 +24,15 @@ For each release, a subsection should be added for each of the following if they
 
 == Unreleased (yyyy/mm/dd)
 
+=== Changed
+
+* Base package namespace of classes from `com.mkobit.gradle.test` to `com.mkobit.gradle.test.kotlin.testkit.runner`
+
+=== Added
+
+* `GradleRunner` extensions
+** `projectDirPath` - `Path?` to the project directory
+
 == 0.1.0 (yyyy/mm/dd)
 
 Initial release

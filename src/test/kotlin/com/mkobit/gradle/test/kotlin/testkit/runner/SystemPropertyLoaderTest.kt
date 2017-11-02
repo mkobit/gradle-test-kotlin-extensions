@@ -1,4 +1,4 @@
-package com.mkobit.gradle.test.testkit.runner
+package com.mkobit.gradle.test.kotlin.testkit.runner
 
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.SoftAssertions

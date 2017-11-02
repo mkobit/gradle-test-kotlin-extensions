@@ -1,4 +1,4 @@
-package com.mkobit.gradle.test.testkit.runner
+package com.mkobit.gradle.test.kotlin.testkit.runner
 
 import mu.KotlinLogging
 import org.gradle.testkit.runner.GradleRunner
@@ -24,7 +24,8 @@ class ServiceLoaderRunnerConfigurer : RunnerConfigurer {
     val runnerConfigurers = services.toList()
     if (runnerConfigurers.isEmpty()) {
       logger.debug { "No configurers found, using default" }
-      defaultConfigurer(gradleRunner)
+      defaultConfigurer(
+          gradleRunner)
     } else {
       // TODO: provide ordering semantics
       runnerConfigurers.onEach {
