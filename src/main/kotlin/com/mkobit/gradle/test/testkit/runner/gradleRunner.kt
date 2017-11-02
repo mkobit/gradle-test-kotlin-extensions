@@ -8,6 +8,13 @@ import java.net.URI
 import java.nio.file.Path
 
 /**
+ * The [GradleRunner.getProjectDir] as a [Path].
+ */
+var GradleRunner.projectDirPath: Path?
+  get() = projectDir?.toPath()
+  set(value) { withProjectDir(value?.toFile()) }
+
+/**
  * Configure and execute a [GradleRunner.build].
  * @param projectDir if not `null`, sets the project directory - see [GradleRunner.withProjectDir]
  * @param arguments if not `null`, sets the argument to pass to the build - see [GradleRunner.withArguments]

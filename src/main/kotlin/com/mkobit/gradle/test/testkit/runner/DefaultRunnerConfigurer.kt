@@ -44,6 +44,4 @@ class DefaultRunnerConfigurer internal constructor(
   }
 
   private fun runnerKey(keyName: String) = "$KEY_PREFIX.$keyName"
-
-  private fun isBooleanPropertyEnabled(key: String, default: Boolean = false): Boolean = propertyLoader.getProperty(key, default.toString())?.toBoolean() ?: default
 }
