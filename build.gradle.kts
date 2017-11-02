@@ -138,6 +138,13 @@ tasks {
       include("LICENSE.txt")
       into("META-INF")
     }
+    manifest {
+      attributes(mapOf(
+        "Build-Revision" to gitCommitSha,
+        "Implementation-Version" to project.version
+        // TODO: include Gradle version?
+      ))
+    }
   }
 
   withType(KotlinCompile::class.java) {
