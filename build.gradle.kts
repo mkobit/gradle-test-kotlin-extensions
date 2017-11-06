@@ -1,3 +1,5 @@
+import buildsrc.DependencyInfo
+import buildsrc.ProjectInfo
 import com.jfrog.bintray.gradle.BintrayExtension
 import java.io.ByteArrayOutputStream
 import org.gradle.api.internal.HasConvention
@@ -32,10 +34,6 @@ version = "0.1.0"
 group = "com.mkobit.gradle.test"
 description = "Kotlin library to aid in writing tests for Gradle"
 
-val projectUrl by extra { "https://github.com/mkobit/gradle-test-kotlin-extensions" }
-val issuesUrl by extra { "https://github.com/mkobit/gradle-test-kotlin-extensions/issues" }
-val scmUrl by extra { "https://github.com/mkobit/gradle-test-kotlin-extensions.git" }
-
 val gitCommitSha: String by lazy {
   ByteArrayOutputStream().use {
     project.exec {
@@ -62,36 +60,30 @@ repositories {
 }
 
 apply {
-  from("gradle/junit5.gradle.kts")
   plugin("org.junit.platform.gradle.plugin")
   plugin("org.jetbrains.dokka")
 }
-
-val kotlinVersion by project
-val junitPlatformVersion: String by rootProject.extra
-val junitTestImplementationArtifacts: Map<String, Map<String, String>> by rootProject.extra
-val junitTestRuntimeOnlyArtifacts: Map<String, Map<String, String>> by rootProject.extra
 
 dependencies {
   api(gradleApi())
   api(gradleTestKit())
   implementation("io.github.microutils:kotlin-logging:1.4.6")
-  api(kotlin("stdlib-jre8", kotlinVersion as String))
-  testImplementation(kotlin("reflect", kotlinVersion as String))
+  api(kotlin("stdlib-jre8"))
+  testImplementation(kotlin("reflect"))
   testImplementation("org.assertj:assertj-core:3.8.0")
   testImplementation("org.mockito:mockito-core:2.11.0")
   testImplementation("com.nhaarman:mockito-kotlin:1.5.0")
-  junitTestImplementationArtifacts.values.forEach {
+  DependencyInfo.junitTestImplementationArtifacts.forEach {
     testImplementation(it)
   }
-  junitTestRuntimeOnlyArtifacts.values.forEach {
+  DependencyInfo.junitTestRuntimeOnlyArtifacts.forEach {
     testRuntimeOnly(it)
   }
-  testImplementation(kotlin("stdlib-jre8", kotlinVersion as String))
+  testImplementation(kotlin("stdlib-jre8"))
 }
 
 extensions.getByType(JUnitPlatformExtension::class.java).apply {
-  platformVersion = junitPlatformVersion
+  platformVersion = DependencyInfo.junitPlatformVersion
   filters {
     engines {
       include("junit-jupiter")
@@ -141,6 +133,7 @@ tasks {
     manifest {
       attributes(mapOf(
         "Build-Revision" to gitCommitSha,
+        "Automatic-Module-Name" to ProjectInfo.automaticModuleName,
         "Implementation-Version" to project.version
         // TODO: include Gradle version?
       ))
@@ -204,7 +197,7 @@ publishing {
       pom.withXml {
         asNode().apply {
           appendNode("description", project.description)
-          appendNode("url", projectUrl)
+          appendNode("url", ProjectInfo.projectUrl)
           appendNode("licenses").apply {
             appendNode("license").apply {
               appendNode("name", "The MIT License")
@@ -242,8 +235,8 @@ bintray {
     setLabels("gradle", "test", "plugins", "kotlin")
     setLicenses("MIT")
     desc = project.description
-    websiteUrl = projectUrl
-    issueTrackerUrl = issuesUrl
-    vcsUrl = scmUrl
+    websiteUrl = ProjectInfo.projectUrl
+    issueTrackerUrl = ProjectInfo.issuesUrl
+    vcsUrl = ProjectInfo.scmUrl
   })
 }

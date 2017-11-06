@@ -8,14 +8,22 @@ jobs:
           # Disable Kotlin compiler daemon - https://discuss.kotlinlang.org/t/solved-disable-kotlin-compiler-process-keepalive/2622
           GRADLE_OPTS: -Dkotlin.compiler.execution.strategy="in-process"
 
-    working_directory: ~/gradle-kotlin-testing-extensions
+    working_directory: ~/build-working-directory
     steps:
       - checkout
-
+      - run:
+          command: |
+            mkdir -p build
+            find build.gradle.kts buildSrc/src buildSrc/build.gradle.kts -type f -print -exec cat '{}' \; | tee build/circle-ci-key.txt
+          name: Generate buildSrc cache key
       - restore_cache:
           keys:
-          - home-cache-{{ checksum "build.gradle.kts" }}-{{ checksum "gradle.properties" }}-{{ checksum "gradle/junit5.gradle.kts" }}
-          - build-cache-{{ checksum "build.gradle.kts" }}-{{ checksum "gradle.properties" }}-{{ checksum "gradle/junit5.gradle.kts" }}
+            - v1-home-cache-{{ checksum "build/circle-ci-key.txt" }}
+            - v1-home-cache-
+      - restore_cache:
+          keys:
+            - v1-build-cache-{{ .Branch }}
+            - v1-build-cache-
 
       - run:
           command: |
@@ -31,14 +39,17 @@ jobs:
       - save_cache:
           paths:
             - ~/.gradle
-          key: home-cache-{{ checksum "build.gradle.kts" }}-{{ checksum "gradle.properties" }}-{{ checksum "gradle/junit5.gradle.kts" }}
+          key: v1-home-cache-{{ checksum "build/circle-ci-key.txt" }}
 
       - store_test_results:
-          path: ~/gradle-test-kit-extensions/build/test-results/
+          path: ~/build-working-directory/build/test-results/
 
       - save_cache:
           paths:
-            - ~/gradle-test-kit-extensions/.gradle
-          key: build-cache-{{ checksum "build.gradle.kts" }}-{{ checksum "gradle.properties" }}-{{ checksum "gradle/junit5.gradle.kts" }}
+            - ~/build-working-directory/.gradle
+            - ~/build-working-directory/build
+            - ~/build-working-directory/buildSrc/.gradle
+            - ~/build-working-directory/buildSrc/build
+          key: v1-build-cache-{{ .Branch }}-{{ .BuildNum }}
 
 
