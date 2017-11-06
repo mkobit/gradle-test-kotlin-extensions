@@ -14,7 +14,7 @@ jobs:
       - run:
           command: |
             mkdir -p build
-            find build.gradle.kts buildSrc/src buildSrc/build.gradle.kts -type f -print -exec cat '{}' \; | tee build/circle-ci-key.txt
+            find build.gradle.kts gradle buildSrc/src buildSrc/build.gradle.kts -type f -exec sha256sum '{}' \; | tee build/circle-ci-key.txt
           name: Generate buildSrc cache key
       - restore_cache:
           keys:
