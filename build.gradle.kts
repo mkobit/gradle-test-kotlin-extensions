@@ -23,11 +23,17 @@ buildscript {
 }
 
 plugins {
+  id("com.gradle.build-scan") version "1.10.1"
   `java-library`
   `maven-publish`
   kotlin("jvm")
   id("com.github.ben-manes.versions") version "0.17.0"
-  id("com.jfrog.bintray") version "1.7.3"
+  id("com.jfrog.bintray") version "1.8.0"
+}
+
+apply {
+  plugin("org.junit.platform.gradle.plugin")
+  plugin("org.jetbrains.dokka")
 }
 
 version = "0.1.0"
@@ -47,21 +53,30 @@ val gitCommitSha: String by lazy {
 val SourceSet.kotlin: SourceDirectorySet
   get() = withConvention(KotlinSourceSet::class) { kotlin }
 
-tasks {
-  "wrapper"(Wrapper::class) {
-    gradleVersion = "4.3"
-    distributionType = Wrapper.DistributionType.ALL
+buildScan {
+  fun env(key: String): String? = System.getenv(key)
+
+  setLicenseAgree("yes")
+  setLicenseAgreementUrl("https://gradle.com/terms-of-service")
+
+  // Env variables from https://circleci.com/docs/2.0/env-vars/
+  if (env("CI") != null) {
+    logger.lifecycle("Running in CI environment, setting build scan attributes.")
+    tag("CI")
+    env("CIRCLE_BRANCH")?.let { tag(it) }
+    env("CIRCLE_BUILD_NUM")?.let { value("Circle CI Build Number", it) }
+    env("CIRCLE_BUILD_URL")?.let { link("Build URL", it) }
+    env("CIRCLE_SHA1")?.let { value("Revision", it) }
+    env("CIRCLE_COMPARE_URL")?.let { link("Diff", it) }
+    env("CIRCLE_REPOSITORY_URL")?.let { value("Repository", it) }
+    env("CIRCLE_PR_NUMBER")?.let { value("Pull Request Number", it) }
+    link("Repository", ProjectInfo.projectUrl)
   }
 }
 
 repositories {
   jcenter()
   mavenCentral()
-}
-
-apply {
-  plugin("org.junit.platform.gradle.plugin")
-  plugin("org.jetbrains.dokka")
 }
 
 dependencies {
@@ -102,30 +117,13 @@ val main = java.sourceSets["main"]!!
 // No Java in main source set
 main.java.setSrcDirs(emptyList<Any>())
 
-val sourcesJar by tasks.creating(Jar::class) {
-  classifier = "sources"
-  from(main.allSource)
-  description = "Assembles a JAR of the source code"
-  group = JavaBasePlugin.DOCUMENTATION_GROUP
-}
-
-val dokka by tasks.getting(DokkaTask::class) {
-  dependsOn(main.classesTaskName)
-  outputFormat = "html"
-  outputDirectory = "$buildDir/javadoc"
-  sourceDirs = main.kotlin.srcDirs
-}
-
-val javadocJar by tasks.creating(Jar::class) {
-  dependsOn(dokka)
-  from(dokka.outputDirectory)
-  classifier = "javadoc"
-  description = "Assembles a JAR of the generated Javadoc"
-  group = JavaBasePlugin.DOCUMENTATION_GROUP
-}
-
 tasks {
-  withType(Jar::class.java) {
+  "wrapper"(Wrapper::class) {
+    gradleVersion = "4.3"
+    distributionType = Wrapper.DistributionType.ALL
+  }
+
+  withType<Jar> {
     from(project.projectDir) {
       include("LICENSE.txt")
       into("META-INF")
@@ -140,8 +138,37 @@ tasks {
     }
   }
 
-  withType(KotlinCompile::class.java) {
+  withType<Javadoc> {
+    options {
+      header = project.name
+      encoding = "UTF-8"
+    }
+  }
+
+  withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
+  }
+
+  val sourcesJar by creating(Jar::class) {
+    classifier = "sources"
+    from(main.allSource)
+    description = "Assembles a JAR of the source code"
+    group = JavaBasePlugin.DOCUMENTATION_GROUP
+  }
+
+  val dokka by getting(DokkaTask::class) {
+    dependsOn(main.classesTaskName)
+    outputFormat = "html"
+    outputDirectory = "$buildDir/javadoc"
+    sourceDirs = main.kotlin.srcDirs
+  }
+
+  val javadocJar by creating(Jar::class) {
+    dependsOn(dokka)
+    from(dokka.outputDirectory)
+    classifier = "javadoc"
+    description = "Assembles a JAR of the generated Javadoc"
+    group = JavaBasePlugin.DOCUMENTATION_GROUP
   }
 
   "assemble" {
@@ -190,6 +217,8 @@ tasks {
 val publicationName = "gradleTestKotlinExtensions"
 publishing {
   publications.invoke {
+    val sourcesJar by tasks.getting
+    val javadocJar by tasks.getting
     publicationName(MavenPublication::class) {
       from(components["java"])
       artifact(sourcesJar)
@@ -210,15 +239,6 @@ publishing {
     }
   }
 }
-
-// Maven just looks like this, can maybe not even use bintray plugin
-//<distributionManagement>
-//<repository>
-//<id>bintray-mkobit-gradle</id>
-//<name>mkobit-gradle</name>
-//<url>https://api.bintray.com/maven/mkobit/gradle/[PACKAGE_NAME]/;publish=1</url>
-//</repository>
-//</distributionManagement>
 
 bintray {
   val bintrayUser = project.findProperty("bintrayUser") as String?
