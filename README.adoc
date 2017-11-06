@@ -1,5 +1,6 @@
 = Gradle Test Kotlin Extensions
 :toc:
+:github-repo-id: gradle-test-kotlin-extensions
 :uri-java-ServiceLoader: https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html
 :uri-GradleRunner: https://docs.gradle.org/current/javadoc/org/gradle/testkit/runner/GradleRunner.html
 :uri-GradleRunner-build: {uri-GradleRunner}#build()
@@ -8,10 +9,10 @@
 :uri-gradle-userguide: https://docs.gradle.org/current/userguide
 :uri-testkit: {uri-gradle-userguide}/test_kit.html
 :uri-javaGradle-plugin: {uri-gradle-userguide}/javaGradle_plugin.html
-:uri-build-status-image: https://circleci.com/gh/mkobit/gradle-test-kotlin-extensions/tree/master.svg?style=svg
-:circle-ci-status-badge: image:{uri-build-status-image}["CircleCI", link="https://circleci.com/gh/mkobit/gradle-test-kotlin-extensions/tree/master"]
-:uri-version-badge-image: https://api.bintray.com/packages/mkobit/gradle/gradle-test-kotlin-extensions/images/download.svg
-:uri-bintray-package: https://bintray.com/mkobit/gradle/gradle-test-kotlin-extensions/_latestVersion
+:uri-build-status-image: https://circleci.com/gh/mkobit/{github-repo-id}/tree/master.svg?style=svg
+:circle-ci-status-badge: image:{uri-build-status-image}["CircleCI", link="https://circleci.com/gh/mkobit/{github-repo-id}/tree/master"]
+:uri-version-badge-image: https://api.bintray.com/packages/mkobit/gradle/{github-repo-id}/images/download.svg
+:uri-bintray-package: https://bintray.com/mkobit/gradle/{github-repo-id}/_latestVersion
 :version-badge: image:{uri-version-badge-image}["Latest Release Version", link="{uri-bintray-package}"]
 
 {version-badge}

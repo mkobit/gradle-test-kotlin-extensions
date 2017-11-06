@@ -15,7 +15,7 @@ jobs:
           command: |
             mkdir -p build
             find build.gradle.kts gradle buildSrc/src buildSrc/build.gradle.kts -type f -exec sha256sum '{}' \; | tee build/circle-ci-key.txt
-          name: Generate buildSrc cache key
+          name: Generate cache key
       - restore_cache:
           keys:
             - v1-home-cache-{{ checksum "build/circle-ci-key.txt" }}
