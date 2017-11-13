@@ -41,7 +41,7 @@ private val systemPropertySplitPattern = Regex("=")
 var GradleRunner.systemProperties: Map<String, String?>
   get() = arguments
       .findAllKeyValueArgumentValues { it == "--system-prop" }
-      .map { it.split(projectPropertySplitPattern, 2) }
+      .map { it.split(systemPropertySplitPattern, 2) }
       .associateBy({ it.first() }, { it.getOrNull(1) })
   set(value) {
     val properties = value.flatMap { (key, value) ->

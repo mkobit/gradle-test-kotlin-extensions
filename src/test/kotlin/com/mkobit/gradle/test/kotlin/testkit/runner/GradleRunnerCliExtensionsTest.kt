@@ -2,10 +2,11 @@ package com.mkobit.gradle.test.kotlin.testkit.runner
 
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.DynamicNode
+import org.junit.jupiter.api.DynamicTest
+import org.junit.jupiter.api.DynamicTest.dynamicTest
+import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.TestTemplate
-import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.extension.Extension
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.ParameterContext
@@ -19,8 +20,6 @@ import java.util.stream.Stream
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class GradleRunnerCliExtensionsTest {
 
-  @TestTemplate
-  @ExtendWith(ToggleableCliArgumentTemplateContextProvider::class)
   @BooleanFlags(
       BooleanFlag(flag = "--build-cache", stateApply = BuildCacheEnabled::class),
       BooleanFlag(flag = "--no-build-cache", stateApply = BuildCacheDisabled::class),
@@ -45,11 +44,14 @@ internal class GradleRunnerCliExtensionsTest {
       assertThat(gradleRunner.arguments)
           .doesNotContain(runnerContext.argument)
     }
+
     assertThat(runnerContext.booleanFlagApply.retrieveState(gradleRunner))
         .isEqualTo(runnerContext.enabledBefore)
+
     runnerContext.booleanFlagApply.applyChange(gradleRunner, runnerContext.setToState)
     assertThat(runnerContext.booleanFlagApply.retrieveState(gradleRunner))
         .isEqualTo(runnerContext.setToState)
+
     if (runnerContext.setToState) {
       assertThat(gradleRunner.arguments)
           .contains(runnerContext.argument)
@@ -59,113 +61,181 @@ internal class GradleRunnerCliExtensionsTest {
     }
   }
 
-  @Test
-  internal fun `system properties`() {
-    val gradleRunner = GradleRunner.create()
-    assertThat(gradleRunner.systemProperties)
-        .isEmpty()
+  private fun dynamicGradleRunnerTest(
+      displayName: String,
+      executable: GradleRunner.() -> Unit
+  ): DynamicTest = dynamicTest(displayName) {
+    GradleRunner.create().executable()
+  }
 
-    val stringToString = mapOf("Prop1" to "val1")
+  @TestFactory
+  internal fun `system properties`(): Stream<DynamicNode> {
+    val stringToString1 = mapOf("Prop1" to "val1")
     val stringToNull = mapOf("Prop2" to null)
-    gradleRunner.systemProperties = stringToString
-    assertThat(gradleRunner.systemProperties)
-        .isEqualTo(stringToString)
-    assertThat(gradleRunner.arguments)
-        .containsExactly("--system-prop", "Prop1=val1")
+    val stringToString2 = mapOf("Prop3" to "3")
 
-    gradleRunner.systemProperties = emptyMap()
-    assertThat(gradleRunner.systemProperties)
-        .isEmpty()
-    assertThat(gradleRunner.arguments)
-        .isEmpty()
-
-    gradleRunner.systemProperties = stringToString  + stringToNull
-    assertThat(gradleRunner.systemProperties)
-        .isEqualTo(stringToString  + stringToNull)
-    assertThat(gradleRunner.arguments)
-        .hasSize(4)
-        .containsSequence("--system-prop", "Prop1=val1")
-        .containsSequence("--system-prop", "Prop2")
+    return Stream.of(
+        dynamicGradleRunnerTest("empty arguments") {
+          assertThat(systemProperties)
+              .isEmpty()
+        },
+        dynamicGradleRunnerTest("reset arguments to empty") {
+          systemProperties = mapOf("SomeKey" to "SomeValue")
+          assertThat(systemProperties)
+              .hasSize(1)
+          systemProperties = emptyMap()
+          assertThat(systemProperties)
+              .isEmpty()
+        },
+        dynamicGradleRunnerTest("single map entry with String/String key/value pair") {
+            systemProperties = stringToString1
+            assertThat(systemProperties)
+                .isEqualTo(stringToString1)
+            assertThat(arguments)
+                .containsExactly("--system-prop", "Prop1=val1")
+          },
+        dynamicGradleRunnerTest("single map entry with String/null key/value pair") {
+          systemProperties = stringToNull
+          assertThat(systemProperties)
+              .isEqualTo(stringToNull)
+          assertThat(arguments)
+              .containsExactly("--system-prop", "Prop2")
+        },
+        dynamicGradleRunnerTest("multiple map entries") {
+          systemProperties = stringToString1 + stringToString2
+          assertThat(systemProperties)
+              .isEqualTo(stringToString1 + stringToString2)
+          assertThat(arguments)
+              .containsSequence("--system-prop", "Prop1=val1")
+              .containsSequence("--system-prop", "Prop3=3")
+        },
+        dynamicGradleRunnerTest("multiple map entries including a String/null entry") {
+          systemProperties = stringToString1 + stringToNull
+          assertThat(systemProperties)
+              .isEqualTo(stringToString1 + stringToNull)
+          assertThat(arguments)
+              .containsSequence("--system-prop", "Prop1=val1")
+              .containsSequence("--system-prop", "Prop2")
+        }
+    )
   }
 
-
-  @Test
-  internal fun `project properties`() {
-    val gradleRunner = GradleRunner.create()
-    assertThat(gradleRunner.projectProperties)
-        .isEmpty()
-
-    val stringToString = mapOf("Prop1" to "val1")
+  @TestFactory
+  internal fun `project properties `(): Stream<DynamicNode> {
+    val stringToString1 = mapOf("Prop1" to "val1")
     val stringToNull = mapOf("Prop2" to null)
-    gradleRunner.projectProperties = stringToString
-    assertThat(gradleRunner.projectProperties)
-        .isEqualTo(stringToString)
-    assertThat(gradleRunner.arguments)
-        .containsExactly("--project-prop", "Prop1=val1")
+    val stringToString2 = mapOf("Prop3" to "3")
 
-    gradleRunner.projectProperties = emptyMap()
-    assertThat(gradleRunner.projectProperties)
-        .isEmpty()
-    assertThat(gradleRunner.arguments)
-        .isEmpty()
-
-    gradleRunner.projectProperties = stringToString  + stringToNull
-    assertThat(gradleRunner.projectProperties)
-        .isEqualTo(stringToString  + stringToNull)
-    assertThat(gradleRunner.arguments)
-        .hasSize(4)
-        .containsSequence("--project-prop", "Prop1=val1")
-        .containsSequence("--project-prop", "Prop2")
+    return Stream.of(
+        dynamicGradleRunnerTest("empty arguments") {
+          assertThat(projectProperties)
+              .isEmpty()
+        },
+        dynamicGradleRunnerTest("reset arguments to empty") {
+          projectProperties = mapOf("SomeKey" to "SomeValue")
+          assertThat(projectProperties)
+              .hasSize(1)
+          projectProperties = emptyMap()
+          assertThat(projectProperties)
+              .isEmpty()
+        },
+        dynamicGradleRunnerTest("single map entry with String/String key/value pair") {
+          projectProperties = stringToString1
+          assertThat(projectProperties)
+              .isEqualTo(stringToString1)
+          assertThat(arguments)
+              .containsExactly("--project-prop", "Prop1=val1")
+        },
+        dynamicGradleRunnerTest("single map entry with String/null key/value pair") {
+          projectProperties = stringToNull
+          assertThat(projectProperties)
+              .isEqualTo(stringToNull)
+          assertThat(arguments)
+              .containsExactly("--project-prop", "Prop2")
+        },
+        dynamicGradleRunnerTest("multiple map entries") {
+          projectProperties = stringToString1 + stringToString2
+          assertThat(projectProperties)
+              .isEqualTo(stringToString1 + stringToString2)
+          assertThat(arguments)
+              .containsSequence("--project-prop", "Prop1=val1")
+              .containsSequence("--project-prop", "Prop3=3")
+        },
+        dynamicGradleRunnerTest("multiple map entries including a String/null entry") {
+          projectProperties = stringToString1 + stringToNull
+          assertThat(projectProperties)
+              .isEqualTo(stringToString1 + stringToNull)
+          assertThat(arguments)
+              .containsSequence("--project-prop", "Prop1=val1")
+              .containsSequence("--project-prop", "Prop2")
+        }
+    )
   }
 
-  @Test
-  internal fun `init scripts`() {
-    val gradleRunner = GradleRunner.create()
-    assertThat(gradleRunner.initScripts)
-        .isEmpty()
-
-    gradleRunner.initScripts = listOf("init-script.gradle")
-    assertThat(gradleRunner.initScripts)
-        .containsExactly("init-script.gradle")
-    assertThat(gradleRunner.arguments)
-        .containsExactly("--init-script", "init-script.gradle")
-
-    gradleRunner.initScripts = emptyList()
-    assertThat(gradleRunner.initScripts)
-        .isEmpty()
-
-    gradleRunner.initScripts = listOf("init-script.gradle", "other-script.gradle")
-    assertThat(gradleRunner.initScripts)
-        .containsExactly("init-script.gradle", "other-script.gradle")
-    assertThat(gradleRunner.arguments)
-        .hasSize(4)
-        .containsSequence("--init-script", "init-script.gradle")
-        .containsSequence("--init-script", "other-script.gradle")
+  @TestFactory
+  internal fun `init scripts`(): Stream<DynamicNode> {
+    return Stream.of(
+        dynamicGradleRunnerTest("empty arguments") {
+          assertThat(initScripts)
+              .isEmpty()
+        },
+        dynamicGradleRunnerTest("reset arguments to empty") {
+          initScripts = listOf("init-script.gradle")
+          assertThat(initScripts)
+              .hasSize(1)
+          initScripts = emptyList()
+          assertThat(initScripts)
+              .isEmpty()
+        },
+        dynamicGradleRunnerTest("single init script") {
+          initScripts = listOf("init-script.gradle")
+          assertThat(initScripts)
+              .isEqualTo(listOf("init-script.gradle"))
+          assertThat(arguments)
+              .containsExactly("--init-script", "init-script.gradle")
+        },
+        dynamicGradleRunnerTest("multiple init scripts") {
+          initScripts = listOf("init-script.gradle", "other-script.gradle")
+          assertThat(initScripts)
+              .isEqualTo(listOf("init-script.gradle", "other-script.gradle"))
+          assertThat(arguments)
+              .containsSequence("--init-script", "init-script.gradle")
+              .containsSequence("--init-script", "other-script.gradle")
+        }
+    )
   }
 
-  @Test
-  internal fun `exclude tasks`() {
-    val gradleRunner = GradleRunner.create()
-    assertThat(gradleRunner.excludedTasks)
-        .isEmpty()
-
-    gradleRunner.excludedTasks = listOf("aTask")
-    assertThat(gradleRunner.excludedTasks)
-        .containsExactly("aTask")
-    assertThat(gradleRunner.arguments)
-        .containsExactly("--exclude-task", "aTask")
-
-    gradleRunner.excludedTasks = emptyList()
-    assertThat(gradleRunner.initScripts)
-        .isEmpty()
-
-    gradleRunner.excludedTasks = listOf("aTask", "otherTask")
-    assertThat(gradleRunner.excludedTasks)
-        .containsExactly("aTask", "otherTask")
-    assertThat(gradleRunner.arguments)
-        .hasSize(4)
-        .containsSequence("--exclude-task", "aTask")
-        .containsSequence("--exclude-task", "otherTask")
+  @TestFactory
+  internal fun `exclude tasks`(): Stream<DynamicNode> {
+    return Stream.of(
+        dynamicGradleRunnerTest("empty arguments") {
+          assertThat(excludedTasks)
+              .isEmpty()
+        },
+        dynamicGradleRunnerTest("reset arguments to empty") {
+          excludedTasks = listOf("taskA")
+          assertThat(excludedTasks)
+              .hasSize(1)
+          excludedTasks = emptyList()
+          assertThat(excludedTasks)
+              .isEmpty()
+        },
+        dynamicGradleRunnerTest("single init script") {
+          excludedTasks = listOf("taskA")
+          assertThat(excludedTasks)
+              .isEqualTo(listOf("taskA"))
+          assertThat(arguments)
+              .containsExactly("--exclude-task", "taskA")
+        },
+        dynamicGradleRunnerTest("multiple init scripts") {
+          excludedTasks = listOf("taskA", "taskB")
+          assertThat(excludedTasks)
+              .isEqualTo(listOf("taskA", "taskB"))
+          assertThat(arguments)
+              .containsSequence("--exclude-task", "taskA")
+              .containsSequence("--exclude-task", "taskB")
+        }
+    )
   }
 }
 
