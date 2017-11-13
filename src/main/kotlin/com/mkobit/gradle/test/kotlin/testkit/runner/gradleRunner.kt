@@ -8,13 +8,6 @@ import java.net.URI
 import java.nio.file.Path
 
 /**
- * The [GradleRunner.getProjectDir] as a [Path].
- */
-var GradleRunner.projectDirPath: Path?
-  get() = projectDir?.toPath()
-  set(value) { withProjectDir(value?.toFile()) }
-
-/**
  * Configure and execute a [GradleRunner.build].
  * @param projectDir if not `null`, sets the project directory - see [GradleRunner.withProjectDir]
  * @param arguments if not `null`, sets the argument to pass to the build - see [GradleRunner.withArguments]
@@ -33,6 +26,7 @@ var GradleRunner.projectDirPath: Path?
  * @throws IllegalArgumentException when [forwardOutput] is `true` and [forwardStdError] is specified
  * @throws IllegalArgumentException when [usePluginClasspath] is `true` and [pluginClasspath] is specified
  */
+@Deprecated(message = "Scheduled for removal", replaceWith = ReplaceWith("GradleRunner.setup"))
 fun GradleRunner.buildWith(
   projectDir: File? = null,
   arguments: List<String>? = null,
@@ -92,6 +86,7 @@ fun GradleRunner.buildWith(
  * @throws IllegalArgumentException when [forwardOutput] is `true` and [forwardStdError] is specified
  * @throws IllegalArgumentException when [usePluginClasspath] is `true` and [pluginClasspath] is specified
  */
+@Deprecated(message = "Scheduled for removal", replaceWith = ReplaceWith("GradleRunner.setup"))
 fun GradleRunner.buildAndFailWith(
   projectDir: File? = null,
   arguments: List<String>? = null,
