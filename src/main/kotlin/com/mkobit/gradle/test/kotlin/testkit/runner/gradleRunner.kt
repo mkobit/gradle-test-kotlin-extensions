@@ -33,6 +33,7 @@ var GradleRunner.projectDirPath: Path?
  * @throws IllegalArgumentException when [forwardOutput] is `true` and [forwardStdError] is specified
  * @throws IllegalArgumentException when [usePluginClasspath] is `true` and [pluginClasspath] is specified
  */
+@Deprecated(message = "Scheduled for removal", replaceWith = ReplaceWith("GradleRunner.setup"))
 fun GradleRunner.buildWith(
   projectDir: File? = null,
   arguments: List<String>? = null,
@@ -92,6 +93,7 @@ fun GradleRunner.buildWith(
  * @throws IllegalArgumentException when [forwardOutput] is `true` and [forwardStdError] is specified
  * @throws IllegalArgumentException when [usePluginClasspath] is `true` and [pluginClasspath] is specified
  */
+@Deprecated(message = "Scheduled for removal", replaceWith = ReplaceWith("GradleRunner.setup"))
 fun GradleRunner.buildAndFailWith(
   projectDir: File? = null,
   arguments: List<String>? = null,
