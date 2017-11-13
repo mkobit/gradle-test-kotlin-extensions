@@ -26,7 +26,10 @@ internal class GradleRunnerCliExtensionsTest {
       BooleanFlag(flag = "--no-build-cache", stateApply = BuildCacheDisabled::class),
       BooleanFlag(flag = "--continue", stateApply = ContinueEnabled::class),
       BooleanFlag(flag = "--quiet", stateApply = QuietEnabled::class),
+      BooleanFlag(flag = "--stacktrace", stateApply = StacktraceEnabled::class),
+      BooleanFlag(flag = "--full-stacktrace", stateApply = FullStacktraceEnabled::class),
       BooleanFlag(flag = "--info", stateApply = InfoEnabled::class),
+      BooleanFlag(flag = "--dry-run", stateApply = DryRunEnabled::class),
       BooleanFlag(flag = "--debug", stateApply = DebugEnabled::class),
       BooleanFlag(flag = "--warn", stateApply = WarnEnabled::class),
       BooleanFlag(flag = "--scan", stateApply = BuildScanEnabled::class),
@@ -114,24 +117,35 @@ private class QuietEnabled : BooleanFlagApply {
   override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) { gradleRunner.quiet = newState }
 }
 
+private class StacktraceEnabled : BooleanFlagApply {
+  override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.stacktrace
+  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) { gradleRunner.stacktrace = newState }
+}
+
+private class FullStacktraceEnabled : BooleanFlagApply {
+  override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.fullStacktrace
+  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) { gradleRunner.fullStacktrace = newState }
+}
 
 private class InfoEnabled : BooleanFlagApply {
   override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.info
   override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) { gradleRunner.info = newState }
 }
 
+private class DryRunEnabled : BooleanFlagApply {
+  override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.dryRun
+  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) { gradleRunner.dryRun = newState }
+}
 
 private class DebugEnabled : BooleanFlagApply {
   override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.debug
   override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) { gradleRunner.debug = newState }
 }
 
-
 private class WarnEnabled : BooleanFlagApply {
   override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.warn
   override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) { gradleRunner.warn = newState }
 }
-
 
 private class BuildScanEnabled : BooleanFlagApply {
   override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.buildScanEnabled

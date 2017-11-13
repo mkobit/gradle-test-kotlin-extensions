@@ -44,12 +44,39 @@ var GradleRunner.quiet: Boolean
   }
 
 /**
+ * The `--stacktrace` flag.
+ */
+var GradleRunner.stacktrace: Boolean
+  get() = arguments.contains("--stacktrace")
+  set(value) {
+    ensureToggleableArgumentState("--stacktrace", value)
+  }
+
+/**
+ * The `--full-stacktrace` flag.
+ */
+var GradleRunner.fullStacktrace: Boolean
+  get() = arguments.contains("--full-stacktrace")
+  set(value) {
+    ensureToggleableArgumentState("--full-stacktrace", value)
+  }
+
+/**
  * The `--info` flag.
  */
 var GradleRunner.info: Boolean
   get() = arguments.contains("--info")
   set(value) {
     ensureToggleableArgumentState("--info", value)
+  }
+
+/**
+ * The `--dry-run` flag.
+ */
+var GradleRunner.dryRun: Boolean
+  get() = arguments.contains("--dry-run")
+  set(value) {
+    ensureToggleableArgumentState("--dry-run", value)
   }
 
 /**
