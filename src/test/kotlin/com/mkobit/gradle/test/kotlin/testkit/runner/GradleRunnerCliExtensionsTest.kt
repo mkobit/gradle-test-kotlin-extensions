@@ -87,6 +87,56 @@ internal class GradleRunnerCliExtensionsTest {
         .containsSequence("--project-prop", "Prop1=val1")
         .containsSequence("--project-prop", "Prop2")
   }
+
+  @Test
+  internal fun `init scripts`() {
+    val gradleRunner = GradleRunner.create()
+    assertThat(gradleRunner.initScripts)
+        .isEmpty()
+
+    gradleRunner.initScripts = listOf("init-script.gradle")
+    assertThat(gradleRunner.initScripts)
+        .containsExactly("init-script.gradle")
+    assertThat(gradleRunner.arguments)
+        .containsExactly("--init-script", "init-script.gradle")
+
+    gradleRunner.initScripts = emptyList()
+    assertThat(gradleRunner.initScripts)
+        .isEmpty()
+
+    gradleRunner.initScripts = listOf("init-script.gradle", "other-script.gradle")
+    assertThat(gradleRunner.initScripts)
+        .containsExactly("init-script.gradle", "other-script.gradle")
+    assertThat(gradleRunner.arguments)
+        .hasSize(4)
+        .containsSequence("--init-script", "init-script.gradle")
+        .containsSequence("--init-script", "other-script.gradle")
+  }
+
+  @Test
+  internal fun `exclude tasks`() {
+    val gradleRunner = GradleRunner.create()
+    assertThat(gradleRunner.excludedTasks)
+        .isEmpty()
+
+    gradleRunner.excludedTasks = listOf("aTask")
+    assertThat(gradleRunner.excludedTasks)
+        .containsExactly("aTask")
+    assertThat(gradleRunner.arguments)
+        .containsExactly("--exclude-task", "aTask")
+
+    gradleRunner.excludedTasks = emptyList()
+    assertThat(gradleRunner.initScripts)
+        .isEmpty()
+
+    gradleRunner.excludedTasks = listOf("aTask", "otherTask")
+    assertThat(gradleRunner.excludedTasks)
+        .containsExactly("aTask", "otherTask")
+    assertThat(gradleRunner.arguments)
+        .hasSize(4)
+        .containsSequence("--exclude-task", "aTask")
+        .containsSequence("--exclude-task", "otherTask")
+  }
 }
 
 /**
