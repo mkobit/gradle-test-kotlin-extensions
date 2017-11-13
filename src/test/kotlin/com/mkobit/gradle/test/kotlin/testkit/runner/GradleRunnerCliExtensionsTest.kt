@@ -60,6 +60,36 @@ internal class GradleRunnerCliExtensionsTest {
   }
 
   @Test
+  internal fun `system properties`() {
+    val gradleRunner = GradleRunner.create()
+    assertThat(gradleRunner.systemProperties)
+        .isEmpty()
+
+    val stringToString = mapOf("Prop1" to "val1")
+    val stringToNull = mapOf("Prop2" to null)
+    gradleRunner.systemProperties = stringToString
+    assertThat(gradleRunner.systemProperties)
+        .isEqualTo(stringToString)
+    assertThat(gradleRunner.arguments)
+        .containsExactly("--system-prop", "Prop1=val1")
+
+    gradleRunner.systemProperties = emptyMap()
+    assertThat(gradleRunner.systemProperties)
+        .isEmpty()
+    assertThat(gradleRunner.arguments)
+        .isEmpty()
+
+    gradleRunner.systemProperties = stringToString  + stringToNull
+    assertThat(gradleRunner.systemProperties)
+        .isEqualTo(stringToString  + stringToNull)
+    assertThat(gradleRunner.arguments)
+        .hasSize(4)
+        .containsSequence("--system-prop", "Prop1=val1")
+        .containsSequence("--system-prop", "Prop2")
+  }
+
+
+  @Test
   internal fun `project properties`() {
     val gradleRunner = GradleRunner.create()
     assertThat(gradleRunner.projectProperties)

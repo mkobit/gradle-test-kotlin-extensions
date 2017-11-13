@@ -34,6 +34,22 @@ var GradleRunner.continueAfterFailure: Boolean
     ensureToggleableArgumentState("--continue", value)
   }
 
+private val systemPropertySplitPattern = Regex("=")
+/**
+ * The `--system-prop` properties.
+ */
+var GradleRunner.systemProperties: Map<String, String?>
+  get() = arguments
+      .findAllKeyValueArgumentValues { it == "--system-prop" }
+      .map { it.split(projectPropertySplitPattern, 2) }
+      .associateBy({ it.first() }, { it.getOrNull(1) })
+  set(value) {
+    val properties = value.flatMap { (key, value) ->
+      listOf("--system-prop", "$key${value?.let { "=$it" }.orEmpty()}")
+    }
+    withArguments(arguments.filterOutKeyValueArguments { it == "--system-prop" } + properties)
+  }
+
 /**
  * The `--quiet` flag.
  */
@@ -147,7 +163,7 @@ var GradleRunner.offline: Boolean
 
 private val projectPropertySplitPattern = Regex("=")
 /**
- * The `--project-prop` options.
+ * The `--project-prop` properties.
  */
 var GradleRunner.projectProperties: Map<String, String?>
   get() = arguments
