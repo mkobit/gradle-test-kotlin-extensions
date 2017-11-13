@@ -1,30 +1,27 @@
 package com.mkobit.gradle.test.kotlin.testkit.runner
 
 import org.assertj.core.api.Assertions.assertThat
-import org.gradle.testkit.runner.GradleRunner
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.DynamicNode
+import org.junit.jupiter.api.TestFactory
+import testsupport.dynamicGradleRunnerTest
 import java.io.File
+import java.util.stream.Stream
 
 internal class GradleRunnerFsExtensionsTest {
 
-  private lateinit var runner: GradleRunner
-
-  @BeforeEach
-  internal fun setUp() {
-    runner = GradleRunner.create()
-  }
-
-  @Test
-  internal fun `projectDirPath extension`() {
-    assertThat(runner.projectDir)
-        .isNull()
-    assertThat(runner.projectDirPath)
-        .isNull()
-
-    val file = File("/tmp")
-    runner.withProjectDir(file)
-    assertThat(runner.projectDirPath)
-        .isEqualTo(file.toPath())
+  @TestFactory
+  internal fun `projectDirPath extension`(): Stream<DynamicNode> {
+    return Stream.of(
+        dynamicGradleRunnerTest("projectDir is null") {
+          assertThat(projectDirPath)
+              .isNull()
+        },
+        dynamicGradleRunnerTest("projectDir.toPath() is equal to the projectDirPath") {
+          val file = File("/tmp")
+          withProjectDir(file)
+          assertThat(projectDirPath)
+              .isEqualTo(file.toPath())
+        }
+    )
   }
 }
