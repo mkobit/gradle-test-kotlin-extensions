@@ -18,7 +18,6 @@ class BooleanArgumentsProvider : ArgumentsProvider {
 @ArgumentsSource(BooleanArgumentsProvider::class)
 annotation class BooleanSource
 
-
 /**
  * Creates a [DynamicTest.dynamicTest] with the provided [displayName] and provides a new [GradleRunner] instance
  * to the [executable] as a receiver for more idiomatic extensions parameter/method tests.
