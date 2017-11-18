@@ -9,6 +9,7 @@ import org.gradle.testkit.runner.GradleRunner
  * Sets up additional context for the [GradleRunner] based on system properties.
  */
 // VisibleForTesting - used to enable SystemProperty testing rather than mutating the actual system properties
+@Deprecated("Use the GradleRunner extensions instead")
 class DefaultRunnerConfigurer internal constructor(
   private val propertyLoader: PropertyLoader
 ): RunnerConfigurer {

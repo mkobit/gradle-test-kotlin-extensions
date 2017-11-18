@@ -7,6 +7,7 @@ import org.gradle.testkit.runner.GradleRunner
  * Null object implementation of [RunnerConfigurer].
  */
 // TODO: mkobit - can this be used with ServiceLoader?
+@Deprecated("Use the GradleRunner extensions instead")
 object NullRunnerConfigurer : RunnerConfigurer {
 
   private val logger = KotlinLogging.logger {}

@@ -9,6 +9,7 @@ import java.util.ServiceLoader
  * invoked [GradleRunner].
  * If no services are located with the [ServiceLoader] then the [DefaultRunnerConfigurer] is used.
  */
+@Deprecated("Use the GradleRunner extensions instead")
 class ServiceLoaderRunnerConfigurer : RunnerConfigurer {
 
   private val services: ServiceLoader<RunnerConfigurer> by lazy {
