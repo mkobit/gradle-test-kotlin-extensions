@@ -9,7 +9,7 @@ import java.nio.file.Path
 
 /**
  * Configure and execute a [GradleRunner.build].
- * @param projectDir if not `null`, sets the project directory - see [GradleRunner.withProjectDir]
+ * @param projectDir if not `null`, sets the project directory - see [GradleRunner.setupProjectDir]
  * @param arguments if not `null`, sets the argument to pass to the build - see [GradleRunner.withArguments]
  * @param debug - if not `null`, runs the build in process so it is debuggable - see [GradleRunner.withDebug]
  * @param distribution - if not `null`, use the specified distribution - see [GradleRunner.withGradleDistribution]
@@ -69,7 +69,7 @@ fun GradleRunner.buildWith(
 
 /**
  * Configure and execute a [GradleRunner.buildAndFail].
- * @param projectDir if not `null`, sets the project directory - see [GradleRunner.withProjectDir]
+ * @param projectDir if not `null`, sets the project directory - see [GradleRunner.setupProjectDir]
  * @param arguments if not `null`, sets the argument to pass to the build - see [GradleRunner.withArguments]
  * @param debug - if not `null`, runs the build in process so it is debuggable - see [GradleRunner.withDebug]
  * @param distribution - if not `null`, use the specified distribution - see [GradleRunner.withGradleDistribution]
