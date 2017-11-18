@@ -29,12 +29,6 @@ private fun <T> translateIoExceptions(supplier: () -> T): T = try {
 }
 
 sealed class FileContext(val path: Path) {
-  /**
-   * The contents of the file.
-   */
-  var content: ByteArray
-    get() = Files.readAllBytes(path)
-    set(value) { Files.write(path, value) }
 
   /**
    * The file's last modified time.
@@ -53,13 +47,6 @@ sealed class FileContext(val path: Path) {
     get() = Files.isHidden(path)
 
   /**
-   * Size of file in bytes.
-   * @see Files.size
-   */
-  val size: Long
-    get() = Files.size(path)
-
-  /**
    * Represents a regular file.
    * @property path the path of the regular file
    */
@@ -67,6 +54,20 @@ sealed class FileContext(val path: Path) {
     init {
       require(Files.isRegularFile(path)) { "Path $path must be a regular file" }
     }
+
+    /**
+     * The contents of the file.
+     */
+    var content: ByteArray
+      get() = Files.readAllBytes(path)
+      set(value) { Files.write(path, value) }
+
+    /**
+     * Size of file in bytes.
+     * @see Files.size
+     */
+    val size: Long
+      get() = Files.size(path)
 
     /**
      * Directly appends the provided [content] to the file.
