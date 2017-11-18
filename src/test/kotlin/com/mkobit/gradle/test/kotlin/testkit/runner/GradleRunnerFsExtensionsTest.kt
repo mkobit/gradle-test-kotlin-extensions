@@ -150,36 +150,36 @@ internal class GradleRunnerFsExtensionsTest {
 
     return Stream.of(
         dynamicTest("Get type is an object") {
-          assertThat(FileRequest.Get::class.objectInstance)
-              .withFailMessage("${FileRequest.Get::class} must be an object instance")
+          assertThat(FileAction.Get::class.objectInstance)
+              .withFailMessage("${FileAction.Get::class} must be an object instance")
               .isNotNull()
         },
         dynamicTest("MaybeCreate is a constant") {
-          assertThat(FileRequest.MaybeCreate)
-              .isInstanceOf(FileRequest.MaybeCreate::class.java)
+          assertThat(FileAction.MaybeCreate)
+              .isInstanceOf(FileAction.MaybeCreate::class.java)
         },
         dynamicTest("MaybeCreate instance with attributes") {
-          val request = FileRequest.MaybeCreate(listOf(posixFilePermissions))
+          val request = FileAction.MaybeCreate(listOf(posixFilePermissions))
           assertThat(request.fileAttributes)
               .containsExactly(posixFilePermissions)
         },
         dynamicTest("Create is a constant-") {
-          assertThat(FileRequest.Create)
-              .isInstanceOf(FileRequest.Create::class.java)
+          assertThat(FileAction.Create)
+              .isInstanceOf(FileAction.Create::class.java)
         },
         dynamicTest("Create instance with attributes") {
-          val request = FileRequest.Create(listOf(posixFilePermissions))
+          val request = FileAction.Create(listOf(posixFilePermissions))
           assertThat(request.fileAttributes)
               .containsExactly(posixFilePermissions)
         }
     )
   }
 
-  @DisplayName("Given DirectoryContext and FileRequest.Get request type for a file")
+  @DisplayName("Given DirectoryContext and FileAction.Get request type for a file")
   @TestFactory
   internal fun `Given DirectoryContext and FileRequest_Get request type for a file`(@TempDirectory.Root root: Path): Stream<DynamicNode> {
     val dynamicDirectoryContextTest = dynamicDirectoryContextTestProvider(newDirectoryContextFactory(root))
-    val requestType = FileRequest.Get
+    val requestType = FileAction.Get
 
     return Stream.of(
         dynamicDirectoryContextTest("when file does not exist then an exception is thrown") {
@@ -211,11 +211,11 @@ internal class GradleRunnerFsExtensionsTest {
     )
   }
 
-  @DisplayName("Given DirectoryContext and FileRequest.MaybeCreate request type for a file")
+  @DisplayName("Given DirectoryContext and FileAction.MaybeCreate request type for a file")
   @TestFactory
   internal fun `Given DirectoryContext and FileRequest_MaybeCreate request type for a file`(@TempDirectory.Root root: Path): Stream<DynamicNode> {
     val dynamicDirectoryContextTest = dynamicDirectoryContextTestProvider(newDirectoryContextFactory(root))
-    val requestType = FileRequest.MaybeCreate
+    val requestType = FileAction.MaybeCreate
 
     return Stream.of(
         dynamicDirectoryContextTest("when file does not exist then it is created") {
@@ -251,11 +251,11 @@ internal class GradleRunnerFsExtensionsTest {
     )
   }
 
-  @DisplayName("Given DirectoryContext and FileRequest.Create request type for a file")
+  @DisplayName("Given DirectoryContext and FileAction.Create request type for a file")
   @TestFactory
   internal fun `Given DirectoryContext and FileRequest_Create request type for a file`(@TempDirectory.Root root: Path): Stream<DynamicNode> {
     val dynamicDirectoryContextTest = dynamicDirectoryContextTestProvider(newDirectoryContextFactory(root))
-    val requestType = FileRequest.Create
+    val requestType = FileAction.Create
 
     return Stream.of(
         dynamicDirectoryContextTest("when the file does not exist then then it is created") {
@@ -294,11 +294,11 @@ internal class GradleRunnerFsExtensionsTest {
     )
   }
 
-  @DisplayName("Given DirectoryContext and FileRequest.Get request type for a directory")
+  @DisplayName("Given DirectoryContext and FileAction.Get request type for a directory")
   @TestFactory
   internal fun `Given DirectoryContext and FileRequest_Get request type for a directory`(@TempDirectory.Root root: Path): Stream<DynamicNode> {
     val dynamicDirectoryContextTest = dynamicDirectoryContextTestProvider(newDirectoryContextFactory(root))
-    val requestType = FileRequest.Get
+    val requestType = FileAction.Get
     return Stream.of(
         dynamicDirectoryContextTest("when directory does not exist then an exception is thrown") {
           assertThatExceptionOfType(NoSuchFileException::class.java)
@@ -326,11 +326,11 @@ internal class GradleRunnerFsExtensionsTest {
     )
   }
 
-  @DisplayName("Given DirectoryContext and FileRequest.MaybeCreate request type for a directory")
+  @DisplayName("Given DirectoryContext and FileAction.MaybeCreate request type for a directory")
   @TestFactory
   internal fun `Given DirectoryContext and FileRequest_MaybeCreate request type for a directory`(@TempDirectory.Root root: Path): Stream<DynamicNode> {
     val dynamicDirectoryContextTest = dynamicDirectoryContextTestProvider(newDirectoryContextFactory(root))
-    val requestType = FileRequest.MaybeCreate
+    val requestType = FileAction.MaybeCreate
     return Stream.of(
         dynamicDirectoryContextTest("when the directory does not exist then it is created") {
           val context = it.directory("nonExistentDirectory", requestType)
@@ -368,11 +368,11 @@ internal class GradleRunnerFsExtensionsTest {
     )
   }
 
-  @DisplayName("Given DirectoryContext and FileRequest.Create request type for a directory")
+  @DisplayName("Given DirectoryContext and FileAction.Create request type for a directory")
   @TestFactory
   internal fun `Given DirectoryContext and FileRequest_Create request type for a directory`(@TempDirectory.Root root: Path): Stream<DynamicNode> {
     val dynamicDirectoryContextTest = dynamicDirectoryContextTestProvider(newDirectoryContextFactory(root))
-    val requestType = FileRequest.Create
+    val requestType = FileAction.Create
 
     return Stream.of(
         dynamicDirectoryContextTest("when the directory does not exist then then it is created") {

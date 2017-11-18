@@ -90,37 +90,37 @@ sealed class FileContext(val path: Path) {
      * Produce a [RegularFileContext] instance with a [Path] resolved from this instance's [path].
      *
      * @param fileName the filename to resolve in this directory
-     * @param fileRequest the action to take for the file
+     * @param fileAction the action to take for the file
      * @param action the lambda that can provide additional setup of the file
      * @return a [RegularFileContext] for the resolved file
      */
     fun file(
         fileName: CharSequence,
-        fileRequest: FileRequest = FileRequest.MaybeCreate,
+        fileAction: FileAction = FileAction.MaybeCreate,
         action: RegularFileContext.() -> Unit = NoOp
     ): RegularFileContext {
       val filePath = path.resolve(fileName.toString())
 
       return translateIoExceptions {
-        when (fileRequest) {
-          is FileRequest.Get -> {
+        when (fileAction) {
+          is FileAction.Get -> {
             if (!Files.isRegularFile(filePath)) {
               throw NoSuchFileException(filePath.toFile(), reason = "Regular file does not exist at $filePath")
             }
             RegularFileContext(filePath)
           }
-          is FileRequest.MaybeCreate -> {
+          is FileAction.MaybeCreate -> {
             if (Files.exists(filePath)) {
               if (!Files.isRegularFile(filePath)) {
                 throw FileAlreadyExistsException(filePath.toFile(), reason = "File at path $filePath already exists and is not a regular file")
               }
               RegularFileContext(filePath)
             } else {
-              RegularFileContext(Files.createFile(filePath, *fileRequest.fileAttributes.toTypedArray()))
+              RegularFileContext(Files.createFile(filePath, *fileAction.fileAttributes.toTypedArray()))
             }
           }
-          is FileRequest.Create -> RegularFileContext(Files.createFile(filePath,
-              *fileRequest.fileAttributes.toTypedArray()))
+          is FileAction.Create -> RegularFileContext(Files.createFile(filePath,
+              *fileAction.fileAttributes.toTypedArray()))
         }.apply(action)
       }
     }
@@ -128,33 +128,33 @@ sealed class FileContext(val path: Path) {
     @Throws(NoSuchFileException::class, FileAlreadyExistsException::class)
     fun directory(
         directoryName: CharSequence,
-        fileRequest: FileRequest = FileRequest.MaybeCreate,
+        fileAction: FileAction = FileAction.MaybeCreate,
         action: DirectoryContext.() -> Unit = NoOp
     ): DirectoryContext {
       val filePath = path.resolve(directoryName.toString())
       return translateIoExceptions {
-        when (fileRequest) {
-          is FileRequest.Get -> {
+        when (fileAction) {
+          is FileAction.Get -> {
             if (!Files.isDirectory(filePath)) {
               throw NoSuchFileException(filePath.toFile(), reason = "Directory does not exist at $filePath")
             }
             DirectoryContext(filePath)
           }
-          is FileRequest.MaybeCreate -> {
+          is FileAction.MaybeCreate -> {
             if (Files.exists(filePath)) {
               if (!Files.isDirectory(filePath)) {
                 throw FileAlreadyExistsException(filePath.toFile(), reason = "File at path $filePath already exists and is not a directory")
               }
               DirectoryContext(filePath)
             } else {
-              DirectoryContext(Files.createDirectories(filePath, *fileRequest.fileAttributes.toTypedArray()))
+              DirectoryContext(Files.createDirectories(filePath, *fileAction.fileAttributes.toTypedArray()))
             }
           }
-          is FileRequest.Create -> {
+          is FileAction.Create -> {
             if (Files.exists(filePath)) {
               throw FileAlreadyExistsException(filePath.toFile(), reason = "File at path $filePath already exists")
             }
-            DirectoryContext(Files.createDirectories(filePath, *fileRequest.fileAttributes.toTypedArray()))
+            DirectoryContext(Files.createDirectories(filePath, *fileAction.fileAttributes.toTypedArray()))
           }
         }.apply(action)
       }
@@ -165,11 +165,11 @@ sealed class FileContext(val path: Path) {
 /**
  * A representation of how a file request should be handled.
  */
-sealed class FileRequest {
+sealed class FileAction {
   /**
    * Get the request file object.
    */
-  object Get : FileRequest()
+  object Get : FileAction()
 
   companion object {
     /**
@@ -186,13 +186,13 @@ sealed class FileRequest {
   /**
    * Get the object if it already exists, otherwise create it with the provided options.
    */
-  data class MaybeCreate(val fileAttributes: List<FileAttribute<*>>) : FileRequest()
+  data class MaybeCreate(val fileAttributes: List<FileAttribute<*>>) : FileAction()
 
   /**
    * Create the file with the provided properties.
    * @property fileAttributes the file attributes to create the file with
    */
-  data class Create(val fileAttributes: List<FileAttribute<*>>) : FileRequest()
+  data class Create(val fileAttributes: List<FileAttribute<*>>) : FileAction()
 }
 
 /**
