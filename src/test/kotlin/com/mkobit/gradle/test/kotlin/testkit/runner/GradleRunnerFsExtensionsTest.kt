@@ -90,15 +90,6 @@ internal class GradleRunnerFsExtensionsTest {
     )
   }
 
-  @Test
-  internal fun `files created in projectDir`() {
-//    val runner = GradleRunner.create()
-//    runner.file("build.gradle") {
-//      "this is the file content"
-//    }
-//    runner.mkdir
-  }
-
   @TestFactory
   internal fun `FileContext constructor validation`(@TempDirectory.Root root: Path): Stream<DynamicNode> {
     val directory = Files.createDirectory(root.resolve("existingDirectory"))
