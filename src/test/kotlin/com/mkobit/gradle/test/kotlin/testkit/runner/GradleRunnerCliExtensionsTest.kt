@@ -3,8 +3,6 @@ package com.mkobit.gradle.test.kotlin.testkit.runner
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.DynamicNode
-import org.junit.jupiter.api.DynamicTest
-import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.extension.Extension
@@ -15,6 +13,7 @@ import org.junit.jupiter.api.extension.TestTemplateInvocationContext
 import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider
 import org.junit.platform.commons.support.AnnotationSupport
 import org.junit.platform.commons.support.ReflectionSupport
+import testsupport.dynamicGradleRunnerTest
 import java.util.stream.Stream
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -59,13 +58,6 @@ internal class GradleRunnerCliExtensionsTest {
       assertThat(gradleRunner.arguments)
           .doesNotContain(runnerContext.argument)
     }
-  }
-
-  private fun dynamicGradleRunnerTest(
-      displayName: String,
-      executable: GradleRunner.() -> Unit
-  ): DynamicTest = dynamicTest(displayName) {
-    GradleRunner.create().executable()
   }
 
   @TestFactory

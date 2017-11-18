@@ -3,12 +3,8 @@
 :github-repo-id: gradle-test-kotlin-extensions
 :uri-java-ServiceLoader: https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html
 :uri-GradleRunner: https://docs.gradle.org/current/javadoc/org/gradle/testkit/runner/GradleRunner.html
-:uri-GradleRunner-build: {uri-GradleRunner}#build()
-:uri-GradleRunner-buildAndFail: {uri-GradleRunner}#buildAndFail()
-:uri-GradleRunner-withPluginClasspath: {uri-GradleRunner}#withPluginClasspath()
 :uri-gradle-userguide: https://docs.gradle.org/current/userguide
 :uri-testkit: {uri-gradle-userguide}/test_kit.html
-:uri-javaGradle-plugin: {uri-gradle-userguide}/javaGradle_plugin.html
 :uri-build-status-image: https://circleci.com/gh/mkobit/{github-repo-id}/tree/master.svg?style=svg
 :circle-ci-status-badge: image:{uri-build-status-image}["CircleCI", link="https://circleci.com/gh/mkobit/{github-repo-id}/tree/master"]
 :uri-version-badge-image: https://api.bintray.com/packages/mkobit/gradle/{github-repo-id}/images/download.svg
@@ -35,88 +31,37 @@ dependencies {
 ----
 
 [[gradleRunner-extensions]]
-=== GradleRunner extensions
+== GradleRunner extensions
 
 link:{uri-GradleRunner}[GradleRunner] can be used to execute builds using the link:{uri-testkit}[Gradle TestKit].
-There are a few extensions that make the setup and execution with Kotlin clearer, more concise, and allows for configuring defaults.
+There are a few extensions that make the setup and execution with Kotlin clearer, more concise, and composable.
 
-`GradleRunner.buildWith()` configures the `GradleRunner` with the supplied arguments and the supplied <<runnerConfigurer, `RunnerConfigurer`>>.
-It is best used with named arguments:
-
-.buildWith example
+.Setting up file system resources
 [source, kotlin]
 ----
-import com.mkobit.gradle.test.testkit.runner.buildWith
-
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import import java.io.File
 
-@Test
-fun `buildWith example`() {
-  val gradleRunner = GradleRunner.create()
-  val tempDir: File = createTempDir()
-  // Any additional setup...
-  val buildResult: BuildResult = gradleRunner.buildWith(
-    projectDir = tempDir,
-    versionNumber = "4.1",
-    arguments = listOf("clean", "assemble", "--stacktrace")
-  )
-  // Assert on BuildResult
+internal class FunctionalTests {
+  @Test
+  internal fun `file system manipulation`() {
+    val tempDir: File = createTempDir()
+    val buildResult = GradleRunner.create().withProjectDir(tempDir).setupProjectDir {
+       file("settings.gradle") { content = "// settings.gradle".toByteArray()}
+       file("build.gradle") { content = "// build.gradle".toByteArray() }
+       directory("src/main/java") {
+         file("MainClass.java") { content = "public class Hello {}".toByteArray() }
+         directory("com/mkobit/") {
+           file("NestedDude.java") {
+             content = "package com.mkobit;${System.lineSeparator()}".toByteArray()
+             append("public class NestedDude {}${System.lineSeparator()}".toByteArray())
+             append("// Additional appended content${System.lineSeparator()}".toByteArray())
+           }
+         }
+       }
+     }.build()
+    // Assert on BuildResult
+  }
 }
 ----
-
-[[runnerConfigurer]]
-=== RunnerConfigurer
-
-A function that applies configuration to an instance of `GradleRunner`.
-
-It is used in the <<gradleRunner-extensions, `GradleRunner` build extension methods>>.
-
-==== `ServiceLoaderRunnerConfigurer`
-
-This is the default parameter used for the <<gradleRunner-extensions, `GradleRunner` build extension methods>>.
-It searches for instances using Java's link:{uri-java-ServiceLoader}[`ServiceLoader`]
-If no `RunnerConfigurer` can be found using the `ServiceLoader`, then the <<runnerConfigurer-default, `DefaultRunnerConfigurer`>> is used.
-
-[[runnerConfigurer-default]]
-==== `DefaultRunnerConfigurer`
-
-Default implementation for configuring a `GradleRunner`.
-
-It is written to work well with the link:{uri-javaGradle-plugin}[`java-gradle-plugin`].
-It always calls the link:{uri-GradleRunner-withPluginClasspath}[`withPluginClasspath()`] method.
-
-It also can be configured by system properties for execution
-
-[cols=3*,options="header"]
-|===
-|Key
-|Value
-|Effect
-
-|`com.mkobit.gradle.test.testkit.runner.DefaultRunnerConfigurer.logLevel`
-|`quiet`
-|Adds `--quiet` argument
-
-|`com.mkobit.gradle.test.testkit.runner.DefaultRunnerConfigurer.logLevel`
-|`warn`
-|Adds `--warn` argument
-
-|`com.mkobit.gradle.test.testkit.runner.DefaultRunnerConfigurer.logLevel`
-|`info`
-|Adds `--info` argument
-
-|`com.mkobit.gradle.test.testkit.runner.DefaultRunnerConfigurer.logLevel`
-|`debug`
-|Adds `--debug` argument
-
-
-|`com.mkobit.gradle.test.testkit.runner.DefaultRunnerConfigurer.stacktrace`
-|`stacktrace`
-|Adds `--stacktrace` argument
-
-|`com.mkobit.gradle.test.testkit.runner.DefaultRunnerConfigurer.stacktrace`
-|`full-stacktrace`
-|Adds `--full-stacktrace` argument
-|===

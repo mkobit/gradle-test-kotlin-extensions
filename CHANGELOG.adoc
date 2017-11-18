@@ -24,14 +24,25 @@ For each release, a subsection should be added for each of the following if they
 
 == Unreleased (yyyy/mm/dd)
 
+=== Deprecated
+
+* `GradleRunner.buildWith` method in favor of added extensions
+* `GradleRunner.buildAndFailWith` method in favor of added extensions
+* `RunnerConfigurer` type
+
 === Changed
 
 * Base package namespace of classes from `com.mkobit.gradle.test` to `com.mkobit.gradle.test.kotlin.testkit.runner`
 
 === Added
 
-* `GradleRunner` extensions
+* `GradleRunner` file manipulation extensions
 ** `projectDirPath` - `Path?` to the project directory
+** `setupProjectDir` method to configure the project directory
+* `FileContext` types for simplifying manipulation and creating file system objects in the project directory
+** `RegularFileContext` for dealing with regular files
+** `DirectoryContext` for  managing a directory
+** `FileAction` for different approaches to treating the files
 
 == 0.1.0 (yyyy/mm/dd)
 
