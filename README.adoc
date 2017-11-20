@@ -41,7 +41,8 @@ There are a few extensions that make the setup and execution with Kotlin clearer
 ----
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
-import import java.io.File
+import java.io.File
+import com.mkobit.gradle.test.kotlin.testkit.runner.setupProjectDir
 
 internal class FunctionalTests {
   @Test
@@ -65,3 +66,5 @@ internal class FunctionalTests {
   }
 }
 ----
+
+The `file` and `directory` methods can take additional options to `Create`, `Get`, or `MaybeCreate`
