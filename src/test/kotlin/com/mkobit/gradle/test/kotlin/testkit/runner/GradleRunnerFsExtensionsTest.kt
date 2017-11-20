@@ -21,6 +21,11 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.attribute.PosixFilePermissions
+import java.time.Clock
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.Month
+import java.time.ZoneId
 import java.util.Random
 import java.util.stream.Stream
 
@@ -40,6 +45,58 @@ internal class GradleRunnerFsExtensionsTest {
           assertThat(projectDirPath)
               .isEqualTo(file.toPath())
         }
+    )
+  }
+
+  @TestFactory
+  internal fun `file attributes`(@TempDirectory.Root root: Path): Stream<DynamicNode> {
+    fun newFile(fileName: String, content: ByteArray? = null) = Files.createFile(root.resolve(fileName)).also {
+      if (content != null) {
+        Files.write(it, content)
+      }
+    }
+    fun newDirectory(directoryName: String) = Files.createDirectory(root.resolve(directoryName))
+    val instant = Instant.from(
+        LocalDateTime.of(2011, Month.NOVEMBER, 26, 7, 2)
+            .atZone(ZoneId.systemDefault())
+    )
+    val clock = Clock.fixed(instant, ZoneId.systemDefault())
+    return Stream.of(
+        dynamicTest("regular file modification time") {
+          val context = FileContext.RegularFileContext(newFile("fileModTime"))
+          assertThat(context.lastModifiedTime)
+              .isNotNull()
+          context.lastModifiedTime = clock.instant()
+          assertThat(context.lastModifiedTime)
+              .isEqualTo(instant)
+        },
+        dynamicTest("directory modification time") {
+          val context = FileContext.DirectoryContext(newDirectory("dirModTime"))
+          assertThat(context.lastModifiedTime)
+              .isNotNull()
+          context.lastModifiedTime = clock.instant()
+          assertThat(context.lastModifiedTime)
+              .isEqualTo(instant)
+        },
+        // TODO: make a cross-platform test here to make sure true and false can both be tested
+        dynamicTest("regular file hidden status") {
+          val context = FileContext.RegularFileContext(newFile("notHiddenFile"))
+          assertThat(context.isHidden)
+              .isFalse()
+        },
+        dynamicTest("directory hidden status") {
+          val context = FileContext.DirectoryContext(newDirectory("notHiddenDir"))
+          assertThat(context.isHidden)
+              .isFalse()
+        },
+        dynamicTest("regular file size") {
+          val bytes = 10
+          val context = FileContext.RegularFileContext(newFile("fileSize", ByteArray(bytes, Int::toByte)))
+          assertThat(context.size)
+              .isEqualTo(bytes.toLong())
+              .isEqualTo(context.content.size.toLong())
+        }
+
     )
   }
 
