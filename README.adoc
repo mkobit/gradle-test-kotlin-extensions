@@ -9,10 +9,12 @@
 :circle-ci-status-badge: image:{uri-build-status-image}["CircleCI", link="https://circleci.com/gh/mkobit/{github-repo-id}/tree/master"]
 :uri-version-badge-image: https://api.bintray.com/packages/mkobit/gradle/{github-repo-id}/images/download.svg
 :uri-bintray-package: https://bintray.com/mkobit/gradle/{github-repo-id}/_latestVersion
+:uri-zenhub-badge: https://raw.githubusercontent.com/ZenHubIO/support/master/zenhub-badge.png
 :version-badge: image:{uri-version-badge-image}["Latest Release Version", link="{uri-bintray-package}"]
 
 {version-badge}
 {circle-ci-status-badge}
+{zenhub-badge}
 
 Kotlin extensions and utilities for testing Gradle projects.
 
