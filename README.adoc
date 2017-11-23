@@ -9,10 +9,12 @@
 :circle-ci-status-badge: image:{uri-build-status-image}["CircleCI", link="https://circleci.com/gh/mkobit/{github-repo-id}/tree/master"]
 :uri-version-badge-image: https://api.bintray.com/packages/mkobit/gradle/{github-repo-id}/images/download.svg
 :uri-bintray-package: https://bintray.com/mkobit/gradle/{github-repo-id}/_latestVersion
+:uri-zenhub-badge: https://raw.githubusercontent.com/ZenHubIO/support/master/zenhub-badge.png
 :version-badge: image:{uri-version-badge-image}["Latest Release Version", link="{uri-bintray-package}"]
 
 {version-badge}
 {circle-ci-status-badge}
+{zenhub-badge}
 
 Kotlin extensions and utilities for testing Gradle projects.
 
@@ -36,6 +38,8 @@ dependencies {
 link:{uri-GradleRunner}[GradleRunner] can be used to execute builds using the link:{uri-testkit}[Gradle TestKit].
 There are a few extensions that make the setup and execution with Kotlin clearer, more concise, and composable.
 
+=== Setup Files in Project Directory
+
 .Setting up file system resources
 [source, kotlin]
 ----
@@ -45,6 +49,7 @@ import java.io.File
 import com.mkobit.gradle.test.kotlin.testkit.runner.setupProjectDir
 
 internal class FunctionalTests {
+
   @Test
   internal fun `file system manipulation`() {
     val tempDir: File = createTempDir()
@@ -67,4 +72,27 @@ internal class FunctionalTests {
 }
 ----
 
-The `file` and `directory` methods can take additional options to `Create`, `Get`, or `MaybeCreate`
+The `file` and `directory` methods can take additional options to `Create`, `Get`, or `MaybeCreate`.
+See the `com.mkobit.gradle.test.kotlin.io.FileAction` for other options.
+
+=== Command Line Management
+
+NOTE: These APIs are still experimental and are likely to change after some use.
+      They don't provide a complete experience for fully managing command-line arguments right now and feel like a half-way solution.
+      This area will be built upon on the future with better support and more use cases.
+
+internal class FunctionalTests {
+
+  @Test
+  internal fun `CLI management`() {
+    val gradleRunner = GradleRunner.create().apply {
+      info = true
+      stacktrace = true
+      projectProperties = mapOf("key1" to "prop1")
+      systemProperties = mapOf("key2" to "value2")
+      arguments("test", "--tests", "my.test", "assemble")
+    }
+    // additional setup and execution
+  }
+}
+----

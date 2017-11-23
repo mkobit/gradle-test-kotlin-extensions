@@ -229,6 +229,64 @@ internal class GradleRunnerCliExtensionsTest {
         }
     )
   }
+
+  @TestFactory
+  internal fun `can specify tasks with toggleable extension arguments`(): Stream<DynamicNode> {
+    return Stream.of(
+        dynamicGradleRunnerTest("can add tasks before setting some toggle options") {
+          arguments("check", "build")
+          info = true
+          stacktrace = true
+          assertThat(arguments)
+              .hasSize(4)
+              .containsSequence("check", "build")
+
+        },
+        dynamicGradleRunnerTest("can add tasks after setting some toggle options") {
+          info = true
+          stacktrace = true
+          arguments("check", "build")
+          assertThat(arguments)
+              .hasSize(4)
+              .containsSequence("check", "build")
+
+        },
+        dynamicGradleRunnerTest("can add tasks with options before setting some toggle options") {
+          arguments("check", "--option", "build", "--option1", "optionValue")
+          info = true
+          stacktrace = true
+          assertThat(arguments)
+              .hasSize(7)
+              .containsSequence("check", "--option", "build", "--option1", "optionValue")
+
+        },
+        dynamicGradleRunnerTest("can add tasks with options after setting some toggle options") {
+          info = true
+          stacktrace = true
+          arguments("check", "--option", "build", "--option1", "optionValue")
+          assertThat(arguments)
+              .hasSize(7)
+              .containsSequence("check", "--option", "build", "--option1", "optionValue")
+
+        },
+        dynamicGradleRunnerTest("can add tasks before setting a key/value option") {
+          arguments("check", "build")
+          projectProperties = mapOf("key1" to "prop1")
+          systemProperties = mapOf("key2" to "sys1")
+          assertThat(arguments)
+              .hasSize(6)
+              .containsSequence("check", "build")
+        },
+        dynamicGradleRunnerTest("can add tasks after setting a key/value option") {
+          projectProperties = mapOf("key1" to "prop1")
+          systemProperties = mapOf("key2" to "sys1")
+          arguments("check", "build")
+          assertThat(arguments)
+              .hasSize(6)
+              .containsSequence("check", "build")
+        }
+    )
+  }
 }
 
 /**

@@ -8,6 +8,14 @@ import org.gradle.testkit.runner.GradleRunner
 // TODO: support short options for all of these, especially project properties
 
 /**
+ * Appends the provided arguments to the current arguments.
+ * @param additionalArguments the arguments to append
+ */
+fun GradleRunner.arguments(vararg additionalArguments: CharSequence) {
+  withArguments(arguments + additionalArguments.toList().map(CharSequence::toString))
+}
+
+/**
  * The `--build-cache` flag.
  */
 var GradleRunner.buildCacheEnabled: Boolean
