@@ -8,6 +8,9 @@ import java.nio.file.attribute.FileAttribute
 import java.nio.file.attribute.FileTime
 import java.time.Instant
 
+@DslMarker
+private annotation class FilesDsl
+
 /**
  * No operation.
  */
@@ -31,6 +34,7 @@ private fun <T> translateIoExceptions(supplier: () -> T): T = try {
  *
  * @property path the location of this context
  */
+@FilesDsl
 sealed class FileContext(val path: Path) {
 
   /**
