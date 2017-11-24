@@ -1,9 +1,12 @@
 package com.mkobit.gradle.test.kotlin.io
 
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatExceptionOfType
+import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest
+import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.extension.ExtendWith
 import testsupport.TempDirectory
@@ -36,37 +39,37 @@ internal class FileContextTest {
     )
     val clock = Clock.fixed(instant, ZoneId.systemDefault())
     return Stream.of(
-        DynamicTest.dynamicTest("regular file modification time") {
+        dynamicTest("regular file modification time") {
           val context = FileContext.RegularFileContext(newFile("fileModTime"))
-          Assertions.assertThat(context.lastModifiedTime)
+          assertThat(context.lastModifiedTime)
               .isNotNull()
           context.lastModifiedTime = clock.instant()
-          Assertions.assertThat(context.lastModifiedTime)
+          assertThat(context.lastModifiedTime)
               .isEqualTo(instant)
         },
-        DynamicTest.dynamicTest("directory modification time") {
+        dynamicTest("directory modification time") {
           val context = FileContext.DirectoryContext(newDirectory("dirModTime"))
-          Assertions.assertThat(context.lastModifiedTime)
+          assertThat(context.lastModifiedTime)
               .isNotNull()
           context.lastModifiedTime = clock.instant()
-          Assertions.assertThat(context.lastModifiedTime)
+          assertThat(context.lastModifiedTime)
               .isEqualTo(instant)
         },
         // TODO: make a cross-platform test here to make sure true and false can both be tested
-        DynamicTest.dynamicTest("regular file hidden status") {
+        dynamicTest("regular file hidden status") {
           val context = FileContext.RegularFileContext(newFile("notHiddenFile"))
-          Assertions.assertThat(context.isHidden)
+          assertThat(context.isHidden)
               .isFalse()
         },
-        DynamicTest.dynamicTest("directory hidden status") {
+        dynamicTest("directory hidden status") {
           val context = FileContext.DirectoryContext(newDirectory("notHiddenDir"))
-          Assertions.assertThat(context.isHidden)
+          assertThat(context.isHidden)
               .isFalse()
         },
-        DynamicTest.dynamicTest("regular file size") {
+        dynamicTest("regular file size") {
           val bytes = 10
           val context = FileContext.RegularFileContext(newFile("fileSize", ByteArray(bytes, Int::toByte)))
-          Assertions.assertThat(context.size)
+          assertThat(context.size)
               .isEqualTo(bytes.toLong())
               .isEqualTo(context.content.size.toLong())
         }
@@ -81,40 +84,40 @@ internal class FileContextTest {
         FileContext.RegularFileContext(randomFile(initialContents))
 
     return Stream.of(
-        DynamicTest.dynamicTest("empty content can be read") {
-          Assertions.assertThat(tempFileContext().content)
+        dynamicTest("empty content can be read") {
+          assertThat(tempFileContext().content)
               .isEmpty()
         },
-        DynamicTest.dynamicTest("content can be read") {
+        dynamicTest("content can be read") {
           val content = "here is some file content"
           tempFileContext(content)
         },
-        DynamicTest.dynamicTest("empty content can be written") {
+        dynamicTest("empty content can be written") {
           val context = tempFileContext()
           context.content = ByteArray(0)
-          Assertions.assertThat(context.content)
+          assertThat(context.content)
               .isEmpty()
-          Assertions.assertThat(context.path)
+          assertThat(context.path)
               .hasContent("")
         },
-        DynamicTest.dynamicTest("full content can be written") {
+        dynamicTest("full content can be written") {
           val content = "this is some file content"
           val context = tempFileContext()
           context.content = content.toByteArray()
-          Assertions.assertThat(context.content)
+          assertThat(context.content)
               .isEqualTo(content.toByteArray())
-          Assertions.assertThat(context.path)
+          assertThat(context.path)
               .hasContent(content)
         },
-        DynamicTest.dynamicTest("append content to existing file") {
+        dynamicTest("append content to existing file") {
           val originalContent = "this is the the original content"
           val appendedContent = "this is the appended content"
           val context = tempFileContext(originalContent)
           context.append(appendedContent.toByteArray())
-          Assertions.assertThat(context.content)
+          assertThat(context.content)
               .startsWith(*originalContent.toByteArray())
               .endsWith(*appendedContent.toByteArray())
-          Assertions.assertThat(context.path)
+          assertThat(context.path)
               .hasContent(originalContent + appendedContent)
         }
     )
@@ -127,26 +130,26 @@ internal class FileContextTest {
     val regularFile = Files.createFile(root.resolve("existingFile"))
     val symlink = Files.createSymbolicLink(root.resolve("symlinkDestination"), Files.createFile(root.resolve("symlinkSource")))
     val directoryContextTests = Stream.of(
-        DynamicTest.dynamicTest("DirectoryContext with nonexistent file throws exception") {
-          Assertions.assertThatIllegalArgumentException()
+        dynamicTest("DirectoryContext with nonexistent file throws exception") {
+          assertThatIllegalArgumentException()
               .isThrownBy { FileContext.DirectoryContext(doesntExist) }
         },
-        DynamicTest.dynamicTest("DirectoryContext for regular file throws exception") {
-          Assertions.assertThatExceptionOfType(IllegalArgumentException::class.java)
+        dynamicTest("DirectoryContext for regular file throws exception") {
+          assertThatExceptionOfType(IllegalArgumentException::class.java)
               .isThrownBy { FileContext.DirectoryContext(regularFile) }
         },
-        DynamicTest.dynamicTest("DirectoryContext for symlink throws exception") {
-          Assertions.assertThatExceptionOfType(IllegalArgumentException::class.java)
+        dynamicTest("DirectoryContext for symlink throws exception") {
+          assertThatExceptionOfType(IllegalArgumentException::class.java)
               .isThrownBy { FileContext.DirectoryContext(symlink) }
         }
     )
 
     val regularFileContextTests = Stream.of(
-        DynamicTest.dynamicTest("RegularFileContext with nonexistent file throws exception") {
-          Assertions.assertThatIllegalArgumentException().isThrownBy { FileContext.RegularFileContext(doesntExist) }
+        dynamicTest("RegularFileContext with nonexistent file throws exception") {
+          assertThatIllegalArgumentException().isThrownBy { FileContext.RegularFileContext(doesntExist) }
         },
-        DynamicTest.dynamicTest("RegularFileContext for directory throws exception") {
-          Assertions.assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
+        dynamicTest("RegularFileContext for directory throws exception") {
+          assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
             FileContext.RegularFileContext(directory)
           }
         }
@@ -165,27 +168,27 @@ internal class FileContextTest {
     )
 
     return Stream.of(
-        DynamicTest.dynamicTest("Get type is an object") {
-          Assertions.assertThat(FileAction.Get::class.objectInstance)
+        dynamicTest("Get type is an object") {
+          assertThat(FileAction.Get::class.objectInstance)
               .withFailMessage("${FileAction.Get::class} must be an object instance")
               .isNotNull()
         },
-        DynamicTest.dynamicTest("MaybeCreate is a constant") {
-          Assertions.assertThat(FileAction.MaybeCreate)
+        dynamicTest("MaybeCreate is a constant") {
+          assertThat(FileAction.MaybeCreate)
               .isInstanceOf(FileAction.MaybeCreate::class.java)
         },
-        DynamicTest.dynamicTest("MaybeCreate instance with attributes") {
+        dynamicTest("MaybeCreate instance with attributes") {
           val request = FileAction.MaybeCreate(listOf(posixFilePermissions))
-          Assertions.assertThat(request.fileAttributes)
+          assertThat(request.fileAttributes)
               .containsExactly(posixFilePermissions)
         },
-        DynamicTest.dynamicTest("Create is a constant-") {
-          Assertions.assertThat(FileAction.Create)
+        dynamicTest("Create is a constant-") {
+          assertThat(FileAction.Create)
               .isInstanceOf(FileAction.Create::class.java)
         },
-        DynamicTest.dynamicTest("Create instance with attributes") {
+        dynamicTest("Create instance with attributes") {
           val request = FileAction.Create(listOf(posixFilePermissions))
-          Assertions.assertThat(request.fileAttributes)
+          assertThat(request.fileAttributes)
               .containsExactly(posixFilePermissions)
         }
     )
@@ -199,13 +202,13 @@ internal class FileContextTest {
 
     return Stream.of(
         dynamicDirectoryContextTest("when file does not exist then an exception is thrown") {
-          Assertions.assertThatExceptionOfType(NoSuchFileException::class.java)
+          assertThatExceptionOfType(NoSuchFileException::class.java)
               .isThrownBy { it.file("doesntExist", requestType) }
         },
         dynamicDirectoryContextTest("when file exists directly in the directory then it can be retrieved") {
           val filePath = Files.write(it.path.resolve("fileExistPath"), listOf("content goes here"))
           val fileContext = it.file("fileExistPath", requestType)
-          Assertions.assertThat(fileContext.path)
+          assertThat(fileContext.path)
               .hasParent(it.path)
               .isRegularFile()
               .isEqualTo(filePath)
@@ -214,14 +217,14 @@ internal class FileContextTest {
           val dirPath = Files.createDirectories(it.path.resolve("some/nested/path/to/dir"))
           val filePath = Files.createFile(dirPath.resolve("existingFile"))
           val fileContext = it.file("some/nested/path/to/dir/existingFile", requestType)
-          Assertions.assertThat(fileContext.path)
+          assertThat(fileContext.path)
               .isRegularFile()
               .isEqualTo(filePath)
               .hasParent(dirPath)
         },
         dynamicDirectoryContextTest("when path is a directory then an exception is thrown") {
           Files.createDirectory(it.path.resolve("directory"))
-          Assertions.assertThatExceptionOfType(NoSuchFileException::class.java)
+          assertThatExceptionOfType(NoSuchFileException::class.java)
               .isThrownBy { it.file("directory", requestType) }
         }
     )
@@ -236,14 +239,14 @@ internal class FileContextTest {
     return Stream.of(
         dynamicDirectoryContextTest("when file does not exist then it is created") {
           val fileContext = it.file("newFilePath", requestType)
-          Assertions.assertThat(fileContext.path)
+          assertThat(fileContext.path)
               .hasParent(it.path)
               .isRegularFile()
         },
         dynamicDirectoryContextTest("when file exists then it is retrieved") {
           val filePath = Files.createFile(it.path.resolve("fileExistPath"))
           val fileContext = it.file("fileExistPath", requestType)
-          Assertions.assertThat(fileContext.path)
+          assertThat(fileContext.path)
               .isRegularFile()
               .hasParent(it.path)
               .isEqualTo(filePath)
@@ -251,17 +254,17 @@ internal class FileContextTest {
         dynamicDirectoryContextTest("when path is to a nonexistant file in an existing nested directory then it is retrieved") {
           val dirPath = Files.createDirectories(it.path.resolve("some/nested/dir"))
           val fileContext = it.file("some/nested/dir/nonExistentfilePath", requestType)
-          Assertions.assertThat(fileContext.path)
+          assertThat(fileContext.path)
               .isRegularFile()
               .hasParent(dirPath)
         },
         dynamicDirectoryContextTest("when path is a directory then an exception is thrown") {
           Files.createDirectory(it.path.resolve("directory"))
-          Assertions.assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+          assertThatExceptionOfType(FileAlreadyExistsException::class.java)
               .isThrownBy { it.file("directory", requestType) }
         },
         dynamicDirectoryContextTest("when path is a nested directory and the parent directory doesn't exist then an exception is thrown") {
-          Assertions.assertThatExceptionOfType(NoSuchFileException::class.java)
+          assertThatExceptionOfType(NoSuchFileException::class.java)
               .isThrownBy { it.file("directory/fileName", requestType) }
         }
     )
@@ -276,35 +279,35 @@ internal class FileContextTest {
     return Stream.of(
         dynamicDirectoryContextTest("when the file does not exist then then it is created") {
           val fileContext = it.file("nonExistantFile", requestType)
-          Assertions.assertThat(fileContext.path)
+          assertThat(fileContext.path)
               .isRegularFile()
               .hasParent(it.path)
         },
         dynamicDirectoryContextTest("when the path is nested and the parent directory doesn't exist then an exception is thrown") {
-          Assertions.assertThatExceptionOfType(NoSuchFileException::class.java)
+          assertThatExceptionOfType(NoSuchFileException::class.java)
               .isThrownBy { it.file("path/to/nonExistentDir/file", requestType) }
         },
         dynamicDirectoryContextTest("when the path is nested and the parent directory exists then the file is created") {
           val dirPath = Files.createDirectories(it.path.resolve("path/to/dir"))
           val context = it.file("path/to/dir/existingFile", requestType)
-          Assertions.assertThat(context.path)
+          assertThat(context.path)
               .hasParent(dirPath)
               .isRegularFile()
         },
         dynamicDirectoryContextTest("when the file exists then an exception is thrown") {
           Files.createFile(it.path.resolve("existingFile"))
-          Assertions.assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+          assertThatExceptionOfType(FileAlreadyExistsException::class.java)
               .isThrownBy { it.file("existingFile", requestType) }
         },
         dynamicDirectoryContextTest("when the file exists in a nested directory then an exception is thrown") {
           val dirPath = Files.createDirectories(it.path.resolve("path/to/dir"))
           Files.createFile(dirPath.resolve("existingFile"))
-          Assertions.assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+          assertThatExceptionOfType(FileAlreadyExistsException::class.java)
               .isThrownBy { it.file("path/to/dir/existingFile", requestType) }
         },
         dynamicDirectoryContextTest("when a directory exists at the path then an exception is thrown") {
           Files.createDirectory(it.path.resolve("dir"))
-          Assertions.assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+          assertThatExceptionOfType(FileAlreadyExistsException::class.java)
               .isThrownBy { it.file("dir", requestType) }
         }
     )
@@ -317,26 +320,26 @@ internal class FileContextTest {
     val requestType = FileAction.Get
     return Stream.of(
         dynamicDirectoryContextTest("when directory does not exist then an exception is thrown") {
-          Assertions.assertThatExceptionOfType(NoSuchFileException::class.java)
+          assertThatExceptionOfType(NoSuchFileException::class.java)
               .isThrownBy { it.directory("nonExistentDirectory", requestType) }
         },
         dynamicDirectoryContextTest("when direct child directory exists then it can be retrieved") {
           val directory = Files.createDirectory(it.path.resolve("dirPath"))
           val context = it.directory("dirPath", requestType)
-          Assertions.assertThat(context.path)
+          assertThat(context.path)
               .isDirectory()
               .isEqualTo(directory)
         },
         dynamicDirectoryContextTest("when nested directory exists then it can be retrieved") {
           val directory = Files.createDirectories(it.path.resolve("path/to/nested/dir"))
           val context = it.directory("path/to/nested/dir", requestType)
-          Assertions.assertThat(context.path)
+          assertThat(context.path)
               .isDirectory()
               .isEqualTo(directory)
         },
         dynamicDirectoryContextTest("when file exists at the path then an exception is thrown") {
           Files.createFile(it.path.resolve("existingFile"))
-          Assertions.assertThatExceptionOfType(NoSuchFileException::class.java)
+          assertThatExceptionOfType(NoSuchFileException::class.java)
               .isThrownBy { it.directory("existingFile", requestType) }
         }
     )
@@ -350,14 +353,14 @@ internal class FileContextTest {
     return Stream.of(
         dynamicDirectoryContextTest("when the directory does not exist then it is created") {
           val context = it.directory("nonExistentDirectory", requestType)
-          Assertions.assertThat(context.path)
+          assertThat(context.path)
               .isDirectory()
               .hasParent(it.path)
               .hasFileName("nonExistentDirectory")
         },
         dynamicDirectoryContextTest("when the nested directory does not exists then the entire path is created") {
           val context = it.directory("path/to/nonexistent/dir", requestType)
-          Assertions.assertThat(context.path)
+          assertThat(context.path)
               .isDirectory()
               .startsWith(it.path)
               .endsWith(Paths.get("path/to/nonexistent/dir"))
@@ -365,20 +368,20 @@ internal class FileContextTest {
         dynamicDirectoryContextTest("when some of the nested directory does not the exist then the entire path is created") {
           Files.createDirectories(it.path.resolve("path/to"))
           val context = it.directory("path/to/nonexistent/dir", requestType)
-          Assertions.assertThat(context.path)
+          assertThat(context.path)
               .isDirectory()
               .startsWith(it.path)
               .endsWith(Paths.get("path/to/nonexistent/dir"))
         },
         dynamicDirectoryContextTest("when file exists at the path en an exception is thrown") {
           Files.createFile(it.path.resolve("regularFile"))
-          Assertions.assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+          assertThatExceptionOfType(FileAlreadyExistsException::class.java)
               .isThrownBy { it.directory("regularFile", requestType) }
         },
         dynamicDirectoryContextTest("when nested file exists at the path en an exception is thrown") {
           val dirPath = Files.createDirectories(it.path.resolve("nested/dir/path"))
           Files.createFile(dirPath.resolve("regularFile"))
-          Assertions.assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+          assertThatExceptionOfType(FileAlreadyExistsException::class.java)
               .isThrownBy { it.directory("nested/dir/path/regularFile", requestType) }
         }
     )
@@ -393,14 +396,14 @@ internal class FileContextTest {
     return Stream.of(
         dynamicDirectoryContextTest("when the directory does not exist then then it is created") {
           val context = it.directory("dirName", requestType)
-          Assertions.assertThat(context.path)
+          assertThat(context.path)
               .isDirectory()
               .hasParent(it.path)
               .hasFileName("dirName")
         },
         dynamicDirectoryContextTest("when the path is nested and the nested directory doesn't exist then the nested path is created") {
           val context = it.directory("nested/dir/path", requestType)
-          Assertions.assertThat(context.path)
+          assertThat(context.path)
               .isDirectory()
               .startsWith(it.path)
               .endsWith(Paths.get("nested/dir/path"))
@@ -408,24 +411,24 @@ internal class FileContextTest {
         dynamicDirectoryContextTest("when the path is nested and some of the parent directories exist then the full nested directory is created") {
           Files.createDirectories(it.path.resolve("nested/dir"))
           val context = it.directory("nested/dir/path", requestType)
-          Assertions.assertThat(context.path)
+          assertThat(context.path)
               .isDirectory()
               .startsWith(it.path)
               .endsWith(Paths.get("nested/dir/path"))
         },
         dynamicDirectoryContextTest("when the directory exists then an exception is thrown") {
           Files.createDirectory(it.path.resolve("existingDir"))
-          Assertions.assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+          assertThatExceptionOfType(FileAlreadyExistsException::class.java)
               .isThrownBy { it.directory("existingDir", requestType) }
         },
         dynamicDirectoryContextTest("when the directory exists in a nested directory then an exception is thrown") {
           Files.createDirectories(it.path.resolve("nested/path/to/existingDir"))
-          Assertions.assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+          assertThatExceptionOfType(FileAlreadyExistsException::class.java)
               .isThrownBy { it.directory("nested/path/to/existingDir", requestType) }
         },
         dynamicDirectoryContextTest("when a file exists at the path then an exception is thrown") {
           Files.createFile(it.path.resolve("existingFile"))
-          Assertions.assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+          assertThatExceptionOfType(FileAlreadyExistsException::class.java)
               .isThrownBy { it.directory("existingFile", requestType) }
         }
     )
@@ -447,7 +450,7 @@ private fun dynamicDirectoryContextTestProvider(
     contextFactory: () -> FileContext.DirectoryContext
 ): (displayName: String, test: (FileContext.DirectoryContext) -> Unit) -> DynamicTest {
   return { displayName: String, test: (FileContext.DirectoryContext) -> Unit ->
-    DynamicTest.dynamicTest(displayName) {
+    dynamicTest(displayName) {
       test(contextFactory())
     }
   }
