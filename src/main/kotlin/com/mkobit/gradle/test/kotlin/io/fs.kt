@@ -31,7 +31,7 @@ private fun <T> translateIoExceptions(supplier: () -> T): T = try {
 }
 
 /**
- *
+ * A context for a file.
  * @property path the location of this context
  */
 @FilesDsl
@@ -100,18 +100,25 @@ sealed class FileContext(val path: Path) {
 
     /**
      * Produce a [RegularFileContext] instance with a [Path] resolved from this instance's [path].
+     * The instance is provisioned based on the provided [fileAction].
      *
-     * @param fileName the filename to resolve in this directory
+     * @param filename the filename to resolve in this instance's [path]
      * @param fileAction the action to take for the file
      * @param action the lambda that can provide additional setup of the file
      * @return a [RegularFileContext] for the resolved file
+     * @throws NoSuchFileException if the [action] is [FileAction.Get] and the file is not a
+     * regular file
+     * @throws FileAlreadyExistsException if the [action] is a creation method
+     * ([FileAction.MaybeCreate] or [FileAction.Create]) and a file already exists at the resolved
+     * path
      */
+    @Throws(NoSuchFileException::class, FileAlreadyExistsException::class)
     fun file(
-        fileName: CharSequence,
+        filename: CharSequence,
         fileAction: FileAction = FileAction.MaybeCreate,
         action: RegularFileContext.() -> Unit = NoOp
     ): RegularFileContext {
-      val filePath = path.resolve(fileName.toString())
+      val filePath = path.resolve(filename.toString())
 
       return translateIoExceptions {
         when (fileAction) {
@@ -139,6 +146,20 @@ sealed class FileContext(val path: Path) {
       }
     }
 
+    /**
+     * Produce a [DirectoryContext] instance with a [Path] resolved this instance's [path].
+     * The instance is provisioned based on the provided [fileAction].
+     *
+     * @param directoryName the directory name to resolve in this instance's [path]
+     * @param fileAction the action to take for the file
+     * @param action the lambda that can provide additional setup of the file
+     * @return a [DirectoryContext] for the resolved directory
+     * @throws NoSuchFileException if the [action] is [FileAction.Get] and the file is not a
+     * directory
+     * @throws FileAlreadyExistsException if the [action] is a creation method
+     * ([FileAction.MaybeCreate] or [FileAction.Create]) and a file already exists at the resolved
+     * path
+     */
     @Throws(NoSuchFileException::class, FileAlreadyExistsException::class)
     fun directory(
         directoryName: CharSequence,
