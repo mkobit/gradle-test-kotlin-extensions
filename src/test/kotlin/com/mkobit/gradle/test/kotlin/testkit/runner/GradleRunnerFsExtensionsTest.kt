@@ -2,13 +2,13 @@ package com.mkobit.gradle.test.kotlin.testkit.runner
 
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
-import org.assertj.core.api.SoftAssertions
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.extension.ExtendWith
 import testsupport.TempDirectory
+import testsupport.assertSoftly
 import testsupport.dynamicGradleRunnerTest
 import java.io.File
 import java.nio.file.Path
@@ -41,7 +41,7 @@ internal class GradleRunnerFsExtensionsTest {
   }
 
   @Test
-  internal fun `set up a Gradle project using full DSL`(@TempDirectory.Root root: Path) {
+  internal fun `set up a Gradle project using full methods DSL`(@TempDirectory.Root root: Path) {
     GradleRunner.create().withProjectDir(root.toFile()).setupProjectDir {
       file("settings.gradle") { content = "// settings.gradle".toByteArray()}
       file("build.gradle") { content = "// build.gradle".toByteArray() }
@@ -57,29 +57,27 @@ internal class GradleRunnerFsExtensionsTest {
       }
     }
 
-    SoftAssertions.assertSoftly {
-      it.apply {
-        assertThat(root.resolve("settings.gradle"))
-            .isRegularFile
-            .hasContent("// settings.gradle")
-        assertThat(root.resolve("build.gradle"))
-            .isRegularFile
-            .hasContent("// build.gradle")
-        assertThat(root.resolve("src/main/java"))
-            .isDirectory
-        assertThat(root.resolve("src/main/java/MainClass.java"))
-            .isRegularFile
-            .hasContent("public class Hello {}")
-        assertThat(root.resolve("src/main/java/com/mkobit"))
-            .isDirectory
-        assertThat(root.resolve("src/main/java/com/mkobit/NestedDude.java"))
-            .isRegularFile
-            .hasContent("""
-              package com.mkobit;
-              public class NestedDude {}
-              // Additional appended content
-              """.trimIndent())
-      }
+    assertSoftly {
+      assertThat(root.resolve("settings.gradle"))
+          .isRegularFile
+          .hasContent("// settings.gradle")
+      assertThat(root.resolve("build.gradle"))
+          .isRegularFile
+          .hasContent("// build.gradle")
+      assertThat(root.resolve("src/main/java"))
+          .isDirectory
+      assertThat(root.resolve("src/main/java/MainClass.java"))
+          .isRegularFile
+          .hasContent("public class Hello {}")
+      assertThat(root.resolve("src/main/java/com/mkobit"))
+          .isDirectory
+      assertThat(root.resolve("src/main/java/com/mkobit/NestedDude.java"))
+          .isRegularFile
+          .hasContent("""
+            package com.mkobit;
+            public class NestedDude {}
+            // Additional appended content
+            """.trimIndent())
     }
   }
 }
