@@ -1,10 +1,12 @@
 package com.mkobit.gradle.test.kotlin.io
 
+import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
@@ -201,7 +203,7 @@ internal class FileContextTest {
       private val requestType = FileAction.MaybeCreate
 
       @Test
-      internal fun`when file does not exist and file is requested then it is created`() {
+      internal fun `when file does not exist and file is requested then it is created`() {
         val filename = "newFileName"
         val fileContext = directoryContext.file(filename, requestType)
         assertThat(fileContext.path)
@@ -211,7 +213,7 @@ internal class FileContextTest {
       }
 
       @Test
-      internal fun`when file exists and file is requested then context is retrieved`() {
+      internal fun `when file exists and file is requested then context is retrieved`() {
         val filename = "fileAlreadyExists"
         val filePath = Files.createFile(directoryContext.path.resolve(filename))
         val fileContext = directoryContext.file(filename, requestType)
@@ -222,7 +224,7 @@ internal class FileContextTest {
       }
 
       @Test
-      internal fun`when path is to a nonexistant file in an existing nested directory and file is requested then context is retrieved`() {
+      internal fun `when path is to a nonexistent file in an existing nested directory and file is requested then context is retrieved`() {
         val filename = "nonExistentFile"
         val dirPath = Files.createDirectories(directoryContext.path.resolve("some/nested/dir"))
         val fileContext = directoryContext.file("some/nested/dir/$filename", requestType)
@@ -233,20 +235,20 @@ internal class FileContextTest {
       }
 
       @Test
-      internal fun`when path is a directory and file is requested then a FileAlreadyExistsException is thrown`() {
+      internal fun `when path is a directory and file is requested then a FileAlreadyExistsException is thrown`() {
         Files.createDirectory(directoryContext.path.resolve("directory"))
         assertThatExceptionOfType(FileAlreadyExistsException::class.java)
             .isThrownBy { directoryContext.file("directory", requestType) }
       }
 
       @Test
-      internal fun`when path is a nested directory, the parent directory doesn't exist, and fil eis requested then an exception is thrown`() {
+      internal fun `when path is a nested directory, the parent directory doesn't exist, and fil eis requested then an exception is thrown`() {
         assertThatExceptionOfType(NoSuchFileException::class.java)
             .isThrownBy { directoryContext.file("directory/fileName", requestType) }
       }
 
       @Test
-      internal fun`when the directory does not exist and directory is requested then it is created`() {
+      internal fun `when the directory does not exist and directory is requested then it is created`() {
         val directoryName = "nonExistentDirectory"
         val context = directoryContext.directory(directoryName, requestType)
         assertThat(context.path)
@@ -256,7 +258,7 @@ internal class FileContextTest {
       }
 
       @Test
-      internal fun`when the nested directory does not exist and directory is requested then the entire path is created`() {
+      internal fun `when the nested directory does not exist and directory is requested then the entire path is created`() {
         val context = directoryContext.directory("path/to/nonexistent/dir", requestType)
         assertThat(context.path)
             .isDirectory()
@@ -265,7 +267,7 @@ internal class FileContextTest {
       }
 
       @Test
-      internal fun`when some of the nested directory does not exist then the entire path is created`() {
+      internal fun `when some of the nested directory does not exist then the entire path is created`() {
         Files.createDirectories(directoryContext.path.resolve("path/to"))
         val context = directoryContext.directory("path/to/nonexistent/dir", requestType)
         assertThat(context.path)
@@ -275,18 +277,176 @@ internal class FileContextTest {
       }
 
       @Test
-      internal fun`when file exists at the path and directory is requested then FileAlreadyExistsException is thrown`() {
+      internal fun `when file exists at the path and directory is requested then FileAlreadyExistsException is thrown`() {
         Files.createFile(directoryContext.path.resolve("regularFile"))
         assertThatExceptionOfType(FileAlreadyExistsException::class.java)
             .isThrownBy { directoryContext.directory("regularFile", requestType) }
       }
 
       @Test
-      internal fun`when nested file exists at the path and directory is requested then FileAlreadyExistsException is thrown`() {
+      internal fun `when nested file exists at the path and directory is requested then FileAlreadyExistsException is thrown`() {
         val dirPath = Files.createDirectories(directoryContext.path.resolve("nested/dir/path"))
         Files.createFile(dirPath.resolve("regularFile"))
         assertThatExceptionOfType(FileAlreadyExistsException::class.java)
             .isThrownBy { directoryContext.directory("nested/dir/path/regularFile", requestType) }
+      }
+
+      @TestFactory
+      internal fun `when string invocation is used and directory does not exist then the directory is created`(): Stream<DynamicNode> {
+        return Stream.of(
+            dynamicTest("by explicitly passing in a ${FileAction::class.simpleName} of ${requestType::class.simpleName}") {
+              val context = directoryContext.run {
+                "filename1"(requestType) {}
+              }
+              assertThat(context)
+                  .isInstanceOf(FileContext.DirectoryContext::class.java)
+              assertThat(context.path)
+                  .isDirectory()
+                  .hasParent(directoryContext.path)
+                  .hasFileName("filename1")
+            },
+            dynamicTest("using default parameter value of ${FileAction::class.simpleName}") {
+              val context = directoryContext.run {
+                "filename2" {}
+              }
+              assertThat(context)
+                  .isInstanceOf(FileContext.DirectoryContext::class.java)
+              assertThat(context.path)
+                  .isDirectory()
+                  .hasParent(directoryContext.path)
+                  .hasFileName("filename2")
+            }
+        )
+      }
+
+      @TestFactory
+      internal fun `when string invocation is used and directory exists then it is retrieved`(): Stream<DynamicNode> {
+        return Stream.of(
+            dynamicTest("by explicitly passing in a ${FileAction::class.simpleName} of ${requestType::class.simpleName}") {
+              val context = directoryContext.run {
+                Files.createDirectory(directoryContext.path.resolve("filename1"))
+                "filename1"(requestType) {}
+              }
+              assertThat(context)
+                  .isInstanceOf(FileContext.DirectoryContext::class.java)
+              assertThat(context.path)
+                  .isDirectory()
+                  .hasParent(directoryContext.path)
+                  .hasFileName("filename1")
+            },
+            dynamicTest("using default parameter value of ${FileAction::class.simpleName}") {
+              val context = directoryContext.run {
+                Files.createDirectory(directoryContext.path.resolve("filename2"))
+                "filename2" {}
+              }
+              assertThat(context)
+                  .isInstanceOf(FileContext.DirectoryContext::class.java)
+              assertThat(context.path)
+                  .isDirectory()
+                  .hasParent(directoryContext.path)
+                  .hasFileName("filename2")
+            }
+        )
+      }
+
+      @TestFactory
+      internal fun `when string invocation is used and file exists at path then FileAlreadyExistsException is thrown`(): Stream<DynamicNode> {
+        return Stream.of(
+            dynamicTest("by explicitly passing in a ${FileAction::class.simpleName} of ${requestType::class.simpleName}") {
+              directoryContext.run {
+                Files.createFile(directoryContext.path.resolve("filename1"))
+                assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+                    .isThrownBy {
+                      "filename1"(requestType) {}
+                    }
+              }
+            },
+            dynamicTest("using default parameter value of ${FileAction::class.simpleName}") {
+              directoryContext.run {
+                Files.createFile(directoryContext.path.resolve("filename2"))
+                assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+                    .isThrownBy {
+                      "filename2" {}
+                    }
+              }
+            }
+        )
+      }
+
+      @TestFactory
+      internal fun `when string invocation is used with content and file does not exist then the file is created with the provided content`(): Stream<DynamicNode> {
+        val content = "this is file content"
+        return Stream.of(
+            dynamicTest("by explicitly passing in a ${FileAction::class.simpleName} of ${requestType::class.simpleName}") {
+              val context = directoryContext.run {
+                "filename1"(requestType, content = content)
+              }
+              assertThat(context)
+                  .isInstanceOf(FileContext.RegularFileContext::class.java)
+              assertThat(context.path)
+                  .hasContent(content)
+                  .hasParent(directoryContext.path)
+                  .hasFileName("filename1")
+            },
+            dynamicTest("using default parameter value of ${FileAction::class.simpleName}") {
+              val context = directoryContext.run {
+                 "filename2"(content = content)
+              }
+              assertThat(context)
+                  .isInstanceOf(FileContext.RegularFileContext::class.java)
+              assertThat(context.path)
+                  .hasContent(content)
+                  .hasParent(directoryContext.path)
+                  .hasFileName("filename2")
+            }
+        )
+      }
+
+      @Disabled("Undefined behaviour for this right now. Should empty content be written? Should it be appended? Should option sfor both be provided? When decided, this test should also be renamed")
+      @TestFactory
+      internal fun `when string invocation is called, file already exists, and the provided content is Original, then the file is retrieved with its original content`(): Stream<DynamicNode> {
+        val content = "this is the initial file content".toByteArray()
+        return Stream.of(
+            dynamicTest("by explicitly passing in a ${FileAction::class.simpleName} of ${requestType::class.simpleName}") {
+              val filename = "filename1"
+              Files.write(Files.createFile(directoryContext.path.resolve(filename)), content)
+              val context = directoryContext.run {
+                filename(requestType, content = null)
+              }
+              Assertions.fail("undecided behaviour right now")
+            },
+            dynamicTest("using default parameter value of ${FileAction::class.simpleName}") {
+              val context = directoryContext.run {
+               "filename2"(content = null)
+              }
+              Assertions.fail("undecided behaviour right now")
+            }
+        )
+      }
+
+      @TestFactory
+      internal fun `when string invocation is used with content and directory exists then FileAlreadyExistsException is thrown`(): Stream<DynamicNode> {
+        val content = "this is file content"
+        return Stream.of(
+            dynamicTest("by explicitly passing in a ${FileAction::class.simpleName} of ${requestType::class.simpleName}") {
+              directoryContext.run {
+                Files.createDirectory(directoryContext.path.resolve("filename1"))
+                assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+                    .isThrownBy {
+                      "filename1"(requestType, content = content)
+                    }
+              }
+            },
+            dynamicTest("using default parameter value of ${FileAction::class.simpleName}") {
+              directoryContext.run {
+                Files.createDirectory(directoryContext.path.resolve("filename2"))
+                assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+                    .isThrownBy {
+                      "filename2"(content = content)
+                    }
+              }
+            }
+        )
       }
     }
 

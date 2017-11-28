@@ -1,6 +1,7 @@
 package com.mkobit.gradle.test.kotlin.io
 
 import java.io.File
+import java.nio.charset.Charset
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
@@ -147,7 +148,7 @@ sealed class FileContext(val path: Path) {
     }
 
     /**
-     * Produce a [DirectoryContext] instance with a [Path] resolved this instance's [path].
+     * Produce a [DirectoryContext] instance with a [Path] resolved from this instance's [path].
      * The instance is provisioned based on the provided [fileAction].
      *
      * @param directoryName the directory name to resolve in this instance's [path]
@@ -196,6 +197,81 @@ sealed class FileContext(val path: Path) {
         }.apply(action)
       }
     }
+
+    /**
+     * Produce a [DirectoryContext] instance with a [Path] resolved from this instance's [path] and the [CharSequence]
+     * that this method was invoked on.
+     * The instance is provisioned based on the provided [fileAction].
+     *
+     * @param fileAction the action to take for the file
+     * @param action the lambda that can provide additional setup of the file
+     * @return a [DirectoryContext] for the resolved directory
+     * @throws NoSuchFileException if the [action] is [FileAction.Get] and the file is not a
+     * directory
+     * @throws FileAlreadyExistsException if the [action] is a creation method
+     * ([FileAction.MaybeCreate] or [FileAction.Create]) and a file already exists at the resolved
+     * path
+     * @see directory
+     */
+    @Throws(NoSuchFileException::class, FileAlreadyExistsException::class)
+    operator fun CharSequence.invoke(
+        fileAction: FileAction = FileAction.MaybeCreate,
+        action: DirectoryContext.() -> Unit
+    ): DirectoryContext = directory(this, fileAction, action)
+
+    /**
+     * Produce a [RegularFileContext] instance with a [Path] resolved from this instance's [path] and the [CharSequence]
+     * that this method was invoked on. The content of the file will be TODO
+     * The instance is provisioned based on the provided [fileAction].
+     *
+     * @param fileAction the action to take for the file
+     * @param content the content to write into the file
+     * @param action the lambda that can provide additional setup of the file
+     * @return a [RegularFileContext] for the resolved file
+     * @throws NoSuchFileException if the [action] is [FileAction.Get] and the file is not a
+     * regular file
+     * @throws FileAlreadyExistsException if the [action] is a creation method
+     * ([FileAction.MaybeCreate] or [FileAction.Create]) and a file already exists at the resolved
+     * path
+     * @see file
+     */
+    @Throws(NoSuchFileException::class, FileAlreadyExistsException::class)
+    operator fun CharSequence.invoke(
+        fileAction: FileAction = FileAction.MaybeCreate,
+        content: ByteArray,
+        action: RegularFileContext.() -> Unit = NoOp
+    ): RegularFileContext = file(this, fileAction) {
+      this.content = content
+    }.apply(action)
+
+    /**
+     * Produce a [RegularFileContext] instance with a [Path] resolved from this instance's [path] and the [CharSequence]
+     * that this method was invoked on. The content of the file will be TODO
+     * The instance is provisioned based on the provided [fileAction].
+     *
+     * @param fileAction the action to take for the file
+     * @param content the optional content to write into the file. If `null`, then no content is written to the file.
+     * @param encoding the encoding to use with the content, defaults to [Charsets.UTF_8]
+     * @param action the lambda that can provide additional setup of the file
+     * @return a [RegularFileContext] for the resolved file
+     * @throws NoSuchFileException if the [action] is [FileAction.Get] and the file is not a
+     * regular file
+     * @throws FileAlreadyExistsException if the [action] is a creation method
+     * ([FileAction.MaybeCreate] or [FileAction.Create]) and a file already exists at the resolved
+     * path
+     * @see file
+     */
+    @Throws(NoSuchFileException::class, FileAlreadyExistsException::class)
+    operator fun CharSequence.invoke(
+        fileAction: FileAction = FileAction.MaybeCreate,
+        content: CharSequence?,
+        encoding: Charset = Charsets.UTF_8,
+        action: RegularFileContext.() -> Unit = NoOp
+    ): RegularFileContext = file(this, fileAction) {
+      content?.let {
+        this.content = it.toString().toByteArray(encoding)
+      }
+    }.apply(action)
   }
 }
 
