@@ -33,6 +33,7 @@ For each release, a subsection should be added for each of the following if they
 === Changed
 
 * Base package namespace of classes from `com.mkobit.gradle.test` to `com.mkobit.gradle.test.kotlin.testkit.runner`
+* Kotlin upgraded from 1.1.60 to 1.2.0
 
 === Added
 
