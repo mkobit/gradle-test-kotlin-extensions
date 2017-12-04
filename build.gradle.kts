@@ -10,18 +10,6 @@ import org.gradle.jvm.tasks.Jar
 import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
-buildscript {
-  repositories {
-    mavenCentral()
-    jcenter()
-  }
-  dependencies {
-    // TODO: load from properties or script plugin
-    classpath("org.junit.platform:junit-platform-gradle-plugin:1.0.1")
-    classpath("org.jetbrains.dokka:dokka-gradle-plugin:0.9.15")
-  }
-}
-
 plugins {
   id("com.gradle.build-scan") version "1.10.3"
   `java-library`
@@ -29,11 +17,8 @@ plugins {
   kotlin("jvm")
   id("com.github.ben-manes.versions") version "0.17.0"
   id("com.jfrog.bintray") version "1.8.0"
-}
-
-apply {
-  plugin("org.junit.platform.gradle.plugin")
-  plugin("org.jetbrains.dokka")
+  id("org.junit.platform.gradle.plugin")
+  id("org.jetbrains.dokka") version "0.9.15"
 }
 
 version = "0.1.0"
@@ -89,7 +74,7 @@ dependencies {
   api(kotlin("stdlib-jre8"))
   testImplementation(kotlin("reflect"))
   testImplementation("org.assertj:assertj-core:3.8.0")
-  testImplementation("org.mockito:mockito-core:2.11.0")
+  testImplementation("org.mockito:mockito-core:2.12.0")
   testImplementation("com.nhaarman:mockito-kotlin:1.5.0")
   DependencyInfo.junitTestImplementationArtifacts.forEach {
     testImplementation(it)
@@ -100,7 +85,7 @@ dependencies {
   testImplementation(kotlin("stdlib-jre8"))
 }
 
-extensions.getByType(JUnitPlatformExtension::class.java).apply {
+junitPlatform {
   platformVersion = DependencyInfo.junitPlatformVersion
   filters {
     engines {
@@ -122,7 +107,7 @@ main.java.setSrcDirs(emptyList<Any>())
 
 tasks {
   "wrapper"(Wrapper::class) {
-    gradleVersion = "4.3"
+    gradleVersion = "4.4-rc-6"
     distributionType = Wrapper.DistributionType.ALL
   }
 
