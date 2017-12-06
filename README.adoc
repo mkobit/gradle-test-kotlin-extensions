@@ -11,6 +11,7 @@
 :uri-bintray-package: https://bintray.com/mkobit/gradle/{github-repo-id}/_latestVersion
 :uri-zenhub-badge: https://raw.githubusercontent.com/ZenHubIO/support/master/zenhub-badge.png
 :version-badge: image:{uri-version-badge-image}["Latest Release Version", link="{uri-bintray-package}"]
+:zenhub-badge: image:{uri-zenhub-badge}["ZenHub Badge", link="https://www.zenhub.com/"]
 
 {version-badge}
 {circle-ci-status-badge}
@@ -28,7 +29,7 @@ repositories {
 }
 
 dependencies {
-  testImplementation("com.mkobit.gradle.test:gradle-test-kotlin-extensions:0.1.0")
+  testImplementation("com.mkobit.gradle.test:gradle-test-kotlin-extensions:x.x.x")
 }
 ----
 
@@ -49,7 +50,6 @@ import java.io.File
 import com.mkobit.gradle.test.kotlin.testkit.runner.setupProjectDir
 
 internal class FunctionalTests {
-
   @Test
   internal fun `file system manipulation`() {
     val tempDir: File = createTempDir()
@@ -74,6 +74,41 @@ internal class FunctionalTests {
 
 The `file` and `directory` methods can take additional options to `Create`, `Get`, or `MaybeCreate`.
 See the `com.mkobit.gradle.test.kotlin.io.FileAction` for other options.
+
+There are also a few `String.invoke` methods to possibly provide a more friendly DSL.
+
+.Setting up file system resources with DSL friendly methods
+[source, kotlin]
+----
+import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.GradleRunner
+import java.io.File
+import com.mkobit.gradle.test.kotlin.testkit.runner.setupProjectDir
+import com.mkobit.gradle.test.kotlin.io.Original
+
+internal class FunctionalTests {
+  @Test
+  internal fun `file system manipulation`() {
+    val tempDir: File = createTempDir()
+    val buildResult = GradleRunner.create().withProjectDir(tempDir).setupProjectDir {
+       "settings.gradle"(content = "// settings.gradle")
+       "build.gradle"(content = "// build.gradle")
+       "src/main/java" {
+         "MainClass.java"(content = "public class Hello {}")
+         "com/mkobit/" {
+           // 'Original' constant here means to not modify any existing content
+           "NestedDude.java"(content = Original) {
+             content = "package com.mkobit;${System.lineSeparator()}".toByteArray()
+             append("public class NestedDude {}${System.lineSeparator()}".toByteArray())
+             append("// Additional appended content${System.lineSeparator()}".toByteArray())
+           }
+         }
+       }
+     }.build()
+    // Assert on BuildResult
+  }
+}
+----
 
 === Command Line Management
 

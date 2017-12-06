@@ -1,6 +1,7 @@
 package com.mkobit.gradle.test.kotlin.io
 
 import java.io.File
+import java.nio.charset.Charset
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
@@ -8,37 +9,32 @@ import java.nio.file.attribute.FileAttribute
 import java.nio.file.attribute.FileTime
 import java.time.Instant
 
+@DslMarker
+private annotation class FilesDsl
+
 /**
  * No operation.
  */
 private val NoOp: Any.() -> Unit = {}
 
 /**
- * Wraps the call and translates the exception.
- * @throws NoSuchFileException when [java.nio.file.NoSuchFileException] is thrown
- * @throws FileAlreadyExistsException when [java.nio.file.FileAlreadyExistsException] is thrown
+ * A constant to be used with the DSL methods for a file that means "use the existing content".
  */
-@Throws(NoSuchFileException::class, FileAlreadyExistsException::class)
-private fun <T> translateIoExceptions(supplier: () -> T): T = try {
-  supplier()
-} catch (noSuchFile: java.nio.file.NoSuchFileException) {
-  throw NoSuchFileException(File(noSuchFile.file)).initCause(noSuchFile)
-} catch (alreadyExists: java.nio.file.FileAlreadyExistsException) {
-  throw FileAlreadyExistsException(File(alreadyExists.file)).initCause(alreadyExists)
-}
+public val Original: CharSequence = "[ORIGINAL]"
 
 /**
- *
+ * A context for a file.
  * @property path the location of this context
  */
-sealed class FileContext(val path: Path) {
+@FilesDsl
+public sealed class FileContext(val path: Path) {
 
   /**
    * The file's last modified time.
    * @see Files.getLastModifiedTime
    * @see Files.setLastModifiedTime
    */
-  var lastModifiedTime: Instant
+  public var lastModifiedTime: Instant
     get() = Files.getLastModifiedTime(path).toInstant()
     set(value) {
       Files.setLastModifiedTime(path, FileTime.from(value))
@@ -48,14 +44,14 @@ sealed class FileContext(val path: Path) {
    * Whether this file is considered hidden.
    * @see Files.isHidden
    */
-  val isHidden: Boolean
+  public val isHidden: Boolean
     get() = Files.isHidden(path)
 
   /**
    * Represents a regular file.
    * @property path the path of the regular file
    */
-  class RegularFileContext(path: Path) : FileContext(path) {
+  public class RegularFileContext(path: Path) : FileContext(path) {
     init {
       require(Files.isRegularFile(path)) { "Path $path must be a regular file" }
     }
@@ -63,7 +59,7 @@ sealed class FileContext(val path: Path) {
     /**
      * The contents of the file.
      */
-    var content: ByteArray
+    public var content: ByteArray
       get() = Files.readAllBytes(path)
       set(value) {
         Files.write(path, value)
@@ -73,14 +69,14 @@ sealed class FileContext(val path: Path) {
      * Size of file in bytes.
      * @see Files.size
      */
-    val size: Long
+    public val size: Long
       get() = Files.size(path)
 
     /**
      * Directly appends the provided [content] to the file.
      * @param content the content to append.
      */
-    fun append(content: ByteArray) {
+    public fun append(content: ByteArray) {
       Files.write(path, content, StandardOpenOption.APPEND)
     }
   }
@@ -89,25 +85,32 @@ sealed class FileContext(val path: Path) {
    * Represents a directory.
    * @property path the path of the directory
    */
-  class DirectoryContext(path: Path) : FileContext(path) {
+  public class DirectoryContext(path: Path) : FileContext(path) {
     init {
       require(Files.isDirectory(path)) { "Path $path is not a directory" }
     }
 
     /**
      * Produce a [RegularFileContext] instance with a [Path] resolved from this instance's [path].
+     * The instance is provisioned based on the provided [fileAction].
      *
-     * @param fileName the filename to resolve in this directory
+     * @param filename the filename to resolve in this instance's [path]
      * @param fileAction the action to take for the file
      * @param action the lambda that can provide additional setup of the file
      * @return a [RegularFileContext] for the resolved file
+     * @throws NoSuchFileException if the [action] is [FileAction.Get] and the file is not a
+     * regular file
+     * @throws FileAlreadyExistsException if the [action] is a creation method
+     * ([FileAction.MaybeCreate] or [FileAction.Create]) and a file already exists at the resolved
+     * path
      */
-    fun file(
-        fileName: CharSequence,
+    @Throws(NoSuchFileException::class, FileAlreadyExistsException::class)
+    public fun file(
+        filename: CharSequence,
         fileAction: FileAction = FileAction.MaybeCreate,
         action: RegularFileContext.() -> Unit = NoOp
     ): RegularFileContext {
-      val filePath = path.resolve(fileName.toString())
+      val filePath = path.resolve(filename.toString())
 
       return translateIoExceptions {
         when (fileAction) {
@@ -135,8 +138,22 @@ sealed class FileContext(val path: Path) {
       }
     }
 
+    /**
+     * Produce a [DirectoryContext] instance with a [Path] resolved from this instance's [path].
+     * The instance is provisioned based on the provided [fileAction].
+     *
+     * @param directoryName the directory name to resolve in this instance's [path]
+     * @param fileAction the action to take for the file
+     * @param action the lambda that can provide additional setup of the file
+     * @return a [DirectoryContext] for the resolved directory
+     * @throws NoSuchFileException if the [action] is [FileAction.Get] and the file is not a
+     * directory
+     * @throws FileAlreadyExistsException if the [action] is a creation method
+     * ([FileAction.MaybeCreate] or [FileAction.Create]) and a file already exists at the resolved
+     * path
+     */
     @Throws(NoSuchFileException::class, FileAlreadyExistsException::class)
-    fun directory(
+    public fun directory(
         directoryName: CharSequence,
         fileAction: FileAction = FileAction.MaybeCreate,
         action: DirectoryContext.() -> Unit = NoOp
@@ -171,38 +188,102 @@ sealed class FileContext(val path: Path) {
         }.apply(action)
       }
     }
+
+    /**
+     * Produce a [DirectoryContext] instance with a [Path] resolved from this instance's [path] and the [CharSequence]
+     * that this method was invoked on.
+     * The instance is provisioned based on the provided [fileAction].
+     *
+     * @param fileAction the action to take for the file
+     * @param action the lambda that can provide additional setup of the file
+     * @return a [DirectoryContext] for the resolved directory
+     * @throws NoSuchFileException if the [action] is [FileAction.Get] and the file is not a
+     * directory
+     * @throws FileAlreadyExistsException if the [action] is a creation method
+     * ([FileAction.MaybeCreate] or [FileAction.Create]) and a file already exists at the resolved
+     * path
+     * @see directory
+     */
+    @Throws(NoSuchFileException::class, FileAlreadyExistsException::class)
+    public operator fun CharSequence.invoke(
+        fileAction: FileAction = FileAction.MaybeCreate,
+        action: DirectoryContext.() -> Unit
+    ): DirectoryContext = directory(this, fileAction, action)
+
+    /**
+     * Produce a [RegularFileContext] instance with a [Path] resolved from this instance's [path] and the [CharSequence]
+     * that this method was invoked on. The content of the file will be TODO
+     * The instance is provisioned based on the provided [fileAction].
+     *
+     * @param fileAction the action to take for the file
+     * @param content the optional content to write into the file. If `null`, then no content is written to the file.
+     * @param encoding the encoding to use with the content, defaults to [Charsets.UTF_8]
+     * @param action the lambda that can provide additional setup of the file
+     * @return a [RegularFileContext] for the resolved file
+     * @throws NoSuchFileException if the [action] is [FileAction.Get] and the file is not a
+     * regular file
+     * @throws FileAlreadyExistsException if the [action] is a creation method
+     * ([FileAction.MaybeCreate] or [FileAction.Create]) and a file already exists at the resolved
+     * path
+     * @see file
+     */
+    @Throws(NoSuchFileException::class, FileAlreadyExistsException::class)
+    public operator fun CharSequence.invoke(
+        fileAction: FileAction = FileAction.MaybeCreate,
+        content: CharSequence,
+        encoding: Charset = Charsets.UTF_8,
+        action: RegularFileContext.() -> Unit = NoOp
+    ): RegularFileContext = file(this, fileAction) {
+      if (content !== Original) {
+        this.content = content.toString().toByteArray(encoding)
+      }
+    }.apply(action)
   }
 }
 
 /**
  * A representation of how a file request should be handled.
  */
-sealed class FileAction {
+public sealed class FileAction {
   /**
    * Get the request file object.
    */
-  object Get : FileAction()
+  public object Get : FileAction()
 
-  companion object {
+  public companion object {
     /**
      * Get the file object if it already exists, otherwise create it with no specified options.
      */
-    val MaybeCreate = MaybeCreate(emptyList())
+    public val MaybeCreate = MaybeCreate(emptyList())
 
     /**
      * Create the file with no specified options.
      */
-    val Create = Create(emptyList())
+    public val Create = Create(emptyList())
   }
 
   /**
    * Get the object if it already exists, otherwise create it with the provided options.
    */
-  data class MaybeCreate(val fileAttributes: List<FileAttribute<*>>) : FileAction()
+  public data class MaybeCreate(val fileAttributes: List<FileAttribute<*>>) : FileAction()
 
   /**
    * Create the file with the provided properties.
    * @property fileAttributes the file attributes to create the file with
    */
-  data class Create(val fileAttributes: List<FileAttribute<*>>) : FileAction()
+  public data class Create(val fileAttributes: List<FileAttribute<*>>) : FileAction()
+}
+
+/**
+ * Wraps the call and translates the exception.
+ * @throws NoSuchFileException when [java.nio.file.NoSuchFileException] is thrown
+ * @throws FileAlreadyExistsException when [java.nio.file.FileAlreadyExistsException] is thrown
+ */
+@Throws(NoSuchFileException::class, FileAlreadyExistsException::class)
+private fun <T> translateIoExceptions(supplier: () -> T): T = try {
+  supplier()
+} catch (noSuchFile: java.nio.file.NoSuchFileException) {
+  throw NoSuchFileException(File(noSuchFile.file)).initCause(noSuchFile)
+} catch (alreadyExists: java.nio.file.FileAlreadyExistsException) {
+  throw FileAlreadyExistsException(File(alreadyExists.file)).initCause(alreadyExists)
 }

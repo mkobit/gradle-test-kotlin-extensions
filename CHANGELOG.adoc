@@ -33,10 +33,11 @@ For each release, a subsection should be added for each of the following if they
 === Changed
 
 * Base package namespace of classes from `com.mkobit.gradle.test` to `com.mkobit.gradle.test.kotlin.testkit.runner`
+* Kotlin upgraded from 1.1.60 to 1.2.0
 
 === Added
 
-* `GradleRunner` file manipulation extensions
+* `GradleRunner` file manipulation extensions (see README for example usage)
 ** `projectDirPath` - `Path?` to the project directory
 ** `setupProjectDir` method to configure the project directory
 * `FileContext` types for simplifying manipulation and creating file system objects in the project directory
