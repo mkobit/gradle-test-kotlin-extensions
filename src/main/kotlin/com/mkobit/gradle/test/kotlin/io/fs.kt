@@ -18,6 +18,11 @@ private annotation class FilesDsl
 private val NoOp: Any.() -> Unit = {}
 
 /**
+ * A constant to be used with the DSL methods for a file that means "use the existing content".
+ */
+val Original: CharSequence = "[ORIGINAL]"
+
+/**
  * Wraps the call and translates the exception.
  * @throws NoSuchFileException when [java.nio.file.NoSuchFileException] is thrown
  * @throws FileAlreadyExistsException when [java.nio.file.FileAlreadyExistsException] is thrown
@@ -239,12 +244,12 @@ sealed class FileContext(val path: Path) {
     @Throws(NoSuchFileException::class, FileAlreadyExistsException::class)
     operator fun CharSequence.invoke(
         fileAction: FileAction = FileAction.MaybeCreate,
-        content: CharSequence?,
+        content: CharSequence,
         encoding: Charset = Charsets.UTF_8,
         action: RegularFileContext.() -> Unit = NoOp
     ): RegularFileContext = file(this, fileAction) {
-      content?.let {
-        this.content = it.toString().toByteArray(encoding)
+      if (content !== Original) {
+        this.content = content.toString().toByteArray(encoding)
       }
     }.apply(action)
   }

@@ -1,12 +1,10 @@
 package com.mkobit.gradle.test.kotlin.io
 
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
@@ -402,24 +400,31 @@ internal class FileContextTest {
         )
       }
 
-      @Disabled("Undefined behaviour for this right now. Should empty content be written? Should it be appended? Should option sfor both be provided? When decided, this test should also be renamed")
       @TestFactory
-      internal fun `when string invocation is called, file already exists, and the provided content is Original, then the file is retrieved with its original content`(): Stream<DynamicNode> {
-        val content = "this is the initial file content".toByteArray()
+      internal fun `when string invocation is called, file already exists, and the provided content is Unmodified, then the file is retrieved with its original content`(): Stream<DynamicNode> {
+        val originalContent = "this is the original file content"
         return Stream.of(
             dynamicTest("by explicitly passing in a ${FileAction::class.simpleName} of ${requestType::class.simpleName}") {
               val filename = "filename1"
-              Files.write(Files.createFile(directoryContext.path.resolve(filename)), content)
+              Files.write(Files.createFile(directoryContext.path.resolve(filename)), originalContent.toByteArray())
               val context = directoryContext.run {
-                filename(requestType, content = null)
+                filename(requestType, content = Original)
               }
-              Assertions.fail("undecided behaviour right now")
+              assertThat(context.path)
+                  .hasContent(originalContent)
+                  .hasFileName(filename)
+                  .hasParent(directoryContext.path)
             },
             dynamicTest("using default parameter value of ${FileAction::class.simpleName}") {
+              val filename = "filename2"
+              Files.write(Files.createFile(directoryContext.path.resolve(filename)), originalContent.toByteArray())
               val context = directoryContext.run {
-               "filename2"(content = null)
+               "filename2"(content = Original)
               }
-              Assertions.fail("undecided behaviour right now")
+              assertThat(context.path)
+                  .hasContent(originalContent)
+                  .hasFileName(filename)
+                  .hasParent(directoryContext.path)
             }
         )
       }
