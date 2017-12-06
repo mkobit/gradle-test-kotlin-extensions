@@ -11,14 +11,14 @@ import org.gradle.testkit.runner.GradleRunner
  * Appends the provided arguments to the current arguments.
  * @param additionalArguments the arguments to append
  */
-fun GradleRunner.arguments(vararg additionalArguments: CharSequence) {
+public fun GradleRunner.arguments(vararg additionalArguments: CharSequence) {
   withArguments(arguments + additionalArguments.toList().map(CharSequence::toString))
 }
 
 /**
  * The `--build-cache` flag.
  */
-var GradleRunner.buildCacheEnabled: Boolean
+public var GradleRunner.buildCacheEnabled: Boolean
   get() = arguments.contains("--build-cache")
   set(value) {
     ensureToggleableArgumentState("--build-cache", value)
@@ -27,7 +27,7 @@ var GradleRunner.buildCacheEnabled: Boolean
 /**
  * The `--no-build-cache` flag.
  */
-var GradleRunner.buildCacheDisabled: Boolean
+public var GradleRunner.buildCacheDisabled: Boolean
   get() = arguments.contains("--no-build-cache")
   set(value) {
     ensureToggleableArgumentState("--no-build-cache", value)
@@ -36,7 +36,7 @@ var GradleRunner.buildCacheDisabled: Boolean
 /**
  * The `--continue` flag.
  */
-var GradleRunner.continueAfterFailure: Boolean
+public var GradleRunner.continueAfterFailure: Boolean
   get() = arguments.contains("--continue")
   set(value) {
     ensureToggleableArgumentState("--continue", value)
@@ -46,7 +46,7 @@ private val systemPropertySplitPattern = Regex("=")
 /**
  * The `--system-prop` properties.
  */
-var GradleRunner.systemProperties: Map<String, String?>
+public var GradleRunner.systemProperties: Map<String, String?>
   get() = arguments
       .findAllKeyValueArgumentValues { it == "--system-prop" }
       .map { it.split(systemPropertySplitPattern, 2) }
@@ -61,7 +61,7 @@ var GradleRunner.systemProperties: Map<String, String?>
 /**
  * The `--quiet` flag.
  */
-var GradleRunner.quiet: Boolean
+public var GradleRunner.quiet: Boolean
   get() = arguments.contains("--quiet")
   set(value) {
     ensureToggleableArgumentState("--quiet", value)
@@ -70,7 +70,7 @@ var GradleRunner.quiet: Boolean
 /**
  * The `--stacktrace` flag.
  */
-var GradleRunner.stacktrace: Boolean
+public var GradleRunner.stacktrace: Boolean
   get() = arguments.contains("--stacktrace")
   set(value) {
     ensureToggleableArgumentState("--stacktrace", value)
@@ -79,7 +79,7 @@ var GradleRunner.stacktrace: Boolean
 /**
  * The `--full-stacktrace` flag.
  */
-var GradleRunner.fullStacktrace: Boolean
+public var GradleRunner.fullStacktrace: Boolean
   get() = arguments.contains("--full-stacktrace")
   set(value) {
     ensureToggleableArgumentState("--full-stacktrace", value)
@@ -88,7 +88,7 @@ var GradleRunner.fullStacktrace: Boolean
 /**
  * The `--info` flag.
  */
-var GradleRunner.info: Boolean
+public var GradleRunner.info: Boolean
   get() = arguments.contains("--info")
   set(value) {
     ensureToggleableArgumentState("--info", value)
@@ -97,7 +97,7 @@ var GradleRunner.info: Boolean
 /**
  * The `--dry-run` flag.
  */
-var GradleRunner.dryRun: Boolean
+public var GradleRunner.dryRun: Boolean
   get() = arguments.contains("--dry-run")
   set(value) {
     ensureToggleableArgumentState("--dry-run", value)
@@ -106,7 +106,7 @@ var GradleRunner.dryRun: Boolean
 /**
  * The `--debug` flag.
  */
-var GradleRunner.debug: Boolean
+public var GradleRunner.debug: Boolean
   get() = arguments.contains("--debug")
   set(value) {
     ensureToggleableArgumentState("--debug", value)
@@ -115,7 +115,7 @@ var GradleRunner.debug: Boolean
 /**
  * The `--warn` flag.
  */
-var GradleRunner.warn: Boolean
+public var GradleRunner.warn: Boolean
   get() = arguments.contains("--warn")
   set(value) {
     ensureToggleableArgumentState("--warn", value)
@@ -124,7 +124,7 @@ var GradleRunner.warn: Boolean
 /**
  * The `--init-script` options.
  */
-var GradleRunner.initScripts: List<String>
+public var GradleRunner.initScripts: List<String>
   get() = arguments.findAllKeyValueArgumentValues { it == "--init-script" }
   set(value) {
     withArguments(
@@ -136,7 +136,7 @@ var GradleRunner.initScripts: List<String>
 /**
  * The `--exclude-task` options.
  */
-var GradleRunner.excludedTasks: List<String>
+public var GradleRunner.excludedTasks: List<String>
   get() = arguments.findAllKeyValueArgumentValues { it == "--exclude-task" }
   set(value) {
     withArguments(
@@ -148,7 +148,7 @@ var GradleRunner.excludedTasks: List<String>
 /**
  * The `--scan` flag.
  */
-var GradleRunner.buildScanEnabled: Boolean
+public var GradleRunner.buildScanEnabled: Boolean
   get() = arguments.contains("--scan")
   set(value) {
     ensureToggleableArgumentState("--scan", value)
@@ -157,13 +157,13 @@ var GradleRunner.buildScanEnabled: Boolean
 /**
  * The `--no-scan` flag.
  */
-var GradleRunner.buildScanDisabled: Boolean
+public var GradleRunner.buildScanDisabled: Boolean
   get() = arguments.contains("--no-scan")
   set(value) {
     ensureToggleableArgumentState("--no-scan", value)
   }
 
-var GradleRunner.offline: Boolean
+public var GradleRunner.offline: Boolean
   get() = arguments.contains("--offline")
   set(value) {
     ensureToggleableArgumentState("--offline", value)
@@ -173,7 +173,7 @@ private val projectPropertySplitPattern = Regex("=")
 /**
  * The `--project-prop` properties.
  */
-var GradleRunner.projectProperties: Map<String, String?>
+public var GradleRunner.projectProperties: Map<String, String?>
   get() = arguments
       .findAllKeyValueArgumentValues { it == "--project-prop" }
       .map { it.split(projectPropertySplitPattern, 2) }
