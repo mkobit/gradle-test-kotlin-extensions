@@ -74,7 +74,7 @@ dependencies {
   api(kotlin("stdlib-jre8"))
   testImplementation(kotlin("reflect"))
   testImplementation("org.assertj:assertj-core:3.8.0")
-  testImplementation("org.mockito:mockito-core:2.12.0")
+  testImplementation("org.mockito:mockito-core:2.13.0")
   testImplementation("com.nhaarman:mockito-kotlin:1.5.0")
   DependencyInfo.junitTestImplementationArtifacts.forEach {
     testImplementation(it)
