@@ -225,31 +225,6 @@ sealed class FileContext(val path: Path) {
      * The instance is provisioned based on the provided [fileAction].
      *
      * @param fileAction the action to take for the file
-     * @param content the content to write into the file
-     * @param action the lambda that can provide additional setup of the file
-     * @return a [RegularFileContext] for the resolved file
-     * @throws NoSuchFileException if the [action] is [FileAction.Get] and the file is not a
-     * regular file
-     * @throws FileAlreadyExistsException if the [action] is a creation method
-     * ([FileAction.MaybeCreate] or [FileAction.Create]) and a file already exists at the resolved
-     * path
-     * @see file
-     */
-    @Throws(NoSuchFileException::class, FileAlreadyExistsException::class)
-    operator fun CharSequence.invoke(
-        fileAction: FileAction = FileAction.MaybeCreate,
-        content: ByteArray,
-        action: RegularFileContext.() -> Unit = NoOp
-    ): RegularFileContext = file(this, fileAction) {
-      this.content = content
-    }.apply(action)
-
-    /**
-     * Produce a [RegularFileContext] instance with a [Path] resolved from this instance's [path] and the [CharSequence]
-     * that this method was invoked on. The content of the file will be TODO
-     * The instance is provisioned based on the provided [fileAction].
-     *
-     * @param fileAction the action to take for the file
      * @param content the optional content to write into the file. If `null`, then no content is written to the file.
      * @param encoding the encoding to use with the content, defaults to [Charsets.UTF_8]
      * @param action the lambda that can provide additional setup of the file

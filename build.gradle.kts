@@ -107,7 +107,7 @@ main.java.setSrcDirs(emptyList<Any>())
 
 tasks {
   "wrapper"(Wrapper::class) {
-    gradleVersion = "4.4-rc-6"
+    gradleVersion = "4.4"
     distributionType = Wrapper.DistributionType.ALL
   }
 
