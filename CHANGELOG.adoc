@@ -37,7 +37,7 @@ For each release, a subsection should be added for each of the following if they
 
 === Added
 
-* `GradleRunner` file manipulation extensions
+* `GradleRunner` file manipulation extensions (see README for example usage)
 ** `projectDirPath` - `Path?` to the project directory
 ** `setupProjectDir` method to configure the project directory
 * `FileContext` types for simplifying manipulation and creating file system objects in the project directory
