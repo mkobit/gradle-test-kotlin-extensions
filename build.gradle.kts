@@ -21,7 +21,7 @@ plugins {
   id("org.jetbrains.dokka") version "0.9.15"
 }
 
-version = "0.1.0"
+version = "0.2.0"
 group = "com.mkobit.gradle.test"
 description = "Kotlin library to aid in writing tests for Gradle"
 
