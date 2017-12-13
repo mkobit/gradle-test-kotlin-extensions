@@ -21,7 +21,7 @@ plugins {
   id("org.jetbrains.dokka") version "0.9.15"
 }
 
-version = "0.2.0"
+version = "0.2.1"
 group = "com.mkobit.gradle.test"
 description = "Kotlin library to aid in writing tests for Gradle"
 
@@ -71,7 +71,8 @@ dependencies {
   api(gradleApi())
   api(gradleTestKit())
   implementation("io.github.microutils:kotlin-logging:1.4.6")
-  api(kotlin("stdlib-jre8"))
+  // Version specified due to: https://youtrack.jetbrains.com/issue/KT-21806
+  api(kotlin("stdlib-jre8", file("gradle/kotlin-version.txt").readText().trim()))
   testImplementation(kotlin("reflect"))
   testImplementation("org.assertj:assertj-core:3.8.0")
   testImplementation("org.mockito:mockito-core:2.13.0")

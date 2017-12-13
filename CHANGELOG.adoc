@@ -22,6 +22,13 @@ For each release, a subsection should be added for each of the following if they
 * `Fixed` for any bug fixes.
 * `Security` in case of vulnerabilities.
 
+== 0.2.1 (2017/12/13)
+
+=== Fixed
+
+* Published POM did not have a version specified.
+  See link:https://github.com/mkobit/gradle-test-kotlin-extensions/issues/13[#13] and link:https://youtrack.jetbrains.com/issue/KT-21806[KT-21806].
+
 == 0.2.0 (2017/12/06)
 
 === Deprecated
