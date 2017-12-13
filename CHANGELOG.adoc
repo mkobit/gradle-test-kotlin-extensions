@@ -22,7 +22,7 @@ For each release, a subsection should be added for each of the following if they
 * `Fixed` for any bug fixes.
 * `Security` in case of vulnerabilities.
 
-== Unreleased (yyyy/mm/dd)
+== 0.2.0 (2017/12/06)
 
 === Deprecated
 
@@ -46,6 +46,6 @@ For each release, a subsection should be added for each of the following if they
 ** `DirectoryContext` for  managing a directory
 ** `FileAction` for different approaches to treating the files
 
-== 0.1.0 (yyyy/mm/dd)
+== 0.1.0 (2017/10/27)
 
 Initial release
