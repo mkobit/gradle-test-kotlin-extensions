@@ -20,10 +20,6 @@ jobs:
           keys:
             - v1-home-cache-{{ checksum "build/circle-ci-key.txt" }}
             - v1-home-cache-
-      - restore_cache:
-          keys:
-            - v1-build-cache-{{ .Branch }}
-            - v1-build-cache-
 
       - run:
           command: |
@@ -43,13 +39,3 @@ jobs:
 
       - store_test_results:
           path: ~/build-working-directory/build/test-results/
-
-      - save_cache:
-          paths:
-            - ~/build-working-directory/.gradle
-            - ~/build-working-directory/build
-            - ~/build-working-directory/buildSrc/.gradle
-            - ~/build-working-directory/buildSrc/build
-          key: v1-build-cache-{{ .Branch }}-{{ .BuildNum }}
-
-
