@@ -11,7 +11,7 @@ import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
 plugins {
-  id("com.gradle.build-scan") version "1.10.3"
+  id("com.gradle.build-scan") version "1.11"
   `java-library`
   `maven-publish`
   kotlin("jvm")
@@ -70,11 +70,11 @@ repositories {
 dependencies {
   api(gradleApi())
   api(gradleTestKit())
-  implementation("io.github.microutils:kotlin-logging:1.4.6")
+  implementation("io.github.microutils:kotlin-logging:1.4.9")
   // Version specified due to: https://youtrack.jetbrains.com/issue/KT-21806
   api(kotlin("stdlib-jre8", file("gradle/kotlin-version.txt").readText().trim()))
   testImplementation(kotlin("reflect"))
-  testImplementation("org.assertj:assertj-core:3.8.0")
+  testImplementation("org.assertj:assertj-core:3.9.0")
   testImplementation("org.mockito:mockito-core:2.13.0")
   testImplementation("com.nhaarman:mockito-kotlin:1.5.0")
   DependencyInfo.junitTestImplementationArtifacts.forEach {
