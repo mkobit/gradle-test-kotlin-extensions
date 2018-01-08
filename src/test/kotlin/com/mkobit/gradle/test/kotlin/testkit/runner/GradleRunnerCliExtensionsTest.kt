@@ -32,7 +32,8 @@ internal class GradleRunnerCliExtensionsTest {
       BooleanFlag(flag = "--warn", stateApply = WarnEnabled::class),
       BooleanFlag(flag = "--scan", stateApply = BuildScanEnabled::class),
       BooleanFlag(flag = "--no-scan", stateApply = BuildScanDisabled::class),
-      BooleanFlag(flag = "--offline", stateApply = OfflineEnabled::class)
+      BooleanFlag(flag = "--offline", stateApply = OfflineEnabled::class),
+      BooleanFlag(flag = "--profile", stateApply = ProfileEnabled::class)
   )
   internal fun `boolean flag toggling in different states`(runnerContext: RunnerContext) {
     val gradleRunner = runnerContext.gradleRunner
@@ -360,6 +361,11 @@ private class BuildScanDisabled : BooleanFlagApply {
 private class OfflineEnabled : BooleanFlagApply {
   override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.offline
   override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) { gradleRunner.offline = newState }
+}
+
+private class ProfileEnabled : BooleanFlagApply {
+  override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.profile
+  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) { gradleRunner.profile = newState }
 }
 
 private class ToggleableCliArgumentTemplateContextProvider : TestTemplateInvocationContextProvider {

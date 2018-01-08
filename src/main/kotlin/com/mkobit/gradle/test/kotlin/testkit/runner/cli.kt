@@ -186,6 +186,15 @@ public var GradleRunner.projectProperties: Map<String, String?>
   }
 
 /**
+ * The `--profile` flag.
+ */
+public var GradleRunner.profile: Boolean
+  get() = arguments.contains("--profile")
+  set(value) {
+    ensureToggleableArgumentState("--profile", value)
+  }
+
+/**
  * Updates the [GradleRunner.getArguments] to ensure that the provided [argument] is included or excluded
  * depending on the value of the [include].
  * @param argument the argument to ensure is present in the [GradleRunner.getArguments]
