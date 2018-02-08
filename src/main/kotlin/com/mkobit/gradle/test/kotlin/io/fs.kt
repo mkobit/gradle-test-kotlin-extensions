@@ -20,7 +20,18 @@ private val NoOp: Any.() -> Unit = {}
 /**
  * A constant to be used with the DSL methods for a file that means "use the existing content".
  */
-public val Original: CharSequence = "[ORIGINAL]"
+public val Original: CharSequence = object : CharSequence {
+  override val length: Int
+    get() = throw UnsupportedOperationException("Cannot retrieve length from ${this::class.java.canonicalName}")
+
+  override fun get(index: Int): Char {
+    throw UnsupportedOperationException("Cannot call subSequence from ${this::class.java.canonicalName}")
+  }
+
+  override fun subSequence(startIndex: Int, endIndex: Int): CharSequence {
+    throw UnsupportedOperationException("Cannot call subSequence from ${this::class.java.canonicalName}")
+  }
+}
 
 /**
  * A context for a file.
