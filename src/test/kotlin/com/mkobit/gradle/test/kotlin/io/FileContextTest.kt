@@ -131,8 +131,6 @@ internal class FileContextTest {
       fileContext.content = ByteArray(0)
       assertThat(fileContext.content)
           .isEmpty()
-      assertThat(fileContext.path)
-          .hasContent("")
     }
 
     @Test
