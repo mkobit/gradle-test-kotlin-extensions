@@ -99,6 +99,10 @@ public sealed class FileContext(val path: Path) {
     public fun append(content: CharSequence, charset: Charset = Charsets.UTF_8) {
       Files.write(path, content.toString().toByteArray(charset), StandardOpenOption.APPEND)
     }
+
+    public fun appendNewline(charset: Charset = Charsets.UTF_8) {
+      Files.write(path, System.lineSeparator().toByteArray(charset), StandardOpenOption.APPEND)
+    }
   }
 
   /**
