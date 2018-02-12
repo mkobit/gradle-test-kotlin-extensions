@@ -85,10 +85,19 @@ public sealed class FileContext(val path: Path) {
 
     /**
      * Directly appends the provided [content] to the file.
-     * @param content the content to append.
+     * @param content the content to append
      */
     public fun append(content: ByteArray) {
       Files.write(path, content, StandardOpenOption.APPEND)
+    }
+
+    /**
+     * Directly appends the provided [content] to the file after encoding it using the provided [charset].
+     * @param content the content to append
+     * @param charset the character set to encode the sequence with
+     */
+    public fun append(content: CharSequence, charset: Charset = Charsets.UTF_8) {
+      Files.write(path, content.toString().toByteArray(charset), StandardOpenOption.APPEND)
     }
   }
 
