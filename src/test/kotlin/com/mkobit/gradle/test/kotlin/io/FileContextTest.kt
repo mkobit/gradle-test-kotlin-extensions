@@ -170,6 +170,18 @@ internal class FileContextTest {
       assertThat(fileContext.path)
           .hasContent(originalContent + appendedContent)
     }
+
+    @Test
+    internal fun `append newline to existing file`() {
+      val originalContent = "this is the the original content"
+      fileContext.content = originalContent.toByteArray()
+      fileContext.appendNewline()
+      assertThat(fileContext.content)
+          .startsWith(*originalContent.toByteArray())
+          .endsWith(*System.lineSeparator().toByteArray())
+      assertThat(fileContext.path)
+          .hasContent(originalContent + System.lineSeparator())
+    }
   }
 
   @Nested
