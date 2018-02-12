@@ -146,11 +146,24 @@ internal class FileContextTest {
     }
 
     @Test
-    internal fun `append content to existing file`() {
+    internal fun `append byte array content to existing file`() {
       val originalContent = "this is the the original content"
       val appendedContent = "this is the appended content"
       fileContext.content = originalContent.toByteArray()
       fileContext.append(appendedContent.toByteArray())
+      assertThat(fileContext.content)
+          .startsWith(*originalContent.toByteArray())
+          .endsWith(*appendedContent.toByteArray())
+      assertThat(fileContext.path)
+          .hasContent(originalContent + appendedContent)
+    }
+
+    @Test
+    internal fun `append CharSequence content to existing file`() {
+      val originalContent = "this is the the original content"
+      val appendedContent = "this is the appended content"
+      fileContext.content = originalContent.toByteArray()
+      fileContext.append(appendedContent)
       assertThat(fileContext.content)
           .startsWith(*originalContent.toByteArray())
           .endsWith(*appendedContent.toByteArray())
