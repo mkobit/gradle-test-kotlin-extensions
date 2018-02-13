@@ -29,6 +29,9 @@ For each release, a subsection should be added for each of the following if they
 * `FileContext.append(CharSequence, Charset)` method to append character sequence content to a file
 * `FileContext.appendNewline(CharSequence, Charset)` method to append character sequence content to a file
 * `FileContent.replaceEachLine(Charset, (lineNumber: Int, text: String) -> CharSequence)` method to conditionally replace content
+* Indexed access for `BuildResult` for both outcome and task paths
+** `BuildResult[":taskPath"]`, `BuildResult[":first", ":second"]`
+** `BuildResult[TaskOutcome.SUCCESS]`
 
 == 0.2.1 (2017/12/13)
 
