@@ -19,8 +19,13 @@ pluginManagement {
   }
   repositories {
     gradlePluginPortal()
-    mavenCentral()
     jcenter()
+    maven {
+      // Needed until https://github.com/Kotlin/dokka/issues/265 is released
+      url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
+      name = "DokkaEAP"
+    }
+    mavenCentral()
   }
 }
 

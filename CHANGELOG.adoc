@@ -32,6 +32,9 @@ For each release, a subsection should be added for each of the following if they
 * Indexed access for `BuildResult` for both outcome and task paths
 ** `BuildResult[":taskPath"]`, `BuildResult[":first", ":second"]`
 ** `BuildResult[TaskOutcome.SUCCESS]`
+* Extension properties that may simplify or clarify assertions on `BuildTask`. For example:
+** `BuildTask.success` is `true` when the outcome is `TaskOutcome.SUCCESS`
+** `BuildTask.failed` is `true` when the outcome is `TaskOutcome.FAILED`
 
 == 0.2.1 (2017/12/13)
 

@@ -21,7 +21,7 @@ plugins {
   id("com.github.ben-manes.versions") version "0.17.0"
   id("com.jfrog.bintray") version "1.8.0"
   id("org.junit.platform.gradle.plugin")
-  id("org.jetbrains.dokka") version "0.9.15"
+  id("org.jetbrains.dokka") version "0.9.16-eap-3"
 }
 
 version = "0.2.1"
@@ -149,19 +149,14 @@ tasks {
   }
 
   val dokka by getting(DokkaTask::class) {
-    // See https://github.com/Kotlin/dokka/issues/196
-    fun <T> Any.dokkaDelegateClosureOf(action: T.() -> Unit) = object : Closure<Any?>(this, this) {
-      @Suppress("unused") // to be called dynamically by Groovy
-      fun doCall() = org.gradle.internal.Cast.uncheckedCast<T>(delegate).action()
-    }
     dependsOn(main.classesTaskName)
     outputFormat = "html"
     outputDirectory = "$buildDir/javadoc"
-    sourceDirs = main.kotlin.srcDirs
-    externalDocumentationLink(dokkaDelegateClosureOf<DokkaConfiguration.ExternalDocumentationLink.Builder> {
+    // See https://github.com/Kotlin/dokka/issues/196
+    externalDocumentationLink(delegateClosureOf<DokkaConfiguration.ExternalDocumentationLink.Builder> {
       url = URL("https://docs.gradle.org/current/javadoc/")
     })
-    externalDocumentationLink(dokkaDelegateClosureOf<DokkaConfiguration.ExternalDocumentationLink.Builder> {
+    externalDocumentationLink(delegateClosureOf<DokkaConfiguration.ExternalDocumentationLink.Builder> {
       url = URL("https://docs.oracle.com/javase/8/docs/api/")
     })
   }
