@@ -313,6 +313,7 @@ public sealed class FileAction {
 
   /**
    * Get the object if it already exists, otherwise create it with the provided options.
+   * @property fileAttributes the attributes to create the file with if the file has not already been created
    */
   public data class MaybeCreate(val fileAttributes: List<FileAttribute<*>>) : FileAction()
 
