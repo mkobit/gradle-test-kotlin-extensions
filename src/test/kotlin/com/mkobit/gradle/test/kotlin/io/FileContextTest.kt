@@ -131,8 +131,6 @@ internal class FileContextTest {
       fileContext.content = ByteArray(0)
       assertThat(fileContext.content)
           .isEmpty()
-      assertThat(fileContext.path)
-          .hasContent("")
     }
 
     @Test
@@ -181,6 +179,29 @@ internal class FileContextTest {
           .endsWith(*System.lineSeparator().toByteArray())
       assertThat(fileContext.path)
           .hasContent(originalContent + System.lineSeparator())
+    }
+
+    @Test
+    internal fun `replace lines in file`() {
+      val originalContent = """
+        line 1
+        line 2
+        line 3
+        """.trimIndent()
+      fileContext.content = originalContent.toByteArray()
+      fileContext.replaceEachLine { lineNumber, text ->
+        when {
+          text == "line 2" -> "LINE 2"
+          lineNumber == 1 -> "First Line"
+          else -> Original
+        }
+      }
+      assertThat(fileContext.path)
+          .hasContent("""
+            First Line
+            LINE 2
+            line 3
+          """.trimIndent())
     }
   }
 

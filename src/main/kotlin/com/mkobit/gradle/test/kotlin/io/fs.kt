@@ -84,7 +84,7 @@ public sealed class FileContext(val path: Path) {
       get() = Files.size(path)
 
     /**
-     * Directly appends the provided [content] to the file.
+     * Appends the provided [content] to the file.
      * @param content the content to append
      */
     public fun append(content: ByteArray) {
@@ -92,7 +92,7 @@ public sealed class FileContext(val path: Path) {
     }
 
     /**
-     * Directly appends the provided [content] to the file after encoding it using the provided [charset].
+     * Appends the provided [content] to the file after encoding it using the provided [charset].
      * @param content the content to append
      * @param charset the character set to encode the sequence with
      */
@@ -100,8 +100,33 @@ public sealed class FileContext(val path: Path) {
       Files.write(path, content.toString().toByteArray(charset), StandardOpenOption.APPEND)
     }
 
+    /**
+     * Appends a [System.lineSeparator] to the file using the provided [charset].
+     * @param charset the character set to encode the newline with
+     */
     public fun appendNewline(charset: Charset = Charsets.UTF_8) {
       Files.write(path, System.lineSeparator().toByteArray(charset), StandardOpenOption.APPEND)
+    }
+
+    /**
+     * Replace the text of a file by invoking [replacement] on each line and then writing the output.
+     * @param charset the character set to read the file with.
+     * @param replacement the replacement strategy to be applied to each line. Line numbering starts from 1.
+     * If the original text should be retained then [Original] should be returned.
+     */
+    public fun replaceEachLine(
+        charset: Charset = Charsets.UTF_8,
+        replacement: (lineNumber: Int, text: String) -> CharSequence
+    ) {
+      val newLines = Files.readAllLines(path, charset)
+          .mapIndexed { index, line ->
+            val newLine = replacement(index + 1, line)
+            when(newLine) {
+              Original -> line
+              else -> newLine
+            }
+          }
+      Files.write(path, newLines)
     }
   }
 
