@@ -1,12 +1,15 @@
 import buildsrc.DependencyInfo
 import buildsrc.ProjectInfo
 import com.jfrog.bintray.gradle.BintrayExtension
+import groovy.lang.Closure
 import java.io.ByteArrayOutputStream
+import java.net.URL
 import org.gradle.api.internal.HasConvention
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.junit.platform.console.options.Details
 import org.junit.platform.gradle.plugin.JUnitPlatformExtension
 import org.gradle.jvm.tasks.Jar
+import org.jetbrains.dokka.DokkaConfiguration
 import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
@@ -146,10 +149,21 @@ tasks {
   }
 
   val dokka by getting(DokkaTask::class) {
+    // See https://github.com/Kotlin/dokka/issues/196
+    fun <T> Any.dokkaDelegateClosureOf(action: T.() -> Unit) = object : Closure<Any?>(this, this) {
+      @Suppress("unused") // to be called dynamically by Groovy
+      fun doCall() = org.gradle.internal.Cast.uncheckedCast<T>(delegate).action()
+    }
     dependsOn(main.classesTaskName)
     outputFormat = "html"
     outputDirectory = "$buildDir/javadoc"
     sourceDirs = main.kotlin.srcDirs
+    externalDocumentationLink(dokkaDelegateClosureOf<DokkaConfiguration.ExternalDocumentationLink.Builder> {
+      url = URL("https://docs.gradle.org/current/javadoc/")
+    })
+    externalDocumentationLink(dokkaDelegateClosureOf<DokkaConfiguration.ExternalDocumentationLink.Builder> {
+      url = URL("https://docs.oracle.com/javase/8/docs/api/")
+    })
   }
 
   val javadocJar by creating(Jar::class) {
