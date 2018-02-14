@@ -21,9 +21,9 @@ public fun GradleRunner.arguments(vararg additionalArguments: CharSequence) {
  * The `--build-file` option. Setting to `null` removes the option and value.
  */
 public var GradleRunner.buildFile: Path?
-  get() = arguments.findOptionValue("--build-file")?.let { Paths.get(it) }
+  get() = findOptionValue("--build-file")?.let { Paths.get(it) }
   set(value) {
-    withArguments(arguments.ensureOptionHasValue("--build-file", value))
+    ensureOptionHasValue("--build-file", value)
   }
 
 /**
@@ -32,7 +32,7 @@ public var GradleRunner.buildFile: Path?
 public var GradleRunner.buildCacheEnabled: Boolean
   get() = arguments.contains("--build-cache")
   set(value) {
-    ensureToggleableArgumentState("--build-cache", value)
+    ensureFlagOptionState("--build-cache", value)
   }
 
 /**
@@ -41,7 +41,7 @@ public var GradleRunner.buildCacheEnabled: Boolean
 public var GradleRunner.buildCacheDisabled: Boolean
   get() = arguments.contains("--no-build-cache")
   set(value) {
-    ensureToggleableArgumentState("--no-build-cache", value)
+    ensureFlagOptionState("--no-build-cache", value)
   }
 
 /**
@@ -50,7 +50,7 @@ public var GradleRunner.buildCacheDisabled: Boolean
 public var GradleRunner.continueAfterFailure: Boolean
   get() = arguments.contains("--continue")
   set(value) {
-    ensureToggleableArgumentState("--continue", value)
+    ensureFlagOptionState("--continue", value)
   }
 
 private val systemPropertySplitPattern = Regex("=")
@@ -58,15 +58,14 @@ private val systemPropertySplitPattern = Regex("=")
  * The `--system-prop` properties.
  */
 public var GradleRunner.systemProperties: Map<String, String?>
-  get() = arguments
-      .findAllKeyValueArgumentValues { it == "--system-prop" }
+  get() = findAllKeyValueArgumentValues { it == "--system-prop" }
       .map { it.split(systemPropertySplitPattern, 2) }
       .associateBy({ it.first() }, { it.getOrNull(1) })
   set(value) {
     val properties = value.flatMap { (key, value) ->
       listOf("--system-prop", "$key${value?.let { "=$it" }.orEmpty()}")
     }
-    withArguments(arguments.filterOutKeyValueArguments { it == "--system-prop" } + properties)
+    withArguments(findKeyValueArgumentsByFilter { it == "--system-prop" } + properties)
   }
 
 /**
@@ -75,7 +74,7 @@ public var GradleRunner.systemProperties: Map<String, String?>
 public var GradleRunner.quiet: Boolean
   get() = arguments.contains("--quiet")
   set(value) {
-    ensureToggleableArgumentState("--quiet", value)
+    ensureFlagOptionState("--quiet", value)
   }
 
 /**
@@ -84,7 +83,7 @@ public var GradleRunner.quiet: Boolean
 public var GradleRunner.stacktrace: Boolean
   get() = arguments.contains("--stacktrace")
   set(value) {
-    ensureToggleableArgumentState("--stacktrace", value)
+    ensureFlagOptionState("--stacktrace", value)
   }
 
 /**
@@ -93,7 +92,7 @@ public var GradleRunner.stacktrace: Boolean
 public var GradleRunner.fullStacktrace: Boolean
   get() = arguments.contains("--full-stacktrace")
   set(value) {
-    ensureToggleableArgumentState("--full-stacktrace", value)
+    ensureFlagOptionState("--full-stacktrace", value)
   }
 
 /**
@@ -102,7 +101,7 @@ public var GradleRunner.fullStacktrace: Boolean
 public var GradleRunner.info: Boolean
   get() = arguments.contains("--info")
   set(value) {
-    ensureToggleableArgumentState("--info", value)
+    ensureFlagOptionState("--info", value)
   }
 
 /**
@@ -111,7 +110,7 @@ public var GradleRunner.info: Boolean
 public var GradleRunner.dryRun: Boolean
   get() = arguments.contains("--dry-run")
   set(value) {
-    ensureToggleableArgumentState("--dry-run", value)
+    ensureFlagOptionState("--dry-run", value)
   }
 
 /**
@@ -120,7 +119,7 @@ public var GradleRunner.dryRun: Boolean
 public var GradleRunner.debug: Boolean
   get() = arguments.contains("--debug")
   set(value) {
-    ensureToggleableArgumentState("--debug", value)
+    ensureFlagOptionState("--debug", value)
   }
 
 /**
@@ -129,17 +128,17 @@ public var GradleRunner.debug: Boolean
 public var GradleRunner.warn: Boolean
   get() = arguments.contains("--warn")
   set(value) {
-    ensureToggleableArgumentState("--warn", value)
+    ensureFlagOptionState("--warn", value)
   }
 
 /**
  * The `--init-script` options.
  */
 public var GradleRunner.initScripts: List<String>
-  get() = arguments.findAllKeyValueArgumentValues { it == "--init-script" }
+  get() = findAllKeyValueArgumentValues { it == "--init-script" }
   set(value) {
     withArguments(
-        arguments.filterOutKeyValueArguments { it == "--init-script" }
+        findKeyValueArgumentsByFilter { it == "--init-script" }
             + value.flatMap { listOf("--init-script", it) }
     )
   }
@@ -148,10 +147,10 @@ public var GradleRunner.initScripts: List<String>
  * The `--exclude-task` options.
  */
 public var GradleRunner.excludedTasks: List<String>
-  get() = arguments.findAllKeyValueArgumentValues { it == "--exclude-task" }
+  get() = findAllKeyValueArgumentValues { it == "--exclude-task" }
   set(value) {
     withArguments(
-        arguments.filterOutKeyValueArguments { it == "--exclude-task" }
+        findKeyValueArgumentsByFilter { it == "--exclude-task" }
             + value.flatMap { listOf("--exclude-task", it) }
     )
   }
@@ -162,7 +161,7 @@ public var GradleRunner.excludedTasks: List<String>
 public var GradleRunner.buildScanEnabled: Boolean
   get() = arguments.contains("--scan")
   set(value) {
-    ensureToggleableArgumentState("--scan", value)
+    ensureFlagOptionState("--scan", value)
   }
 
 /**
@@ -171,13 +170,16 @@ public var GradleRunner.buildScanEnabled: Boolean
 public var GradleRunner.buildScanDisabled: Boolean
   get() = arguments.contains("--no-scan")
   set(value) {
-    ensureToggleableArgumentState("--no-scan", value)
+    ensureFlagOptionState("--no-scan", value)
   }
 
+/**
+ * The `--offline` flag.
+ */
 public var GradleRunner.offline: Boolean
   get() = arguments.contains("--offline")
   set(value) {
-    ensureToggleableArgumentState("--offline", value)
+    ensureFlagOptionState("--offline", value)
   }
 
 private val projectPropertySplitPattern = Regex("=")
@@ -185,15 +187,14 @@ private val projectPropertySplitPattern = Regex("=")
  * The `--project-prop` properties.
  */
 public var GradleRunner.projectProperties: Map<String, String?>
-  get() = arguments
-      .findAllKeyValueArgumentValues { it == "--project-prop" }
+  get() = findAllKeyValueArgumentValues { it == "--project-prop" }
       .map { it.split(projectPropertySplitPattern, 2) }
       .associateBy({ it.first() }, { it.getOrNull(1) })
   set(value) {
     val properties = value.flatMap { (key, value) ->
       listOf("--project-prop", "$key${value?.let { "=$it" }.orEmpty()}")
     }
-    withArguments(arguments.filterOutKeyValueArguments { it == "--project-prop" } + properties)
+    withArguments(findKeyValueArgumentsByFilter { it == "--project-prop" } + properties)
   }
 
 /**
@@ -202,16 +203,16 @@ public var GradleRunner.projectProperties: Map<String, String?>
 public var GradleRunner.profile: Boolean
   get() = arguments.contains("--profile")
   set(value) {
-    ensureToggleableArgumentState("--profile", value)
+    ensureFlagOptionState("--profile", value)
   }
 
 /**
  * Updates the [GradleRunner.getArguments] to ensure that the provided [argument] is included or excluded
- * depending on the value of the [include].
+ * depending on the value of the [include]. The argument should be a flag like `--enable-thing`.
  * @param argument the argument to ensure is present in the [GradleRunner.getArguments]
  * @param include `true` if the [argument] should be included, `false` if it should be removed
  */
-private fun GradleRunner.ensureToggleableArgumentState(argument: String, include: Boolean) {
+private fun GradleRunner.ensureFlagOptionState(argument: String, include: Boolean) {
   val currentlyContained = arguments.contains(argument)
   if (include) {
     if (!currentlyContained) {
@@ -224,23 +225,24 @@ private fun GradleRunner.ensureToggleableArgumentState(argument: String, include
   }
 }
 
-private fun List<String>.ensureOptionHasValue(option: String, value: Any?): List<String> {
-  val newOption = if (value == null) {
+private fun GradleRunner.ensureOptionHasValue(option: String, value: Any?) {
+  val newOptionValue = if (value == null) {
     emptyList()
   } else {
     listOf(option, value.toString())
   }
-  val optionIndex = indexOf(option)
-  return if (optionIndex == -1) {
-    this + newOption
+  val optionIndex = arguments.indexOf(option)
+  val newArguments = if (optionIndex == -1) {
+    arguments + newOptionValue
   } else {
-    filterIndexed { index, _ -> index !in setOf(optionIndex, optionIndex + 1) } + newOption
+    arguments.filterIndexed { index, _ -> index !in setOf(optionIndex, optionIndex + 1) } + newOptionValue
   }
+  withArguments(newArguments)
 }
 
-private fun List<String>.findOptionValue(option: String): String? {
+private fun GradleRunner.findOptionValue(option: String): String? {
   var lastArgumentTest = false
-  return find {
+  return arguments.find {
     if (lastArgumentTest) {
       true
     } else if (it == option) {
@@ -257,11 +259,11 @@ private fun List<String>.findOptionValue(option: String): String? {
  * For example, if the command is `["--help", "--arg1", "val1"]` and the predicate is `{ it == "--arg1" }`
  * then the output will be `["val1"]`.
  */
-private fun List<String>.findAllKeyValueArgumentValues(
+private fun GradleRunner.findAllKeyValueArgumentValues(
     argumentPredicate: (key: String) -> Boolean
 ): List<String> {
   var lastArgumentTest = false
-  return filter {
+  return arguments.filter {
     if (lastArgumentTest) {
       lastArgumentTest = false
       true
@@ -277,11 +279,11 @@ private fun List<String>.findAllKeyValueArgumentValues(
  * For example, if the command is `["--help", "--arg1", "val1"]` and the predicate is `{ it == "--arg1" }`
  * then the output will be `["--help"]`.
  */
-private fun List<String>.filterOutKeyValueArguments(
+private fun GradleRunner.findKeyValueArgumentsByFilter(
     argumentPredicate: (key: String) -> Boolean
 ): List<String> {
   var lastArgumentTest = false
-  return filterNot {
+  return arguments.filterNot {
     if (lastArgumentTest) {
       lastArgumentTest = false
       true
