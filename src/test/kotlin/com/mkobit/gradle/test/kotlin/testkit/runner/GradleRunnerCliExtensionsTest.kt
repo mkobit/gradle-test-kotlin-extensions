@@ -5,169 +5,117 @@ import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.TestInstance
 import testsupport.dynamicGradleRunnerTest
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.stream.Stream
 import kotlin.reflect.KMutableProperty1
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class GradleRunnerCliExtensionsTest {
 
   @TestFactory
   internal fun `boolean property`(): Stream<DynamicNode> = Stream.of(
-      booleanFlagTests("--build-cache", GradleRunner::buildCacheEnabled),
-      booleanFlagTests("--no-build-cache", GradleRunner::buildCacheDisabled),
-      booleanFlagTests("--continue", GradleRunner::continueAfterFailure),
-      booleanFlagTests("--quiet", GradleRunner::quiet),
-      booleanFlagTests("--stacktrace", GradleRunner::stacktrace),
-      booleanFlagTests("--full-stacktrace", GradleRunner::fullStacktrace),
-      booleanFlagTests("--info", GradleRunner::info),
-      booleanFlagTests("--dry-run", GradleRunner::dryRun),
-      booleanFlagTests("--debug", GradleRunner::debug),
-      booleanFlagTests("--warn", GradleRunner::warn),
-      booleanFlagTests("--scan", GradleRunner::buildScanEnabled),
-      booleanFlagTests("--no-scan", GradleRunner::buildScanDisabled),
-      booleanFlagTests("--offline", GradleRunner::offline),
-      booleanFlagTests("--profile", GradleRunner::profile)
+      booleanFlagTestsFor("--build-cache", GradleRunner::buildCacheEnabled),
+      booleanFlagTestsFor("--no-build-cache", GradleRunner::buildCacheDisabled),
+      booleanFlagTestsFor("--continue", GradleRunner::continueAfterFailure),
+      booleanFlagTestsFor("--quiet", GradleRunner::quiet),
+      booleanFlagTestsFor("--stacktrace", GradleRunner::stacktrace),
+      booleanFlagTestsFor("--full-stacktrace", GradleRunner::fullStacktrace),
+      booleanFlagTestsFor("--info", GradleRunner::info),
+      booleanFlagTestsFor("--dry-run", GradleRunner::dryRun),
+      booleanFlagTestsFor("--debug", GradleRunner::debug),
+      booleanFlagTestsFor("--warn", GradleRunner::warn),
+      booleanFlagTestsFor("--scan", GradleRunner::buildScanEnabled),
+      booleanFlagTestsFor("--no-scan", GradleRunner::buildScanDisabled),
+      booleanFlagTestsFor("--offline", GradleRunner::offline),
+      booleanFlagTestsFor("--profile", GradleRunner::profile)
   )
 
-  private fun booleanFlagTests(
+  private fun booleanFlagTestsFor(
       flag: String,
       property: KMutableProperty1<GradleRunner, Boolean>
   ): DynamicNode {
 
-    fun GradleRunner.assertArgumentSizeIsEqualTo(size: Int) = assertThat(arguments).hasSize(size)
-    fun GradleRunner.assertArgumentsContainsFlag() = assertThat(arguments).containsOnlyOnce(flag)
-    fun GradleRunner.assertArgumentsDoesNotContainFlag() = assertThat(arguments).doesNotContain(flag)
-    fun GradleRunner.assertProperty() = assertThat(property.get(this))
-    fun GradleRunner.assertPropertyFalse() = assertProperty().isFalse()
-    fun GradleRunner.assertPropertyTrue() = assertProperty().isTrue()
+    data class RunnerArguments(val argumentDescription: String, val arguments: List<String>)
 
-    return dynamicContainer("${property.name} for flag $flag", Stream.of(
+    val absentBeforeArguments = listOf(
+        RunnerArguments("empty", emptyList()),
+        RunnerArguments("single argument", listOf("--other-arg")),
+        RunnerArguments("argument with value", listOf("--other-arg", "otherArgValue")),
+        RunnerArguments("argument with value and a boolean option",
+            listOf("--other-arg", "otherArgValue", "--after-arg")),
+        RunnerArguments("multiple arguments each with value",
+            listOf("--other-arg", "otherArgValue", "--after-arg", "afterArgValue"))
+    )
+    val presentBeforeArguments = listOf(
+        RunnerArguments("only the flag", listOf(flag)),
+        RunnerArguments("flag and boolean option", listOf(flag, "--other-arg")),
+        RunnerArguments("flag and argument with value", listOf(flag, "--other-arg", "otherArgValue")),
+        RunnerArguments("boolean option and flag", listOf("--other-arg", flag)),
+        RunnerArguments("option with value and flag", listOf("--other-arg", "otherArgValue", flag)),
+        RunnerArguments("flag in middle of option with value and boolean option",
+            listOf("--other-arg", "otherArgValue", flag, "--after-arg")),
+        RunnerArguments("flag in middle of multiple options with values",
+            listOf("--other-arg", "otherArgValue", flag, "--after-arg", "afterArgValue"))
+    )
 
-        dynamicContainer("is false when", Stream.of(
-            dynamicGradleRunnerTest("there are no arguments") {
-              assertPropertyFalse()
-            },
-            dynamicGradleRunnerTest("some other arguments are present") {
-              withArguments("--nonexistent-toggle-option", "--some-option-with-value", "valuedude")
-              assertPropertyFalse()
-            },
-            dynamicContainer("the property is disabled", Stream.of(
-                dynamicGradleRunnerTest("and the flag was not included in the previous arguments") {
-                  withArguments("--nonexistent-toggle-option", "--some-option-with-value", "valuedude")
-                  property.set(this, false)
-                  assertPropertyFalse()
-                  assertArgumentSizeIsEqualTo(3)
-                  assertArgumentsDoesNotContainFlag()
-                },
-                dynamicContainer("and the flag was included in the previous arguments",  Stream.of(
-                    dynamicGradleRunnerTest("and is the only argument") {
-                      withArguments(flag)
-                      property.set(this, false)
-                      assertPropertyFalse()
-                      assertArgumentSizeIsEqualTo(0)
-                      assertArgumentsDoesNotContainFlag()
-                    },
-                    dynamicGradleRunnerTest("at the beginning of the arguments") {
-                      withArguments(flag, "--nonexistent-toggle-option", "--some-option-with-value", "valuedude")
-                      property.set(this, false)
-                      assertPropertyFalse()
-                      assertArgumentSizeIsEqualTo(3)
-                      assertArgumentsDoesNotContainFlag()
-                    },
-                    dynamicGradleRunnerTest("in the middle of the arguments") {
-                      withArguments("--nonexistent-toggle-option", flag, "--some-option-with-value", "valuedude")
-                      property.set(this, false)
-                      assertPropertyFalse()
-                      assertArgumentSizeIsEqualTo(3)
-                      assertArgumentsDoesNotContainFlag()
-                    },
-                    dynamicGradleRunnerTest("at the end of the arguments") {
-                      withArguments("--nonexistent-toggle-option", "--some-option-with-value", "valuedude", flag)
-                      property.set(this, false)
-                      assertPropertyFalse()
-                      assertArgumentSizeIsEqualTo(3)
-                      assertArgumentsDoesNotContainFlag()
-                    }
-                ))
-            ))
-        )),
-        dynamicContainer("is true when", Stream.of(
-            dynamicContainer("the argument is already present", Stream.of(
-                dynamicGradleRunnerTest("and is the only argument") {
-                  withArguments(flag)
-                  assertPropertyTrue()
-                  assertArgumentSizeIsEqualTo(1)
-                  assertArgumentsContainsFlag()
-                },
-                dynamicGradleRunnerTest("at the beginning of the arguments") {
-                  withArguments(flag, "--nonexistent-toggle-option", "--some-option-with-value", "valuedude")
-                  assertPropertyTrue()
-                  assertArgumentSizeIsEqualTo(4)
-                  assertArgumentsContainsFlag()
-                },
-                dynamicGradleRunnerTest("in the middle of the arguments") {
-                  withArguments("--nonexistent-toggle-option", flag, "--some-option-with-value", "valuedude")
-                  assertPropertyTrue()
-                  assertArgumentSizeIsEqualTo(4)
-                  assertArgumentsContainsFlag()
-                },
-                dynamicGradleRunnerTest("at the end of the arguments") {
-                  withArguments("--nonexistent-toggle-option", "--some-option-with-value", "valuedude", flag)
-                  assertPropertyTrue()
-                  assertArgumentSizeIsEqualTo(4)
-                  assertArgumentsContainsFlag()
-                }
-            )),
-            dynamicContainer("the property is enabled", Stream.of(
-                dynamicGradleRunnerTest("and there are no arguments") {
-                  property.set(this, true)
-                  assertPropertyTrue()
-                  assertArgumentSizeIsEqualTo(1)
-                  assertArgumentsContainsFlag()
-                },
-                dynamicGradleRunnerTest("and the flag was not included in the previous arguments") {
-                  withArguments("--nonexistent-toggle-option", "--some-option-with-value", "valuedude")
-                  property.set(this, true)
-                  assertPropertyTrue()
-                  assertArgumentSizeIsEqualTo(4)
-                  assertArgumentsContainsFlag()
-                },
-                dynamicContainer("and the flag was included in the previous arguments",  Stream.of(
-                    dynamicGradleRunnerTest("and is the only argument") {
-                      withArguments(flag)
-                      property.set(this, true)
-                      assertPropertyTrue()
-                      assertArgumentSizeIsEqualTo(1)
-                      assertArgumentsContainsFlag()
-                    },
-                    dynamicGradleRunnerTest("at the beginning of the arguments") {
-                      withArguments(flag, "--nonexistent-toggle-option", "--some-option-with-value", "valuedude")
-                      property.set(this, true)
-                      assertPropertyTrue()
-                      assertArgumentSizeIsEqualTo(4)
-                      assertArgumentsContainsFlag()
-                    },
-                    dynamicGradleRunnerTest("in the middle of the arguments") {
-                      withArguments("--nonexistent-toggle-option", flag, "--some-option-with-value", "valuedude")
-                      property.set(this, true)
-                      assertPropertyTrue()
-                      assertArgumentSizeIsEqualTo(4)
-                      assertArgumentsContainsFlag()
-                    },
-                    dynamicGradleRunnerTest("at the end of the arguments") {
-                      withArguments("--nonexistent-toggle-option", "--some-option-with-value", "valuedude", flag)
-                      property.set(this, true)
-                      assertPropertyTrue()
-                      assertArgumentSizeIsEqualTo(4)
-                      assertArgumentsContainsFlag()
-                    }
-                ))
-            ))
-        ))
+    fun GradleRunner.assertArguments() = assertThat(arguments)
+    fun GradleRunner.assertPropertyFalse() = assertThat(property.get(this)).isFalse()
+    fun GradleRunner.assertPropertyTrue() = assertThat(property.get(this)).isTrue()
+
+    return dynamicContainer("${property.name} for flag $flag", listOf(
+        dynamicContainer("when the flag is absent in an argument list that is",
+            absentBeforeArguments.flatMap { (description, args) ->
+              listOf(
+                  dynamicGradleRunnerTest("$description then the property is false") {
+                    withArguments(args)
+                    assertPropertyFalse()
+                    assertArguments().doesNotContain(flag)
+                  },
+                  dynamicGradleRunnerTest("$description and the property is disabled then the argument list does not change") {
+                    withArguments(args)
+                    property.set(this, false)
+                    assertPropertyFalse()
+                    assertArguments().doesNotContain(flag)
+                    assertArguments().containsOnlyElementsOf(args)
+                  },
+                  dynamicGradleRunnerTest("$description and the property is enabled then the argument list contains the flag in addition to the argument list and the property is false") {
+                    withArguments(args)
+                    property.set(this, true)
+                    assertPropertyTrue()
+                    assertArguments()
+                        .containsOnlyOnce(flag)
+                        .containsAll(args)
+                        .hasSize(args.size + 1)
+                  }
+              )
+            }),
+        dynamicContainer("when the flag is present in an argument list that is",
+            presentBeforeArguments.flatMap { (description, args) ->
+              listOf(
+                  dynamicGradleRunnerTest("$description then the property is true") {
+                    withArguments(args)
+                    assertArguments().contains(flag)
+                    assertPropertyTrue()
+                  },
+                  dynamicGradleRunnerTest("$description and the property is disabled then the argument list does not contain the flag and the property is false") {
+                    withArguments(args)
+                    property.set(this, false)
+                    assertPropertyFalse()
+                    assertArguments().doesNotContain(flag)
+                    assertArguments().containsOnlyElementsOf(args - flag)
+                  },
+                  dynamicGradleRunnerTest("$description and the property is enabled then the argument list does not change") {
+                    withArguments(args)
+                    property.set(this, true)
+                    assertPropertyTrue()
+                    assertArguments()
+                        .containsOnlyOnce(flag)
+                        .containsOnlyElementsOf(args)
+                        .hasSize(args.size)
+                  }
+              )
+            })
     ))
   }
 
