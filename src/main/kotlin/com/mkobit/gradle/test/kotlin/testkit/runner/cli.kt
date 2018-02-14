@@ -1,6 +1,8 @@
 package com.mkobit.gradle.test.kotlin.testkit.runner
 
 import org.gradle.testkit.runner.GradleRunner
+import java.nio.file.Path
+import java.nio.file.Paths
 
 /*
  * Extensions for managing CLI options for the GradleRunner.
@@ -14,6 +16,15 @@ import org.gradle.testkit.runner.GradleRunner
 public fun GradleRunner.arguments(vararg additionalArguments: CharSequence) {
   withArguments(arguments + additionalArguments.toList().map(CharSequence::toString))
 }
+
+/**
+ * The `--build-file` option. Setting to `null` removes the option and value.
+ */
+public var GradleRunner.buildFile: Path?
+  get() = arguments.findOptionValue("--build-file")?.let { Paths.get(it) }
+  set(value) {
+    withArguments(arguments.ensureOptionHasValue("--build-file", value))
+  }
 
 /**
  * The `--build-cache` flag.
@@ -198,7 +209,7 @@ public var GradleRunner.profile: Boolean
  * Updates the [GradleRunner.getArguments] to ensure that the provided [argument] is included or excluded
  * depending on the value of the [include].
  * @param argument the argument to ensure is present in the [GradleRunner.getArguments]
- * @param include `true` if the [argument] should be included, `false` is not
+ * @param include `true` if the [argument] should be included, `false` if it should be removed
  */
 private fun GradleRunner.ensureToggleableArgumentState(argument: String, include: Boolean) {
   val currentlyContained = arguments.contains(argument)
@@ -209,6 +220,34 @@ private fun GradleRunner.ensureToggleableArgumentState(argument: String, include
   } else {
     if (currentlyContained) {
       withArguments(arguments.filter { it != argument })
+    }
+  }
+}
+
+private fun List<String>.ensureOptionHasValue(option: String, value: Any?): List<String> {
+  val newOption = if (value == null) {
+    emptyList()
+  } else {
+    listOf(option, value.toString())
+  }
+  val optionIndex = indexOf(option)
+  return if (optionIndex == -1) {
+    this + newOption
+  } else {
+    filterIndexed { index, _ -> index !in setOf(optionIndex, optionIndex + 1) } + newOption
+  }
+}
+
+private fun List<String>.findOptionValue(option: String): String? {
+  var lastArgumentTest = false
+  return find {
+    if (lastArgumentTest) {
+      true
+    } else if (it == option) {
+      lastArgumentTest = true
+      false
+    } else {
+      false
     }
   }
 }

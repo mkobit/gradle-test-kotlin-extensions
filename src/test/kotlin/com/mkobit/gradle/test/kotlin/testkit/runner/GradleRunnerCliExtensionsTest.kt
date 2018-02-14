@@ -2,7 +2,9 @@ package com.mkobit.gradle.test.kotlin.testkit.runner
 
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
+import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicNode
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.extension.Extension
@@ -14,6 +16,8 @@ import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider
 import org.junit.platform.commons.support.AnnotationSupport
 import org.junit.platform.commons.support.ReflectionSupport
 import testsupport.dynamicGradleRunnerTest
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.stream.Stream
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -62,6 +66,182 @@ internal class GradleRunnerCliExtensionsTest {
   }
 
   @TestFactory
+  private fun `build file option`(): Stream<DynamicNode> {
+    val path = Paths.get("path", "to", "buildfile.gradle")
+    val otherPath = Paths.get("new", "path", "different.gradle")
+    return Stream.of(
+        dynamicContainer("is absent", Stream.of(
+            dynamicGradleRunnerTest("and no arguments") {
+              assertThat(buildFile)
+                  .isNull()
+            },
+            dynamicGradleRunnerTest("and some arguments") {
+              withArguments("--nonexistent-toggle-option", "--some-option-with-value", "valuedude")
+              assertThat(buildFile)
+                  .isNull()
+            }
+        )),
+        dynamicContainer("set --build-file", Stream.of(
+            dynamicGradleRunnerTest("with no previous arguments") {
+              buildFile = path
+              assertThat(buildFile)
+                  .isEqualTo(path)
+              assertThat(arguments)
+                  .hasSize(2)
+            },
+            dynamicGradleRunnerTest("with existing arguments") {
+              withArguments("--nonexistent-toggle-option", "--some-option-with-value", "valuedude")
+              buildFile = path
+              assertThat(buildFile)
+                  .isEqualTo(path)
+              assertThat(arguments)
+                  .hasSize(5)
+            }
+        )),
+        dynamicContainer("--build-file is already present", Stream.of(
+            dynamicGradleRunnerTest("when it is the only arguments") {
+              withArguments("--build-file", path.toString())
+              assertThat(buildFile)
+                  .isEqualTo(path)
+              assertThat(arguments)
+                  .hasSize(2)
+            },
+            dynamicGradleRunnerTest("when it is the beginning arguments") {
+              withArguments("--build-file",
+                  path.toString(),
+                  "--nonexistent-toggle-option",
+                  "--some-option-with-value",
+                  "valuedude")
+              assertThat(buildFile)
+                  .isEqualTo(path)
+              assertThat(arguments)
+                  .hasSize(5)
+            },
+            dynamicGradleRunnerTest("when it is the middle arguments") {
+              withArguments("--nonexistent-toggle-option",
+                  "--build-file",
+                  path.toString(),
+                  "--some-option-with-value",
+                  "valuedude")
+              assertThat(buildFile)
+                  .isEqualTo(path)
+              assertThat(arguments)
+                  .hasSize(5)
+            },
+            dynamicGradleRunnerTest("when it is the end arguments") {
+              withArguments("--nonexistent-toggle-option",
+                  "--some-option-with-value",
+                  "valuedude",
+                  "--build-file",
+                  path.toString())
+              assertThat(buildFile)
+                  .isEqualTo(path)
+              assertThat(arguments)
+                  .hasSize(5)
+            }
+        )),
+        dynamicContainer("change --build-file value", Stream.of(
+            dynamicGradleRunnerTest("when it is the only arguments") {
+              withArguments("--build-file", path.toString())
+              buildFile = otherPath
+              assertThat(buildFile)
+                  .isEqualTo(otherPath)
+              assertThat(arguments)
+                  .hasSize(2)
+            },
+            dynamicGradleRunnerTest("when it is the beginning arguments") {
+              withArguments("--build-file",
+                  path.toString(),
+                  "--nonexistent-toggle-option",
+                  "--some-option-with-value",
+                  "valuedude")
+              buildFile = otherPath
+              assertThat(buildFile)
+                  .isEqualTo(otherPath)
+              assertThat(arguments)
+                  .hasSize(5)
+            },
+            dynamicGradleRunnerTest("when it is the middle arguments") {
+              withArguments("--nonexistent-toggle-option",
+                  "--build-file",
+                  path.toString(),
+                  "--some-option-with-value",
+                  "valuedude")
+              buildFile = otherPath
+              assertThat(buildFile)
+                  .isEqualTo(otherPath)
+              assertThat(arguments)
+                  .hasSize(5)
+            },
+            dynamicGradleRunnerTest("when it is the end arguments") {
+              withArguments("--nonexistent-toggle-option",
+                  "--some-option-with-value",
+                  "valuedude",
+                  "--build-file",
+                  path.toString())
+              buildFile = otherPath
+              assertThat(buildFile)
+                  .isEqualTo(otherPath)
+              assertThat(arguments)
+                  .hasSize(5)
+            }
+        )),
+        dynamicContainer("remove --build-file option", Stream.of(
+            dynamicGradleRunnerTest("unset --build-file") {
+              withArguments("--build-file", path.toString())
+              buildFile = null
+              assertThat(buildFile as Path?)
+                  .isNull()
+            },
+            dynamicGradleRunnerTest("when it is the only arguments") {
+              withArguments("--build-file", path.toString())
+              buildFile = null
+              assertThat(buildFile as Path?)
+                  .isNull()
+              assertThat(arguments)
+                  .isEmpty()
+            },
+            dynamicGradleRunnerTest("when it is the beginning arguments") {
+              withArguments("--build-file",
+                  path.toString(),
+                  "--nonexistent-toggle-option",
+                  "--some-option-with-value",
+                  "valuedude")
+              buildFile = null
+              assertThat(buildFile as Path?)
+                  .isNull()
+              assertThat(arguments)
+                  .hasSize(3)
+            },
+            dynamicGradleRunnerTest("when it is the middle arguments") {
+              withArguments("--nonexistent-toggle-option",
+                  "--build-file",
+                  path.toString(),
+                  "--some-option-with-value",
+                  "valuedude")
+              buildFile = null
+              assertThat(buildFile as Path?)
+                  .isNull()
+              assertThat(arguments)
+                  .hasSize(3)
+            },
+            dynamicGradleRunnerTest("when it is the end arguments") {
+              withArguments("--nonexistent-toggle-option",
+                  "--some-option-with-value",
+                  "valuedude",
+                  "--build-file",
+                  path.toString())
+              buildFile = null
+              assertThat(buildFile as Path?)
+                  .isNull()
+              assertThat(arguments)
+                  .hasSize(3)
+            }
+        ))
+    )
+  }
+
+  @TestFactory
   internal fun `system properties`(): Stream<DynamicNode> {
     val stringToString1 = mapOf("Prop1" to "val1")
     val stringToNull = mapOf("Prop2" to null)
@@ -81,12 +261,12 @@ internal class GradleRunnerCliExtensionsTest {
               .isEmpty()
         },
         dynamicGradleRunnerTest("single map entry with String/String key/value pair") {
-            systemProperties = stringToString1
-            assertThat(systemProperties)
-                .isEqualTo(stringToString1)
-            assertThat(arguments)
-                .containsExactly("--system-prop", "Prop1=val1")
-          },
+          systemProperties = stringToString1
+          assertThat(systemProperties)
+              .isEqualTo(stringToString1)
+          assertThat(arguments)
+              .containsExactly("--system-prop", "Prop1=val1")
+        },
         dynamicGradleRunnerTest("single map entry with String/null key/value pair") {
           systemProperties = stringToNull
           assertThat(systemProperties)
@@ -300,72 +480,100 @@ internal interface BooleanFlagApply {
 
 private class BuildCacheEnabled : BooleanFlagApply {
   override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.buildCacheEnabled
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) { gradleRunner.buildCacheEnabled = newState }
+  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
+    gradleRunner.buildCacheEnabled = newState
+  }
 }
 
 private class BuildCacheDisabled : BooleanFlagApply {
   override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.buildCacheDisabled
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) { gradleRunner.buildCacheDisabled = newState }
+  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
+    gradleRunner.buildCacheDisabled = newState
+  }
 }
 
 private class ContinueEnabled : BooleanFlagApply {
   override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.continueAfterFailure
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) { gradleRunner.continueAfterFailure = newState }
+  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
+    gradleRunner.continueAfterFailure = newState
+  }
 }
 
 private class QuietEnabled : BooleanFlagApply {
   override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.quiet
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) { gradleRunner.quiet = newState }
+  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
+    gradleRunner.quiet = newState
+  }
 }
 
 private class StacktraceEnabled : BooleanFlagApply {
   override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.stacktrace
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) { gradleRunner.stacktrace = newState }
+  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
+    gradleRunner.stacktrace = newState
+  }
 }
 
 private class FullStacktraceEnabled : BooleanFlagApply {
   override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.fullStacktrace
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) { gradleRunner.fullStacktrace = newState }
+  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
+    gradleRunner.fullStacktrace = newState
+  }
 }
 
 private class InfoEnabled : BooleanFlagApply {
   override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.info
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) { gradleRunner.info = newState }
+  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
+    gradleRunner.info = newState
+  }
 }
 
 private class DryRunEnabled : BooleanFlagApply {
   override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.dryRun
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) { gradleRunner.dryRun = newState }
+  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
+    gradleRunner.dryRun = newState
+  }
 }
 
 private class DebugEnabled : BooleanFlagApply {
   override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.debug
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) { gradleRunner.debug = newState }
+  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
+    gradleRunner.debug = newState
+  }
 }
 
 private class WarnEnabled : BooleanFlagApply {
   override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.warn
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) { gradleRunner.warn = newState }
+  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
+    gradleRunner.warn = newState
+  }
 }
 
 private class BuildScanEnabled : BooleanFlagApply {
   override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.buildScanEnabled
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) { gradleRunner.buildScanEnabled = newState }
+  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
+    gradleRunner.buildScanEnabled = newState
+  }
 }
 
 private class BuildScanDisabled : BooleanFlagApply {
   override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.buildScanDisabled
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) { gradleRunner.buildScanDisabled = newState }
+  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
+    gradleRunner.buildScanDisabled = newState
+  }
 }
 
 private class OfflineEnabled : BooleanFlagApply {
   override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.offline
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) { gradleRunner.offline = newState }
+  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
+    gradleRunner.offline = newState
+  }
 }
 
 private class ProfileEnabled : BooleanFlagApply {
   override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.profile
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) { gradleRunner.profile = newState }
+  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
+    gradleRunner.profile = newState
+  }
 }
 
 private class ToggleableCliArgumentTemplateContextProvider : TestTemplateInvocationContextProvider {
@@ -385,49 +593,49 @@ private class ToggleableCliArgumentTemplateContextProvider : TestTemplateInvocat
           booleanFlag.flag to ReflectionSupport.newInstance(booleanFlag.stateApply.java)
         }.flatMap { (booleanFlag, applyFunction) ->
 
-      fun contextOf(
-          arguments: List<String>,
-          enabledBefore: Boolean, setToState: Boolean
-      ): ToggleableCliArgumentInvocationContext =
-          ToggleableCliArgumentInvocationContext(
-              RunnerContext(
-                  GradleRunner.create().withArguments(arguments),
-                  booleanFlag,
-                  enabledBefore,
-                  setToState,
-                  applyFunction
+          fun contextOf(
+              arguments: List<String>,
+              enabledBefore: Boolean, setToState: Boolean
+          ): ToggleableCliArgumentInvocationContext =
+              ToggleableCliArgumentInvocationContext(
+                  RunnerContext(
+                      GradleRunner.create().withArguments(arguments),
+                      booleanFlag,
+                      enabledBefore,
+                      setToState,
+                      applyFunction
+                  )
               )
-          )
 
-      val disabledBefore = Stream.of(
-          emptyList(),
-          listOf("--other-arg"),
-          listOf("--other-arg", "otherArgValue"),
-          listOf("--other-arg", "otherArgValue", "--after-arg"),
-          listOf("--other-arg", "otherArgValue", "--after-arg", "afterArgValue")
-      ).flatMap { arguments ->
-        Stream.of(
-            contextOf(arguments, false, false),
-            contextOf(arguments, false, true)
-        )
-      }
+          val disabledBefore = Stream.of(
+              emptyList(),
+              listOf("--other-arg"),
+              listOf("--other-arg", "otherArgValue"),
+              listOf("--other-arg", "otherArgValue", "--after-arg"),
+              listOf("--other-arg", "otherArgValue", "--after-arg", "afterArgValue")
+          ).flatMap { arguments ->
+            Stream.of(
+                contextOf(arguments, false, false),
+                contextOf(arguments, false, true)
+            )
+          }
 
-      val enabledBefore = Stream.of(
-          listOf(booleanFlag),
-          listOf(booleanFlag, "--other-arg"),
-          listOf(booleanFlag, "--other-arg", "otherArgValue"),
-          listOf("--other-arg", booleanFlag),
-          listOf("--other-arg", "otherArgValue", booleanFlag),
-          listOf("--other-arg", "otherArgValue", booleanFlag, "--after-arg"),
-          listOf("--other-arg", "otherArgValue", booleanFlag, "--after-arg", "afterArgValue")
-      ).flatMap { arguments ->
-        Stream.of(
-            contextOf(arguments, true, false),
-            contextOf(arguments, true, true)
-        )
-      }
-      Stream.of(disabledBefore, enabledBefore).flatMap { it }
-    }
+          val enabledBefore = Stream.of(
+              listOf(booleanFlag),
+              listOf(booleanFlag, "--other-arg"),
+              listOf(booleanFlag, "--other-arg", "otherArgValue"),
+              listOf("--other-arg", booleanFlag),
+              listOf("--other-arg", "otherArgValue", booleanFlag),
+              listOf("--other-arg", "otherArgValue", booleanFlag, "--after-arg"),
+              listOf("--other-arg", "otherArgValue", booleanFlag, "--after-arg", "afterArgValue")
+          ).flatMap { arguments ->
+            Stream.of(
+                contextOf(arguments, true, false),
+                contextOf(arguments, true, true)
+            )
+          }
+          Stream.of(disabledBefore, enabledBefore).flatMap { it }
+        }
   }
 }
 
