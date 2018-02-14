@@ -6,62 +6,169 @@ import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.extension.Extension
-import org.junit.jupiter.api.extension.ExtensionContext
-import org.junit.jupiter.api.extension.ParameterContext
-import org.junit.jupiter.api.extension.ParameterResolver
-import org.junit.jupiter.api.extension.TestTemplateInvocationContext
-import org.junit.jupiter.api.extension.TestTemplateInvocationContextProvider
-import org.junit.platform.commons.support.AnnotationSupport
-import org.junit.platform.commons.support.ReflectionSupport
 import testsupport.dynamicGradleRunnerTest
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.stream.Stream
+import kotlin.reflect.KMutableProperty1
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class GradleRunnerCliExtensionsTest {
 
-  @BooleanFlags(
-      BooleanFlag(flag = "--build-cache", stateApply = BuildCacheEnabled::class),
-      BooleanFlag(flag = "--no-build-cache", stateApply = BuildCacheDisabled::class),
-      BooleanFlag(flag = "--continue", stateApply = ContinueEnabled::class),
-      BooleanFlag(flag = "--quiet", stateApply = QuietEnabled::class),
-      BooleanFlag(flag = "--stacktrace", stateApply = StacktraceEnabled::class),
-      BooleanFlag(flag = "--full-stacktrace", stateApply = FullStacktraceEnabled::class),
-      BooleanFlag(flag = "--info", stateApply = InfoEnabled::class),
-      BooleanFlag(flag = "--dry-run", stateApply = DryRunEnabled::class),
-      BooleanFlag(flag = "--debug", stateApply = DebugEnabled::class),
-      BooleanFlag(flag = "--warn", stateApply = WarnEnabled::class),
-      BooleanFlag(flag = "--scan", stateApply = BuildScanEnabled::class),
-      BooleanFlag(flag = "--no-scan", stateApply = BuildScanDisabled::class),
-      BooleanFlag(flag = "--offline", stateApply = OfflineEnabled::class),
-      BooleanFlag(flag = "--profile", stateApply = ProfileEnabled::class)
+  @TestFactory
+  internal fun `boolean property`(): Stream<DynamicNode> = Stream.of(
+      booleanFlagTests("--build-cache", GradleRunner::buildCacheEnabled),
+      booleanFlagTests("--no-build-cache", GradleRunner::buildCacheDisabled),
+      booleanFlagTests("--continue", GradleRunner::continueAfterFailure),
+      booleanFlagTests("--quiet", GradleRunner::quiet),
+      booleanFlagTests("--stacktrace", GradleRunner::stacktrace),
+      booleanFlagTests("--full-stacktrace", GradleRunner::fullStacktrace),
+      booleanFlagTests("--info", GradleRunner::info),
+      booleanFlagTests("--dry-run", GradleRunner::dryRun),
+      booleanFlagTests("--debug", GradleRunner::debug),
+      booleanFlagTests("--warn", GradleRunner::warn),
+      booleanFlagTests("--scan", GradleRunner::buildScanEnabled),
+      booleanFlagTests("--no-scan", GradleRunner::buildScanDisabled),
+      booleanFlagTests("--offline", GradleRunner::offline),
+      booleanFlagTests("--profile", GradleRunner::profile)
   )
-  internal fun `boolean flag toggling in different states`(runnerContext: RunnerContext) {
-    val gradleRunner = runnerContext.gradleRunner
-    if (runnerContext.enabledBefore) {
-      assertThat(gradleRunner.arguments)
-          .contains(runnerContext.argument)
-    } else {
-      assertThat(gradleRunner.arguments)
-          .doesNotContain(runnerContext.argument)
-    }
 
-    assertThat(runnerContext.booleanFlagApply.retrieveState(gradleRunner))
-        .isEqualTo(runnerContext.enabledBefore)
+  private fun booleanFlagTests(
+      flag: String,
+      property: KMutableProperty1<GradleRunner, Boolean>
+  ): DynamicNode {
 
-    runnerContext.booleanFlagApply.applyChange(gradleRunner, runnerContext.setToState)
-    assertThat(runnerContext.booleanFlagApply.retrieveState(gradleRunner))
-        .isEqualTo(runnerContext.setToState)
+    fun GradleRunner.assertArgumentSizeIsEqualTo(size: Int) = assertThat(arguments).hasSize(size)
+    fun GradleRunner.assertArgumentsContainsFlag() = assertThat(arguments).containsOnlyOnce(flag)
+    fun GradleRunner.assertArgumentsDoesNotContainFlag() = assertThat(arguments).doesNotContain(flag)
+    fun GradleRunner.assertProperty() = assertThat(property.get(this))
+    fun GradleRunner.assertPropertyFalse() = assertProperty().isFalse()
+    fun GradleRunner.assertPropertyTrue() = assertProperty().isTrue()
 
-    if (runnerContext.setToState) {
-      assertThat(gradleRunner.arguments)
-          .contains(runnerContext.argument)
-    } else {
-      assertThat(gradleRunner.arguments)
-          .doesNotContain(runnerContext.argument)
-    }
+    return dynamicContainer("${property.name} for flag $flag", Stream.of(
+
+        dynamicContainer("is false when", Stream.of(
+            dynamicGradleRunnerTest("there are no arguments") {
+              assertPropertyFalse()
+            },
+            dynamicGradleRunnerTest("some other arguments are present") {
+              withArguments("--nonexistent-toggle-option", "--some-option-with-value", "valuedude")
+              assertPropertyFalse()
+            },
+            dynamicContainer("the property is disabled", Stream.of(
+                dynamicGradleRunnerTest("and the flag was not included in the previous arguments") {
+                  withArguments("--nonexistent-toggle-option", "--some-option-with-value", "valuedude")
+                  property.set(this, false)
+                  assertPropertyFalse()
+                  assertArgumentSizeIsEqualTo(3)
+                  assertArgumentsDoesNotContainFlag()
+                },
+                dynamicContainer("and the flag was included in the previous arguments",  Stream.of(
+                    dynamicGradleRunnerTest("and is the only argument") {
+                      withArguments(flag)
+                      property.set(this, false)
+                      assertPropertyFalse()
+                      assertArgumentSizeIsEqualTo(0)
+                      assertArgumentsDoesNotContainFlag()
+                    },
+                    dynamicGradleRunnerTest("at the beginning of the arguments") {
+                      withArguments(flag, "--nonexistent-toggle-option", "--some-option-with-value", "valuedude")
+                      property.set(this, false)
+                      assertPropertyFalse()
+                      assertArgumentSizeIsEqualTo(3)
+                      assertArgumentsDoesNotContainFlag()
+                    },
+                    dynamicGradleRunnerTest("in the middle of the arguments") {
+                      withArguments("--nonexistent-toggle-option", flag, "--some-option-with-value", "valuedude")
+                      property.set(this, false)
+                      assertPropertyFalse()
+                      assertArgumentSizeIsEqualTo(3)
+                      assertArgumentsDoesNotContainFlag()
+                    },
+                    dynamicGradleRunnerTest("at the end of the arguments") {
+                      withArguments("--nonexistent-toggle-option", "--some-option-with-value", "valuedude", flag)
+                      property.set(this, false)
+                      assertPropertyFalse()
+                      assertArgumentSizeIsEqualTo(3)
+                      assertArgumentsDoesNotContainFlag()
+                    }
+                ))
+            ))
+        )),
+        dynamicContainer("is true when", Stream.of(
+            dynamicContainer("the argument is already present", Stream.of(
+                dynamicGradleRunnerTest("and is the only argument") {
+                  withArguments(flag)
+                  assertPropertyTrue()
+                  assertArgumentSizeIsEqualTo(1)
+                  assertArgumentsContainsFlag()
+                },
+                dynamicGradleRunnerTest("at the beginning of the arguments") {
+                  withArguments(flag, "--nonexistent-toggle-option", "--some-option-with-value", "valuedude")
+                  assertPropertyTrue()
+                  assertArgumentSizeIsEqualTo(4)
+                  assertArgumentsContainsFlag()
+                },
+                dynamicGradleRunnerTest("in the middle of the arguments") {
+                  withArguments("--nonexistent-toggle-option", flag, "--some-option-with-value", "valuedude")
+                  assertPropertyTrue()
+                  assertArgumentSizeIsEqualTo(4)
+                  assertArgumentsContainsFlag()
+                },
+                dynamicGradleRunnerTest("at the end of the arguments") {
+                  withArguments("--nonexistent-toggle-option", "--some-option-with-value", "valuedude", flag)
+                  assertPropertyTrue()
+                  assertArgumentSizeIsEqualTo(4)
+                  assertArgumentsContainsFlag()
+                }
+            )),
+            dynamicContainer("the property is enabled", Stream.of(
+                dynamicGradleRunnerTest("and there are no arguments") {
+                  property.set(this, true)
+                  assertPropertyTrue()
+                  assertArgumentSizeIsEqualTo(1)
+                  assertArgumentsContainsFlag()
+                },
+                dynamicGradleRunnerTest("and the flag was not included in the previous arguments") {
+                  withArguments("--nonexistent-toggle-option", "--some-option-with-value", "valuedude")
+                  property.set(this, true)
+                  assertPropertyTrue()
+                  assertArgumentSizeIsEqualTo(4)
+                  assertArgumentsContainsFlag()
+                },
+                dynamicContainer("and the flag was included in the previous arguments",  Stream.of(
+                    dynamicGradleRunnerTest("and is the only argument") {
+                      withArguments(flag)
+                      property.set(this, true)
+                      assertPropertyTrue()
+                      assertArgumentSizeIsEqualTo(1)
+                      assertArgumentsContainsFlag()
+                    },
+                    dynamicGradleRunnerTest("at the beginning of the arguments") {
+                      withArguments(flag, "--nonexistent-toggle-option", "--some-option-with-value", "valuedude")
+                      property.set(this, true)
+                      assertPropertyTrue()
+                      assertArgumentSizeIsEqualTo(4)
+                      assertArgumentsContainsFlag()
+                    },
+                    dynamicGradleRunnerTest("in the middle of the arguments") {
+                      withArguments("--nonexistent-toggle-option", flag, "--some-option-with-value", "valuedude")
+                      property.set(this, true)
+                      assertPropertyTrue()
+                      assertArgumentSizeIsEqualTo(4)
+                      assertArgumentsContainsFlag()
+                    },
+                    dynamicGradleRunnerTest("at the end of the arguments") {
+                      withArguments("--nonexistent-toggle-option", "--some-option-with-value", "valuedude", flag)
+                      property.set(this, true)
+                      assertPropertyTrue()
+                      assertArgumentSizeIsEqualTo(4)
+                      assertArgumentsContainsFlag()
+                    }
+                ))
+            ))
+        ))
+    ))
   }
 
   @TestFactory
@@ -468,198 +575,3 @@ internal class GradleRunnerCliExtensionsTest {
     )
   }
 }
-
-/**
- * CLI testing helper to get the state of a value and also apply a new state to it.
- */
-internal interface BooleanFlagApply {
-  fun applyChange(gradleRunner: GradleRunner, newState: Boolean)
-  fun retrieveState(gradleRunner: GradleRunner): Boolean
-}
-
-private class BuildCacheEnabled : BooleanFlagApply {
-  override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.buildCacheEnabled
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
-    gradleRunner.buildCacheEnabled = newState
-  }
-}
-
-private class BuildCacheDisabled : BooleanFlagApply {
-  override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.buildCacheDisabled
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
-    gradleRunner.buildCacheDisabled = newState
-  }
-}
-
-private class ContinueEnabled : BooleanFlagApply {
-  override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.continueAfterFailure
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
-    gradleRunner.continueAfterFailure = newState
-  }
-}
-
-private class QuietEnabled : BooleanFlagApply {
-  override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.quiet
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
-    gradleRunner.quiet = newState
-  }
-}
-
-private class StacktraceEnabled : BooleanFlagApply {
-  override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.stacktrace
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
-    gradleRunner.stacktrace = newState
-  }
-}
-
-private class FullStacktraceEnabled : BooleanFlagApply {
-  override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.fullStacktrace
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
-    gradleRunner.fullStacktrace = newState
-  }
-}
-
-private class InfoEnabled : BooleanFlagApply {
-  override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.info
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
-    gradleRunner.info = newState
-  }
-}
-
-private class DryRunEnabled : BooleanFlagApply {
-  override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.dryRun
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
-    gradleRunner.dryRun = newState
-  }
-}
-
-private class DebugEnabled : BooleanFlagApply {
-  override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.debug
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
-    gradleRunner.debug = newState
-  }
-}
-
-private class WarnEnabled : BooleanFlagApply {
-  override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.warn
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
-    gradleRunner.warn = newState
-  }
-}
-
-private class BuildScanEnabled : BooleanFlagApply {
-  override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.buildScanEnabled
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
-    gradleRunner.buildScanEnabled = newState
-  }
-}
-
-private class BuildScanDisabled : BooleanFlagApply {
-  override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.buildScanDisabled
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
-    gradleRunner.buildScanDisabled = newState
-  }
-}
-
-private class OfflineEnabled : BooleanFlagApply {
-  override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.offline
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
-    gradleRunner.offline = newState
-  }
-}
-
-private class ProfileEnabled : BooleanFlagApply {
-  override fun retrieveState(gradleRunner: GradleRunner): Boolean = gradleRunner.profile
-  override fun applyChange(gradleRunner: GradleRunner, newState: Boolean) {
-    gradleRunner.profile = newState
-  }
-}
-
-private class ToggleableCliArgumentTemplateContextProvider : TestTemplateInvocationContextProvider {
-  override fun supportsTestTemplate(context: ExtensionContext): Boolean {
-    return context.testMethod
-        .map {
-          AnnotationSupport.isAnnotated(it, BooleanFlag::class.java) || AnnotationSupport.isAnnotated(it,
-              BooleanFlags::class.java)
-        }
-        .orElse(false)
-  }
-
-  override fun provideTestTemplateInvocationContexts(context: ExtensionContext): Stream<TestTemplateInvocationContext> {
-    return AnnotationSupport.findRepeatableAnnotations(context.requiredTestMethod, BooleanFlag::class.java)
-        .stream()
-        .map { booleanFlag: BooleanFlag ->
-          booleanFlag.flag to ReflectionSupport.newInstance(booleanFlag.stateApply.java)
-        }.flatMap { (booleanFlag, applyFunction) ->
-
-          fun contextOf(
-              arguments: List<String>,
-              enabledBefore: Boolean, setToState: Boolean
-          ): ToggleableCliArgumentInvocationContext =
-              ToggleableCliArgumentInvocationContext(
-                  RunnerContext(
-                      GradleRunner.create().withArguments(arguments),
-                      booleanFlag,
-                      enabledBefore,
-                      setToState,
-                      applyFunction
-                  )
-              )
-
-          val disabledBefore = Stream.of(
-              emptyList(),
-              listOf("--other-arg"),
-              listOf("--other-arg", "otherArgValue"),
-              listOf("--other-arg", "otherArgValue", "--after-arg"),
-              listOf("--other-arg", "otherArgValue", "--after-arg", "afterArgValue")
-          ).flatMap { arguments ->
-            Stream.of(
-                contextOf(arguments, false, false),
-                contextOf(arguments, false, true)
-            )
-          }
-
-          val enabledBefore = Stream.of(
-              listOf(booleanFlag),
-              listOf(booleanFlag, "--other-arg"),
-              listOf(booleanFlag, "--other-arg", "otherArgValue"),
-              listOf("--other-arg", booleanFlag),
-              listOf("--other-arg", "otherArgValue", booleanFlag),
-              listOf("--other-arg", "otherArgValue", booleanFlag, "--after-arg"),
-              listOf("--other-arg", "otherArgValue", booleanFlag, "--after-arg", "afterArgValue")
-          ).flatMap { arguments ->
-            Stream.of(
-                contextOf(arguments, true, false),
-                contextOf(arguments, true, true)
-            )
-          }
-          Stream.of(disabledBefore, enabledBefore).flatMap { it }
-        }
-  }
-}
-
-private class ToggleableCliArgumentInvocationContext(
-    private val runnerContext: RunnerContext
-) : TestTemplateInvocationContext {
-  override fun getDisplayName(invocationIndex: Int): String = runnerContext.run {
-    "(\"$argument\", Args=${gradleRunner.arguments}, BeforeState=$enabledBefore, ChangeTo->$setToState)"
-  }
-
-  override fun getAdditionalExtensions(): List<Extension> = listOf(RunnerContextResolver(runnerContext))
-}
-
-private class RunnerContextResolver(private val runnerContext: RunnerContext) : ParameterResolver {
-  override fun supportsParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Boolean =
-      parameterContext.parameter.type == RunnerContext::class.java
-
-  override fun resolveParameter(parameterContext: ParameterContext,
-                                extensionContext: ExtensionContext): Any = runnerContext
-}
-
-internal data class RunnerContext(
-    val gradleRunner: GradleRunner,
-    val argument: String,
-    val enabledBefore: Boolean,
-    val setToState: Boolean,
-    val booleanFlagApply: BooleanFlagApply
-)
