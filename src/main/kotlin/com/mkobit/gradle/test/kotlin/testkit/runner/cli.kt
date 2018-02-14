@@ -62,10 +62,11 @@ public var GradleRunner.systemProperties: Map<String, String?>
       .map { it.split(systemPropertySplitPattern, 2) }
       .associateBy({ it.first() }, { it.getOrNull(1) })
   set(value) {
-    val properties = value.flatMap { (key, value) ->
-      listOf("--system-prop", "$key${value?.let { "=$it" }.orEmpty()}")
+    // TODO: check for empty keys
+    val properties = value.map { (key, value) ->
+      "$key${value?.let { "=$it" }.orEmpty()}"
     }
-    withArguments(findKeyValueArgumentsByFilter { it == "--system-prop" } + properties)
+    ensureRepeatableOptionHasValues("--system-prop", properties)
   }
 
 /**
@@ -137,10 +138,7 @@ public var GradleRunner.warn: Boolean
 public var GradleRunner.initScripts: List<String>
   get() = findAllKeyValueArgumentValues { it == "--init-script" }
   set(value) {
-    withArguments(
-        findKeyValueArgumentsByFilter { it == "--init-script" }
-            + value.flatMap { listOf("--init-script", it) }
-    )
+    ensureRepeatableOptionHasValues("--init-script", value)
   }
 
 /**
@@ -149,10 +147,7 @@ public var GradleRunner.initScripts: List<String>
 public var GradleRunner.excludedTasks: List<String>
   get() = findAllKeyValueArgumentValues { it == "--exclude-task" }
   set(value) {
-    withArguments(
-        findKeyValueArgumentsByFilter { it == "--exclude-task" }
-            + value.flatMap { listOf("--exclude-task", it) }
-    )
+    ensureRepeatableOptionHasValues("--exclude-task", value)
   }
 
 /**
@@ -191,10 +186,11 @@ public var GradleRunner.projectProperties: Map<String, String?>
       .map { it.split(projectPropertySplitPattern, 2) }
       .associateBy({ it.first() }, { it.getOrNull(1) })
   set(value) {
-    val properties = value.flatMap { (key, value) ->
-      listOf("--project-prop", "$key${value?.let { "=$it" }.orEmpty()}")
+    // TODO: make sure keys can't be empty
+    val properties = value.map { (key, value) ->
+      "$key${value?.let { "=$it" }.orEmpty()}"
     }
-    withArguments(findKeyValueArgumentsByFilter { it == "--project-prop" } + properties)
+    ensureRepeatableOptionHasValues("--project-prop", properties)
   }
 
 /**
@@ -207,22 +203,28 @@ public var GradleRunner.profile: Boolean
   }
 
 /**
- * Updates the [GradleRunner.getArguments] to ensure that the provided [argument] is included or excluded
- * depending on the value of the [include]. The argument should be a flag like `--enable-thing`.
- * @param argument the argument to ensure is present in the [GradleRunner.getArguments]
- * @param include `true` if the [argument] should be included, `false` if it should be removed
+ * Updates the [GradleRunner.getArguments] to ensure that the provided [flag] is included or excluded
+ * depending on the value of the [include]. The flag should be a flag like `--enable-thing`.
+ * @param flag the flag to ensure is present in the [GradleRunner.getArguments]
+ * @param include `true` if the [flag] should be included, `false` if it should be removed
  */
-private fun GradleRunner.ensureFlagOptionState(argument: String, include: Boolean) {
-  val currentlyContained = arguments.contains(argument)
+private fun GradleRunner.ensureFlagOptionState(flag: String, include: Boolean) {
+  val currentlyContained = arguments.contains(flag)
   if (include) {
     if (!currentlyContained) {
-      withArguments(arguments + listOf(argument))
+      withArguments(arguments + listOf(flag))
     }
   } else {
     if (currentlyContained) {
-      withArguments(arguments.filter { it != argument })
+      withArguments(arguments.filter { it != flag })
     }
   }
+}
+
+private fun GradleRunner.ensureRepeatableOptionHasValues(option: String, values: List<String>) {
+  withArguments(
+      findKeyValueArgumentsByFilter { it == option } + values.flatMap { listOf(option, it) }
+  )
 }
 
 private fun GradleRunner.ensureOptionHasValue(option: String, value: Any?) {

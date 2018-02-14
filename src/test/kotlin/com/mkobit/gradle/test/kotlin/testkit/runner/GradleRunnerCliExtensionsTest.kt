@@ -31,6 +31,12 @@ internal class GradleRunnerCliExtensionsTest {
       booleanFlagTestsFor("--profile", GradleRunner::profile)
   )
 
+  /**
+   * Creates a bunch of dynamic tests for use with a boolean toggleable option.
+   * The option should be in the form of `--build-cache`, where there is no value for the option.
+   * @param flag the command line flag
+   * @param property a reference to the extension property
+   */
   private fun booleanFlagTestsFor(
       flag: String,
       property: KMutableProperty1<GradleRunner, Boolean>
