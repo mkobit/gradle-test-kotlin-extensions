@@ -42,8 +42,6 @@ internal class GradleRunnerCliExtensionsTest {
       property: KMutableProperty1<GradleRunner, Boolean>
   ): DynamicNode {
 
-    data class RunnerArguments(val argumentDescription: String, val arguments: List<String>)
-
     val absentBeforeArguments = listOf(
         RunnerArguments("empty", emptyList()),
         RunnerArguments("single argument", listOf("--other-arg")),
@@ -65,7 +63,6 @@ internal class GradleRunnerCliExtensionsTest {
             listOf("--other-arg", "otherArgValue", flag, "--after-arg", "afterArgValue"))
     )
 
-    fun GradleRunner.assertArguments() = assertThat(arguments)
     fun GradleRunner.assertPropertyFalse() = assertThat(property.get(this)).isFalse()
     fun GradleRunner.assertPropertyTrue() = assertThat(property.get(this)).isTrue()
 
@@ -85,7 +82,7 @@ internal class GradleRunnerCliExtensionsTest {
                     assertArguments().doesNotContain(flag)
                     assertArguments().containsOnlyElementsOf(args)
                   },
-                  dynamicGradleRunnerTest("$description and the property is enabled then the argument list contains the flag in addition to the argument list and the property is false") {
+                  dynamicGradleRunnerTest("$description and the property is enabled then the argument list contains the flag in addition to the argument list and the property is true") {
                     withArguments(args)
                     property.set(this, true)
                     assertPropertyTrue()
@@ -123,182 +120,6 @@ internal class GradleRunnerCliExtensionsTest {
               )
             })
     ))
-  }
-
-  @TestFactory
-  private fun `build file option`(): Stream<DynamicNode> {
-    val path = Paths.get("path", "to", "buildfile.gradle")
-    val otherPath = Paths.get("new", "path", "different.gradle")
-    return Stream.of(
-        dynamicContainer("is absent", Stream.of(
-            dynamicGradleRunnerTest("and no arguments") {
-              assertThat(buildFile)
-                  .isNull()
-            },
-            dynamicGradleRunnerTest("and some arguments") {
-              withArguments("--nonexistent-toggle-option", "--some-option-with-value", "valuedude")
-              assertThat(buildFile)
-                  .isNull()
-            }
-        )),
-        dynamicContainer("set --build-file", Stream.of(
-            dynamicGradleRunnerTest("with no previous arguments") {
-              buildFile = path
-              assertThat(buildFile)
-                  .isEqualTo(path)
-              assertThat(arguments)
-                  .hasSize(2)
-            },
-            dynamicGradleRunnerTest("with existing arguments") {
-              withArguments("--nonexistent-toggle-option", "--some-option-with-value", "valuedude")
-              buildFile = path
-              assertThat(buildFile)
-                  .isEqualTo(path)
-              assertThat(arguments)
-                  .hasSize(5)
-            }
-        )),
-        dynamicContainer("--build-file is already present", Stream.of(
-            dynamicGradleRunnerTest("when it is the only arguments") {
-              withArguments("--build-file", path.toString())
-              assertThat(buildFile)
-                  .isEqualTo(path)
-              assertThat(arguments)
-                  .hasSize(2)
-            },
-            dynamicGradleRunnerTest("when it is the beginning arguments") {
-              withArguments("--build-file",
-                  path.toString(),
-                  "--nonexistent-toggle-option",
-                  "--some-option-with-value",
-                  "valuedude")
-              assertThat(buildFile)
-                  .isEqualTo(path)
-              assertThat(arguments)
-                  .hasSize(5)
-            },
-            dynamicGradleRunnerTest("when it is the middle arguments") {
-              withArguments("--nonexistent-toggle-option",
-                  "--build-file",
-                  path.toString(),
-                  "--some-option-with-value",
-                  "valuedude")
-              assertThat(buildFile)
-                  .isEqualTo(path)
-              assertThat(arguments)
-                  .hasSize(5)
-            },
-            dynamicGradleRunnerTest("when it is the end arguments") {
-              withArguments("--nonexistent-toggle-option",
-                  "--some-option-with-value",
-                  "valuedude",
-                  "--build-file",
-                  path.toString())
-              assertThat(buildFile)
-                  .isEqualTo(path)
-              assertThat(arguments)
-                  .hasSize(5)
-            }
-        )),
-        dynamicContainer("change --build-file value", Stream.of(
-            dynamicGradleRunnerTest("when it is the only arguments") {
-              withArguments("--build-file", path.toString())
-              buildFile = otherPath
-              assertThat(buildFile)
-                  .isEqualTo(otherPath)
-              assertThat(arguments)
-                  .hasSize(2)
-            },
-            dynamicGradleRunnerTest("when it is the beginning arguments") {
-              withArguments("--build-file",
-                  path.toString(),
-                  "--nonexistent-toggle-option",
-                  "--some-option-with-value",
-                  "valuedude")
-              buildFile = otherPath
-              assertThat(buildFile)
-                  .isEqualTo(otherPath)
-              assertThat(arguments)
-                  .hasSize(5)
-            },
-            dynamicGradleRunnerTest("when it is the middle arguments") {
-              withArguments("--nonexistent-toggle-option",
-                  "--build-file",
-                  path.toString(),
-                  "--some-option-with-value",
-                  "valuedude")
-              buildFile = otherPath
-              assertThat(buildFile)
-                  .isEqualTo(otherPath)
-              assertThat(arguments)
-                  .hasSize(5)
-            },
-            dynamicGradleRunnerTest("when it is the end arguments") {
-              withArguments("--nonexistent-toggle-option",
-                  "--some-option-with-value",
-                  "valuedude",
-                  "--build-file",
-                  path.toString())
-              buildFile = otherPath
-              assertThat(buildFile)
-                  .isEqualTo(otherPath)
-              assertThat(arguments)
-                  .hasSize(5)
-            }
-        )),
-        dynamicContainer("remove --build-file option", Stream.of(
-            dynamicGradleRunnerTest("unset --build-file") {
-              withArguments("--build-file", path.toString())
-              buildFile = null
-              assertThat(buildFile as Path?)
-                  .isNull()
-            },
-            dynamicGradleRunnerTest("when it is the only arguments") {
-              withArguments("--build-file", path.toString())
-              buildFile = null
-              assertThat(buildFile as Path?)
-                  .isNull()
-              assertThat(arguments)
-                  .isEmpty()
-            },
-            dynamicGradleRunnerTest("when it is the beginning arguments") {
-              withArguments("--build-file",
-                  path.toString(),
-                  "--nonexistent-toggle-option",
-                  "--some-option-with-value",
-                  "valuedude")
-              buildFile = null
-              assertThat(buildFile as Path?)
-                  .isNull()
-              assertThat(arguments)
-                  .hasSize(3)
-            },
-            dynamicGradleRunnerTest("when it is the middle arguments") {
-              withArguments("--nonexistent-toggle-option",
-                  "--build-file",
-                  path.toString(),
-                  "--some-option-with-value",
-                  "valuedude")
-              buildFile = null
-              assertThat(buildFile as Path?)
-                  .isNull()
-              assertThat(arguments)
-                  .hasSize(3)
-            },
-            dynamicGradleRunnerTest("when it is the end arguments") {
-              withArguments("--nonexistent-toggle-option",
-                  "--some-option-with-value",
-                  "valuedude",
-                  "--build-file",
-                  path.toString())
-              buildFile = null
-              assertThat(buildFile as Path?)
-                  .isNull()
-              assertThat(arguments)
-                  .hasSize(3)
-            }
-        ))
-    )
   }
 
   @TestFactory
@@ -472,6 +293,110 @@ internal class GradleRunnerCliExtensionsTest {
   }
 
   @TestFactory
+  internal fun `single value options`(): Stream<DynamicNode> = Stream.of(
+      optionWithValueTestsFor("--build-file", GradleRunner::buildFile, Paths.get("first", "first.gradle"), Paths.get("second", "second.gradle"))
+  )
+
+  private fun <T> optionWithValueTestsFor(
+      option: String,
+      property: KMutableProperty1<GradleRunner, T?>,
+      firstValue: T,
+      secondValue: T
+  ): DynamicNode {
+    require(firstValue != secondValue) { "values for testing must be different" }
+
+    val absentBeforeArguments = listOf(
+        RunnerArguments("empty", emptyList()),
+        RunnerArguments("single argument", listOf("--other-arg")),
+        RunnerArguments("argument with value", listOf("--other-arg", "otherArgValue")),
+        RunnerArguments("argument with value and a boolean option",
+            listOf("--other-arg", "otherArgValue", "--after-arg")),
+        RunnerArguments("multiple arguments each with value",
+            listOf("--other-arg", "otherArgValue", "--after-arg", "afterArgValue"))
+    )
+    val presentBeforeArguments = listOf(
+        RunnerArguments("only the specified option/value", listOf(option, firstValue.toString())),
+        RunnerArguments("specified option/value and boolean option", listOf(option, firstValue.toString(), "--other-arg")),
+        RunnerArguments("specified option/value and argument with value", listOf(option, firstValue.toString(), "--other-arg", "otherArgValue")),
+        RunnerArguments("boolean option and specified option/value", listOf("--other-arg", option, firstValue.toString())),
+        RunnerArguments("option with value and specified option/value", listOf("--other-arg", "otherArgValue", option, firstValue.toString())),
+        RunnerArguments("specified option/value in middle of option with value and boolean option",
+            listOf("--other-arg", "otherArgValue", option, firstValue.toString(), "--after-arg")),
+        RunnerArguments("specified option/value in middle of multiple options with values",
+            listOf("--other-arg", "otherArgValue", option, firstValue.toString(), "--after-arg", "afterArgValue"))
+    )
+
+    fun GradleRunner.assertPropertyNull() = assertThat(property.get(this)).isNull()
+    fun GradleRunner.assertPropertyEqualToFirstValue() = assertThat(property.get(this)).isEqualTo(firstValue)
+    fun GradleRunner.assertPropertyEqualToSecondValue() = assertThat(property.get(this)).isEqualTo(secondValue)
+
+    return dynamicContainer("${property.name} for flag $option", listOf(
+        dynamicContainer("when the option and value are absent in an argument list that is",
+            absentBeforeArguments.flatMap { (description, args) ->
+              listOf(
+                  dynamicGradleRunnerTest("$description then the property value is null") {
+                    withArguments(args)
+                    assertPropertyNull()
+                    assertArguments().containsExactlyElementsOf(args)
+                    assertArguments().doesNotContain(option, firstValue.toString(), secondValue.toString())
+                  },
+                  dynamicGradleRunnerTest("$description and the property value is set to null then the argument list does not change") {
+                    withArguments(args)
+                    property.set(this, null)
+                    assertPropertyNull()
+                    assertArguments().doesNotContain(option, firstValue.toString(), secondValue.toString())
+                    assertArguments().containsOnlyElementsOf(args)
+                  },
+                  dynamicGradleRunnerTest("$description and the property value is set then the argument list contains the option/value in addition to the argument list and the property is equal to the set value") {
+                    withArguments(args)
+                    property.set(this, firstValue)
+                    assertPropertyEqualToFirstValue()
+                    assertArguments()
+                        .containsSequence(option, firstValue.toString())
+                        .containsAll(args)
+                        .hasSize(args.size + 2)
+                  }
+              )
+            }),
+        dynamicContainer("when the option and value are present in an argument list that is",
+            presentBeforeArguments.flatMap { (description, args) ->
+              listOf(
+                  dynamicGradleRunnerTest("$description then the property is equal to the value") {
+                    withArguments(args)
+                    assertArguments().containsExactlyElementsOf(args)
+                    assertPropertyEqualToFirstValue()
+                  },
+                  dynamicGradleRunnerTest("$description and the property is set to null then the option/value is removed from the argument list and the property is null") {
+                    withArguments(args)
+                    property.set(this, null)
+                    assertPropertyNull()
+                    assertArguments()
+                        .doesNotContain(option, firstValue.toString(), secondValue.toString())
+                        .containsOnlyElementsOf(args - listOf(option, firstValue.toString()))
+                  },
+                  dynamicGradleRunnerTest("$description and the property is assigned a different value then the argument list has the new value and the property is the new value") {
+                    withArguments(args)
+                    property.set(this, secondValue)
+                    assertPropertyEqualToSecondValue()
+                    assertArguments()
+                        .doesNotContain(firstValue.toString())
+                        .containsSequence(option, secondValue.toString())
+                        .containsAll(args - listOf(option, firstValue.toString()))
+                  },
+                  dynamicGradleRunnerTest("$description and the property is assigned the same value then the argument list does not change") {
+                    withArguments(args)
+                    property.set(this, firstValue)
+                    assertPropertyEqualToFirstValue()
+                    assertArguments()
+                        .containsOnlyElementsOf(args)
+                        .containsSequence(option, firstValue.toString())
+                  }
+              )
+            })
+    ))
+  }
+
+  @TestFactory
   internal fun `can specify tasks with toggleable extension arguments`(): Stream<DynamicNode> {
     return Stream.of(
         dynamicGradleRunnerTest("can add tasks before setting some toggle options") {
@@ -528,4 +453,11 @@ internal class GradleRunnerCliExtensionsTest {
         }
     )
   }
+
+  /**
+   * Helper class to make constructing dynamic tests more straightforward.r
+   */
+  private data class RunnerArguments(val argumentDescription: String, val arguments: List<String>)
+
+  private fun GradleRunner.assertArguments() = assertThat(arguments)
 }
