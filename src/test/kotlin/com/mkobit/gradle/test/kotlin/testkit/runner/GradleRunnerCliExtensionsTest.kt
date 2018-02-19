@@ -35,7 +35,8 @@ internal class GradleRunnerCliExtensionsTest {
       ),
       dynamicContainer("single value option",
           optionWithValueTestsFor("--build-file", GradleRunner::buildFile, Path("first", "first.gradle"), Path("second", "second.gradle")),
-          optionWithValueTestsFor("--settings-file", GradleRunner::settingsFile, Path("settings.gradle"), Path("settings.gradle.kts"))
+          optionWithValueTestsFor("--settings-file", GradleRunner::settingsFile, Path("settings.gradle"), Path("settings.gradle.kts")),
+          optionWithValueTestsFor("--max-workers", GradleRunner::maxWorkers, 1, 2)
       ),
       dynamicContainer("boolean toggle option",
           booleanFlagTestsFor("--build-cache", GradleRunner::buildCacheEnabled),

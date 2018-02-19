@@ -188,6 +188,18 @@ public var GradleRunner.buildScanDisabled: Boolean
   }
 
 /**
+ * The `--max-workers` option.
+ */
+public var GradleRunner.maxWorkers: Int?
+  get() = findOptionValue("--max-workers")?.toInt()
+  set(value) {
+    if (value != null) {
+      require(value >= 0) { "Max workers must be a non-negative integer" }
+    }
+    ensureOptionHasValue("--max-workers", value)
+  }
+
+/**
  * The `--offline` flag.
  */
 public var GradleRunner.offline: Boolean
