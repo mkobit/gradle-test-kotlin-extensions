@@ -67,7 +67,7 @@ private val systemPropertySplitPattern = Regex("=")
  * The `--system-prop` properties.
  */
 public var GradleRunner.systemProperties: Map<String, String?>
-  get() = findAllKeyValueArgumentValues { it == "--system-prop" }
+  get() = findRepeatableOptionValues { it == "--system-prop" }
       .map { it.split(systemPropertySplitPattern, 2) }
       .associateBy({ it.first() }, { it.getOrNull(1) })
   set(value) {
@@ -145,16 +145,26 @@ public var GradleRunner.warn: Boolean
  * The `--init-script` options.
  */
 public var GradleRunner.initScripts: List<String>
-  get() = findAllKeyValueArgumentValues { it == "--init-script" }
+  get() = findRepeatableOptionValues { it == "--init-script" }
   set(value) {
     ensureRepeatableOptionHasValues("--init-script", value)
   }
 
 /**
+ * The `--include-build` options.
+ */
+public var GradleRunner.includedBuilds: List<Path>
+  get() = findRepeatableOptionValues { it == "--include-build" }.map { Paths.get(it) }
+  set(value) {
+    ensureRepeatableOptionHasValues("--include-build", value)
+  }
+
+
+/**
  * The `--exclude-task` options.
  */
 public var GradleRunner.excludedTasks: List<String>
-  get() = findAllKeyValueArgumentValues { it == "--exclude-task" }
+  get() = findRepeatableOptionValues { it == "--exclude-task" }
   set(value) {
     ensureRepeatableOptionHasValues("--exclude-task", value)
   }
@@ -191,7 +201,7 @@ private val projectPropertySplitPattern = Regex("=")
  * The `--project-prop` properties.
  */
 public var GradleRunner.projectProperties: Map<String, String?>
-  get() = findAllKeyValueArgumentValues { it == "--project-prop" }
+  get() = findRepeatableOptionValues { it == "--project-prop" }
       .map { it.split(projectPropertySplitPattern, 2) }
       .associateBy({ it.first() }, { it.getOrNull(1) })
   set(value) {
@@ -239,9 +249,9 @@ private fun GradleRunner.ensureFlagOptionState(flag: String, include: Boolean) {
   }
 }
 
-private fun GradleRunner.ensureRepeatableOptionHasValues(option: String, values: List<String>) {
+private fun GradleRunner.ensureRepeatableOptionHasValues(option: String, values: List<Any>) {
   withArguments(
-      findKeyValueArgumentsByFilter { it == option } + values.flatMap { listOf(option, it) }
+      filterKeyValueArgumentsFilteringOutOption { it == option } + values.flatMap { listOf(option, it.toString()) }
   )
 }
 
@@ -279,7 +289,7 @@ private fun GradleRunner.findOptionValue(option: String): String? {
  * For example, if the command is `["--help", "--arg1", "val1"]` and the predicate is `{ it == "--arg1" }`
  * then the output will be `["val1"]`.
  */
-private fun GradleRunner.findAllKeyValueArgumentValues(
+private fun GradleRunner.findRepeatableOptionValues(
     argumentPredicate: (key: String) -> Boolean
 ): List<String> {
   var lastArgumentTest = false
@@ -299,7 +309,7 @@ private fun GradleRunner.findAllKeyValueArgumentValues(
  * For example, if the command is `["--help", "--arg1", "val1"]` and the predicate is `{ it == "--arg1" }`
  * then the output will be `["--help"]`.
  */
-private fun GradleRunner.findKeyValueArgumentsByFilter(
+private fun GradleRunner.filterKeyValueArgumentsFilteringOutOption(
     argumentPredicate: (key: String) -> Boolean
 ): List<String> {
   var lastArgumentTest = false

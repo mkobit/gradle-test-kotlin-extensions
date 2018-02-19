@@ -27,10 +27,11 @@ internal class GradleRunnerCliExtensionsTest {
 
   @DisplayName("CLI")
   @TestFactory
-  internal fun `CLI`(): Stream<DynamicNode> = Stream.of(
+  internal fun `CLI options and extension properties`(): Stream<DynamicNode> = Stream.of(
       dynamicContainer("repeatable value option",
           repeatableOptionWithValuesTestsFor("--exclude-task", GradleRunner::excludedTasks, "taskA", "taskB"),
-          repeatableOptionWithValuesTestsFor("--init-script", GradleRunner::initScripts, "first.gradle", "other.gradle")
+          repeatableOptionWithValuesTestsFor("--init-script", GradleRunner::initScripts, "first.gradle", "other.gradle"),
+          repeatableOptionWithValuesTestsFor("--include-build", GradleRunner::includedBuilds, Paths.get("../other-project"), Paths.get("../../my-project"))
       ),
       dynamicContainer("single value option",
           optionWithValueTestsFor("--build-file", GradleRunner::buildFile, Paths.get("first", "first.gradle"), Paths.get("second", "second.gradle")),
@@ -38,8 +39,8 @@ internal class GradleRunnerCliExtensionsTest {
       ),
       dynamicContainer("boolean toggle option",
           booleanFlagTestsFor("--build-cache", GradleRunner::buildCacheEnabled),
-          booleanFlagTestsFor("--continue", GradleRunner::continueAfterFailure),
           booleanFlagTestsFor("--configure-on-demand", GradleRunner::configureOnDemand),
+          booleanFlagTestsFor("--continue", GradleRunner::continueAfterFailure),
           booleanFlagTestsFor("--debug", GradleRunner::debug),
           booleanFlagTestsFor("--dry-run", GradleRunner::dryRun),
           booleanFlagTestsFor("--info", GradleRunner::info),
@@ -78,8 +79,9 @@ internal class GradleRunnerCliExtensionsTest {
             listOf("--other-arg", "otherArgValue", flag, "--after-arg", "afterArgValue"))
     )
 
-    fun GradleRunner.assertPropertyFalse() = assertThat(property.get(this)).isFalse()
-    fun GradleRunner.assertPropertyTrue() = assertThat(property.get(this)).isTrue()
+    fun GradleRunner.assertProperty() = assertThat(property.get(this))
+    fun GradleRunner.assertPropertyFalse() = assertProperty().isFalse()
+    fun GradleRunner.assertPropertyTrue() = assertProperty().isTrue()
 
     return dynamicContainer("$flag mapped to property ${property.name}", listOf(
         dynamicContainer("when the flag is absent in an argument list that is",
