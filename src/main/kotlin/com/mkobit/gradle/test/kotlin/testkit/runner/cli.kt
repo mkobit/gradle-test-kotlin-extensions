@@ -172,19 +172,33 @@ public var GradleRunner.excludedTasks: List<String>
 /**
  * The `--scan` flag.
  */
-public var GradleRunner.buildScanEnabled: Boolean
+public var GradleRunner.buildScan: Boolean
   get() = arguments.contains("--scan")
   set(value) {
     ensureFlagOptionState("--scan", value)
   }
 
+@Deprecated("Renamed to buildScan", ReplaceWith("buildScan", "com.mkobit.gradle.test.kotlin.testkit.runner.buildScan"), DeprecationLevel.ERROR)
+public var GradleRunner.buildScanEnabled: Boolean
+  get() = buildScan
+  set(value) {
+    buildScan = value
+  }
+
 /**
  * The `--no-scan` flag.
  */
-public var GradleRunner.buildScanDisabled: Boolean
+public var GradleRunner.noBuildScan: Boolean
   get() = arguments.contains("--no-scan")
   set(value) {
     ensureFlagOptionState("--no-scan", value)
+  }
+
+@Deprecated("Renamed to noBuildScan", ReplaceWith("noBuildScan", "com.mkobit.gradle.test.kotlin.testkit.runner.noBuildScan"), DeprecationLevel.ERROR)
+public var GradleRunner.buildScanDisabled: Boolean
+  get() = noBuildScan
+  set(value) {
+    noBuildScan = value
   }
 
 /**
