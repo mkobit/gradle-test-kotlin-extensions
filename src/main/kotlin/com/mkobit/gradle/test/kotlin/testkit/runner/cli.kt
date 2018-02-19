@@ -1,6 +1,8 @@
 package com.mkobit.gradle.test.kotlin.testkit.runner
 
 import org.gradle.testkit.runner.GradleRunner
+import java.nio.file.Path
+import java.nio.file.Paths
 
 /*
  * Extensions for managing CLI options for the GradleRunner.
@@ -8,29 +10,62 @@ import org.gradle.testkit.runner.GradleRunner
 // TODO: support short options for all of these, especially project properties
 
 /**
- * Appends the provided arguments to the current arguments.
- * @param additionalArguments the arguments to append
+ * The `--build-file` option. Setting to `null` removes the option and value.
  */
-public fun GradleRunner.arguments(vararg additionalArguments: CharSequence) {
-  withArguments(arguments + additionalArguments.toList().map(CharSequence::toString))
-}
+public var GradleRunner.buildFile: Path?
+  get() = findOptionValue("--build-file")?.let { Paths.get(it) }
+  set(value) {
+    ensureOptionHasValue("--build-file", value)
+  }
+
+/**
+ * The `--project-cache-dir` option. Setting to `null` removes the option and value.
+ */
+public var GradleRunner.projectCacheDir: Path?
+  get() = findOptionValue("--project-cache-dir")?.let { Paths.get(it) }
+  set(value) {
+    ensureOptionHasValue("--project-cache-dir", value)
+  }
+
+@Deprecated("Renamed to buildCache", ReplaceWith("buildCache", "com.mkobit.gradle.test.kotlin.testkit.runner.buildCache"), DeprecationLevel.ERROR)
+public var GradleRunner.buildCacheEnabled: Boolean
+  get() = buildCache
+  set(value) {
+    buildCache = value
+  }
 
 /**
  * The `--build-cache` flag.
  */
-public var GradleRunner.buildCacheEnabled: Boolean
+public var GradleRunner.buildCache: Boolean
   get() = arguments.contains("--build-cache")
   set(value) {
-    ensureToggleableArgumentState("--build-cache", value)
+    ensureFlagOptionState("--build-cache", value)
   }
 
 /**
  * The `--no-build-cache` flag.
  */
-public var GradleRunner.buildCacheDisabled: Boolean
+public var GradleRunner.noBuildCache: Boolean
   get() = arguments.contains("--no-build-cache")
   set(value) {
-    ensureToggleableArgumentState("--no-build-cache", value)
+    ensureFlagOptionState("--no-build-cache", value)
+  }
+
+@Deprecated("Renamed to noBuildScan", ReplaceWith("noBuildCache", "com.mkobit.gradle.test.kotlin.testkit.runner.noBuildCache"), DeprecationLevel.ERROR)
+public var GradleRunner.buildCacheDisabled: Boolean
+  get() = noBuildCache
+  set(value) {
+    noBuildCache = value
+  }
+
+/**
+ * The `--configure-on-demand` flag.
+ */
+public var GradleRunner.configureOnDemand: Boolean
+  get() = arguments.contains("--configure-on-demand")
+  set(value) {
+    ensureFlagOptionState("--configure-on-demand", value)
   }
 
 /**
@@ -39,7 +74,7 @@ public var GradleRunner.buildCacheDisabled: Boolean
 public var GradleRunner.continueAfterFailure: Boolean
   get() = arguments.contains("--continue")
   set(value) {
-    ensureToggleableArgumentState("--continue", value)
+    ensureFlagOptionState("--continue", value)
   }
 
 private val systemPropertySplitPattern = Regex("=")
@@ -47,15 +82,15 @@ private val systemPropertySplitPattern = Regex("=")
  * The `--system-prop` properties.
  */
 public var GradleRunner.systemProperties: Map<String, String?>
-  get() = arguments
-      .findAllKeyValueArgumentValues { it == "--system-prop" }
+  get() = findRepeatableOptionValues { it == "--system-prop" }
       .map { it.split(systemPropertySplitPattern, 2) }
       .associateBy({ it.first() }, { it.getOrNull(1) })
   set(value) {
-    val properties = value.flatMap { (key, value) ->
-      listOf("--system-prop", "$key${value?.let { "=$it" }.orEmpty()}")
+    // TODO: check for empty keys
+    val properties = value.map { (key, value) ->
+      "$key${value?.let { "=$it" }.orEmpty()}"
     }
-    withArguments(arguments.filterOutKeyValueArguments { it == "--system-prop" } + properties)
+    ensureRepeatableOptionHasValues("--system-prop", properties)
   }
 
 /**
@@ -64,7 +99,7 @@ public var GradleRunner.systemProperties: Map<String, String?>
 public var GradleRunner.quiet: Boolean
   get() = arguments.contains("--quiet")
   set(value) {
-    ensureToggleableArgumentState("--quiet", value)
+    ensureFlagOptionState("--quiet", value)
   }
 
 /**
@@ -73,7 +108,7 @@ public var GradleRunner.quiet: Boolean
 public var GradleRunner.stacktrace: Boolean
   get() = arguments.contains("--stacktrace")
   set(value) {
-    ensureToggleableArgumentState("--stacktrace", value)
+    ensureFlagOptionState("--stacktrace", value)
   }
 
 /**
@@ -82,7 +117,7 @@ public var GradleRunner.stacktrace: Boolean
 public var GradleRunner.fullStacktrace: Boolean
   get() = arguments.contains("--full-stacktrace")
   set(value) {
-    ensureToggleableArgumentState("--full-stacktrace", value)
+    ensureFlagOptionState("--full-stacktrace", value)
   }
 
 /**
@@ -91,7 +126,7 @@ public var GradleRunner.fullStacktrace: Boolean
 public var GradleRunner.info: Boolean
   get() = arguments.contains("--info")
   set(value) {
-    ensureToggleableArgumentState("--info", value)
+    ensureFlagOptionState("--info", value)
   }
 
 /**
@@ -100,7 +135,7 @@ public var GradleRunner.info: Boolean
 public var GradleRunner.dryRun: Boolean
   get() = arguments.contains("--dry-run")
   set(value) {
-    ensureToggleableArgumentState("--dry-run", value)
+    ensureFlagOptionState("--dry-run", value)
   }
 
 /**
@@ -109,7 +144,7 @@ public var GradleRunner.dryRun: Boolean
 public var GradleRunner.debug: Boolean
   get() = arguments.contains("--debug")
   set(value) {
-    ensureToggleableArgumentState("--debug", value)
+    ensureFlagOptionState("--debug", value)
   }
 
 /**
@@ -118,55 +153,88 @@ public var GradleRunner.debug: Boolean
 public var GradleRunner.warn: Boolean
   get() = arguments.contains("--warn")
   set(value) {
-    ensureToggleableArgumentState("--warn", value)
+    ensureFlagOptionState("--warn", value)
   }
 
 /**
  * The `--init-script` options.
  */
-public var GradleRunner.initScripts: List<String>
-  get() = arguments.findAllKeyValueArgumentValues { it == "--init-script" }
+public var GradleRunner.initScripts: List<Path>
+  get() = findRepeatableOptionValues { it == "--init-script" }.map { Paths.get(it) }
   set(value) {
-    withArguments(
-        arguments.filterOutKeyValueArguments { it == "--init-script" }
-            + value.flatMap { listOf("--init-script", it) }
-    )
+    ensureRepeatableOptionHasValues("--init-script", value)
   }
+
+/**
+ * The `--include-build` options.
+ */
+public var GradleRunner.includedBuilds: List<Path>
+  get() = findRepeatableOptionValues { it == "--include-build" }.map { Paths.get(it) }
+  set(value) {
+    ensureRepeatableOptionHasValues("--include-build", value)
+  }
+
 
 /**
  * The `--exclude-task` options.
  */
 public var GradleRunner.excludedTasks: List<String>
-  get() = arguments.findAllKeyValueArgumentValues { it == "--exclude-task" }
+  get() = findRepeatableOptionValues { it == "--exclude-task" }
   set(value) {
-    withArguments(
-        arguments.filterOutKeyValueArguments { it == "--exclude-task" }
-            + value.flatMap { listOf("--exclude-task", it) }
-    )
+    ensureRepeatableOptionHasValues("--exclude-task", value)
   }
 
 /**
  * The `--scan` flag.
  */
-public var GradleRunner.buildScanEnabled: Boolean
+public var GradleRunner.buildScan: Boolean
   get() = arguments.contains("--scan")
   set(value) {
-    ensureToggleableArgumentState("--scan", value)
+    ensureFlagOptionState("--scan", value)
+  }
+
+@Deprecated("Renamed to buildScan", ReplaceWith("buildScan", "com.mkobit.gradle.test.kotlin.testkit.runner.buildScan"), DeprecationLevel.ERROR)
+public var GradleRunner.buildScanEnabled: Boolean
+  get() = buildScan
+  set(value) {
+    buildScan = value
   }
 
 /**
  * The `--no-scan` flag.
  */
-public var GradleRunner.buildScanDisabled: Boolean
+public var GradleRunner.noBuildScan: Boolean
   get() = arguments.contains("--no-scan")
   set(value) {
-    ensureToggleableArgumentState("--no-scan", value)
+    ensureFlagOptionState("--no-scan", value)
   }
 
+@Deprecated("Renamed to noBuildScan", ReplaceWith("noBuildScan", "com.mkobit.gradle.test.kotlin.testkit.runner.noBuildScan"), DeprecationLevel.ERROR)
+public var GradleRunner.buildScanDisabled: Boolean
+  get() = noBuildScan
+  set(value) {
+    noBuildScan = value
+  }
+
+/**
+ * The `--max-workers` option.
+ */
+public var GradleRunner.maxWorkers: Int?
+  get() = findOptionValue("--max-workers")?.toInt()
+  set(value) {
+    if (value != null) {
+      require(value >= 0) { "Max workers must be a non-negative integer" }
+    }
+    ensureOptionHasValue("--max-workers", value)
+  }
+
+/**
+ * The `--offline` flag.
+ */
 public var GradleRunner.offline: Boolean
   get() = arguments.contains("--offline")
   set(value) {
-    ensureToggleableArgumentState("--offline", value)
+    ensureFlagOptionState("--offline", value)
   }
 
 private val projectPropertySplitPattern = Regex("=")
@@ -174,15 +242,33 @@ private val projectPropertySplitPattern = Regex("=")
  * The `--project-prop` properties.
  */
 public var GradleRunner.projectProperties: Map<String, String?>
-  get() = arguments
-      .findAllKeyValueArgumentValues { it == "--project-prop" }
+  get() = findRepeatableOptionValues { it == "--project-prop" }
       .map { it.split(projectPropertySplitPattern, 2) }
       .associateBy({ it.first() }, { it.getOrNull(1) })
   set(value) {
-    val properties = value.flatMap { (key, value) ->
-      listOf("--project-prop", "$key${value?.let { "=$it" }.orEmpty()}")
+    // TODO: make sure keys can't be empty
+    val properties = value.map { (key, value) ->
+      "$key${value?.let { "=$it" }.orEmpty()}"
     }
-    withArguments(arguments.filterOutKeyValueArguments { it == "--project-prop" } + properties)
+    ensureRepeatableOptionHasValues("--project-prop", properties)
+  }
+
+/**
+ * The `--no-parallel` flag.
+ */
+public var GradleRunner.noParallel: Boolean
+  get() = arguments.contains("--no-parallel")
+  set(value) {
+    ensureFlagOptionState("--no-parallel", value)
+  }
+
+/**
+ * The `--no-parallel` flag.
+ */
+public var GradleRunner.parallel: Boolean
+  get() = arguments.contains("--parallel")
+  set(value) {
+    ensureFlagOptionState("--parallel", value)
   }
 
 /**
@@ -191,24 +277,101 @@ public var GradleRunner.projectProperties: Map<String, String?>
 public var GradleRunner.profile: Boolean
   get() = arguments.contains("--profile")
   set(value) {
-    ensureToggleableArgumentState("--profile", value)
+    ensureFlagOptionState("--profile", value)
   }
 
 /**
- * Updates the [GradleRunner.getArguments] to ensure that the provided [argument] is included or excluded
- * depending on the value of the [include].
- * @param argument the argument to ensure is present in the [GradleRunner.getArguments]
- * @param include `true` if the [argument] should be included, `false` is not
+ * The `--refresh-dependencies` flag.
  */
-private fun GradleRunner.ensureToggleableArgumentState(argument: String, include: Boolean) {
-  val currentlyContained = arguments.contains(argument)
+public var GradleRunner.refreshDependencies: Boolean
+  get() = arguments.contains("--refresh-dependencies")
+  set(value) {
+    ensureFlagOptionState("--refresh-dependencies", value)
+  }
+
+/**
+ * The `--rerun-tasks` flag.
+ */
+public var GradleRunner.rerunTasks: Boolean
+  get() = arguments.contains("--rerun-tasks")
+  set(value) {
+    ensureFlagOptionState("--rerun-tasks", value)
+  }
+
+/**
+ * The `--settings-file` option. Setting to `null` removes the option and value.
+ */
+public var GradleRunner.settingsFile: Path?
+  get() = findOptionValue("--settings-file")?.let { Paths.get(it) }
+  set(value) {
+    ensureOptionHasValue("--settings-file", value)
+  }
+
+/**
+ * Updates the [GradleRunner.getArguments] to ensure that the provided [flag] is included or excluded
+ * depending on the value of the [include]. The flag should be a flag like `--enable-thing`.
+ * @param flag the flag to ensure is present in the [GradleRunner.getArguments]
+ * @param include `true` if the [flag] should be included, `false` if it should be removed
+ */
+private fun GradleRunner.ensureFlagOptionState(flag: String, include: Boolean) {
+  val currentlyContained = arguments.contains(flag)
   if (include) {
     if (!currentlyContained) {
-      withArguments(arguments + listOf(argument))
+      withArguments(arguments + listOf(flag))
     }
   } else {
     if (currentlyContained) {
-      withArguments(arguments.filter { it != argument })
+      withArguments(arguments.filter { it != flag })
+    }
+  }
+}
+
+/**
+ * Ensures that a repeatable options in the command line are the provided [values]. When empty, they are removed.
+ * @param option the option, for example `--init-script`.
+ * @param values the values for the [option]
+ */
+private fun GradleRunner.ensureRepeatableOptionHasValues(option: String, values: List<Any>) {
+  withArguments(
+      filterKeyValueArgumentsFilteringOutOption { it == option } + values.flatMap { listOf(option, it.toString()) }
+  )
+}
+
+/**
+ * Ensures that the option has the specified [value]. If the [value] is `null`, then the option is removed.
+ * @param option the option, for example `--build-file`
+ * @param value the value of the option. When `null`, this means that the option should be removed
+ */
+private fun GradleRunner.ensureOptionHasValue(option: String, value: Any?) {
+  val newOptionValue = if (value == null) {
+    emptyList()
+  } else {
+    listOf(option, value.toString())
+  }
+  val optionIndex = arguments.indexOf(option)
+  val newArguments = if (optionIndex == -1) {
+    arguments + newOptionValue
+  } else {
+    arguments.filterIndexed { index, _ -> index !in setOf(optionIndex, optionIndex + 1) } + newOptionValue
+  }
+  withArguments(newArguments)
+}
+
+/**
+ * Finds the value for an option in the arguments, if it present.
+ * @param option the option to locate the value for, for example `--settings-file`
+ * @return the value of the option, or `null` if it is not present
+ */
+private fun GradleRunner.findOptionValue(option: String): String? {
+  var lastArgumentTest = false
+  return arguments.find {
+    if (lastArgumentTest) {
+      true
+    } else if (it == option) {
+      lastArgumentTest = true
+      false
+    } else {
+      false
     }
   }
 }
@@ -218,11 +381,11 @@ private fun GradleRunner.ensureToggleableArgumentState(argument: String, include
  * For example, if the command is `["--help", "--arg1", "val1"]` and the predicate is `{ it == "--arg1" }`
  * then the output will be `["val1"]`.
  */
-private fun List<String>.findAllKeyValueArgumentValues(
+private fun GradleRunner.findRepeatableOptionValues(
     argumentPredicate: (key: String) -> Boolean
 ): List<String> {
   var lastArgumentTest = false
-  return filter {
+  return arguments.filter {
     if (lastArgumentTest) {
       lastArgumentTest = false
       true
@@ -238,11 +401,11 @@ private fun List<String>.findAllKeyValueArgumentValues(
  * For example, if the command is `["--help", "--arg1", "val1"]` and the predicate is `{ it == "--arg1" }`
  * then the output will be `["--help"]`.
  */
-private fun List<String>.filterOutKeyValueArguments(
+private fun GradleRunner.filterKeyValueArgumentsFilteringOutOption(
     argumentPredicate: (key: String) -> Boolean
 ): List<String> {
   var lastArgumentTest = false
-  return filterNot {
+  return arguments.filterNot {
     if (lastArgumentTest) {
       lastArgumentTest = false
       true

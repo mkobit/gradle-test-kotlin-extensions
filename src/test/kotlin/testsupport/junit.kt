@@ -29,9 +29,6 @@ class BooleanArgumentsProvider : ArgumentsProvider {
 @ArgumentsSource(BooleanArgumentsProvider::class)
 annotation class BooleanSource
 
-/**
- * Borrowed from JUnit 5 - https://raw.githubusercontent.com/junit-team/junit5/master/platform-tests/src/test/java/org/junit/jupiter/extensions/TempDirectory.java
- */
 fun dynamicGradleRunnerTest(
     displayName: String,
     executable: GradleRunner.() -> Unit
@@ -39,6 +36,9 @@ fun dynamicGradleRunnerTest(
   GradleRunner.create().executable()
 }
 
+/**
+ * Borrowed from JUnit 5 - https://raw.githubusercontent.com/junit-team/junit5/master/platform-tests/src/test/java/org/junit/jupiter/extensions/TempDirectory.java
+ */
 class TempDirectory : AfterEachCallback, ParameterResolver {
 
   @Retention(AnnotationRetention.RUNTIME)
@@ -109,6 +109,6 @@ class TempDirectory : AfterEachCallback, ParameterResolver {
 
   companion object {
 
-    private val KEY = "tempDirectory"
+    private const val KEY = "tempDirectory"
   }
 }
