@@ -77,9 +77,9 @@ dependencies {
   // Version specified due to: https://youtrack.jetbrains.com/issue/KT-21806
   api(kotlin("stdlib-jre8", file("gradle/kotlin-version.txt").readText().trim()))
   testImplementation(kotlin("reflect"))
-  testImplementation("org.assertj:assertj-core:3.9.0")
-  testImplementation("org.mockito:mockito-core:2.13.0")
-  testImplementation("com.nhaarman:mockito-kotlin:1.5.0")
+  testImplementation(DependencyInfo.assertJCore)
+  testImplementation(DependencyInfo.mockitoCore)
+  testImplementation(DependencyInfo.mockitoKotlin)
   DependencyInfo.junitTestImplementationArtifacts.forEach {
     testImplementation(it)
   }
