@@ -6,12 +6,23 @@ import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.TestFactory
 import testsupport.dynamicGradleRunnerTest
-import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.stream.Stream
 import kotlin.reflect.KMutableProperty1
 
 internal class GradleRunnerCliExtensionsTest {
+
+  companion object {
+    private val absentFromArguments: List<RunnerArguments> = listOf(
+        RunnerArguments("empty", emptyList()),
+        RunnerArguments("single argument", listOf("--other-arg")),
+        RunnerArguments("argument with value", listOf("--other-arg", "otherArgValue")),
+        RunnerArguments("argument with value and a boolean option",
+            listOf("--other-arg", "otherArgValue", "--after-arg")),
+        RunnerArguments("multiple arguments each with value",
+            listOf("--other-arg", "otherArgValue", "--after-arg", "afterArgValue"))
+    )
+  }
 
   @TestFactory
   internal fun `boolean property`(): Stream<DynamicNode> = Stream.of(
@@ -42,15 +53,6 @@ internal class GradleRunnerCliExtensionsTest {
       property: KMutableProperty1<GradleRunner, Boolean>
   ): DynamicNode {
 
-    val absentBeforeArguments = listOf(
-        RunnerArguments("empty", emptyList()),
-        RunnerArguments("single argument", listOf("--other-arg")),
-        RunnerArguments("argument with value", listOf("--other-arg", "otherArgValue")),
-        RunnerArguments("argument with value and a boolean option",
-            listOf("--other-arg", "otherArgValue", "--after-arg")),
-        RunnerArguments("multiple arguments each with value",
-            listOf("--other-arg", "otherArgValue", "--after-arg", "afterArgValue"))
-    )
     val presentBeforeArguments = listOf(
         RunnerArguments("only the flag", listOf(flag)),
         RunnerArguments("flag and boolean option", listOf(flag, "--other-arg")),
@@ -68,7 +70,7 @@ internal class GradleRunnerCliExtensionsTest {
 
     return dynamicContainer("${property.name} for flag $flag", listOf(
         dynamicContainer("when the flag is absent in an argument list that is",
-            absentBeforeArguments.flatMap { (description, args) ->
+            absentFromArguments.flatMap { (description, args) ->
               listOf(
                   dynamicGradleRunnerTest("$description then the property is false") {
                     withArguments(args)
@@ -293,8 +295,204 @@ internal class GradleRunnerCliExtensionsTest {
   }
 
   @TestFactory
+  internal fun `repeatable value option`(): Stream<DynamicNode> = Stream.of(
+      repeatableOptionWithValuesTestsFor("--exclude-task", GradleRunner::excludedTasks, "taskA", "taskB"),
+      repeatableOptionWithValuesTestsFor("--init-script",
+          GradleRunner::initScripts,
+          "first-script.gradle",
+          "other-script.gradle")
+  )
+
+  private fun <T> repeatableOptionWithValuesTestsFor(
+      option: String,
+      property: KMutableProperty1<GradleRunner, List<T>>,
+      firstValue: T,
+      secondValue: T
+  ): DynamicNode {
+    require(firstValue != secondValue) { "values for testing must be different" }
+
+    val firstValueInArguments = listOf(
+        RunnerArguments("only a single option/value", listOf(option, firstValue.toString())),
+        RunnerArguments("single option/value and boolean option", listOf(option, firstValue.toString(), "--other-arg")),
+        RunnerArguments("single option/value and argument with value",
+            listOf(option, firstValue.toString(), "--other-arg", "otherArgValue")),
+        RunnerArguments("boolean option and single option/value", listOf("--other-arg", option, firstValue.toString())),
+        RunnerArguments("option with value and single option/value",
+            listOf("--other-arg", "otherArgValue", option, firstValue.toString())),
+        RunnerArguments("single option/value in middle of option with value and boolean option",
+            listOf("--other-arg", "otherArgValue", option, firstValue.toString(), "--after-arg")),
+        RunnerArguments("single option/value in middle of multiple options with values",
+            listOf("--other-arg", "otherArgValue", option, firstValue.toString(), "--after-arg", "afterArgValue"))
+    )
+
+    val bothValuesInArguments = listOf(
+        RunnerArguments("only the multiple options/values",
+            listOf(option, firstValue.toString(), option, secondValue.toString())),
+        RunnerArguments("multiple options/values and boolean option",
+            listOf(option, firstValue.toString(), option, secondValue.toString(), "--other-arg")),
+        RunnerArguments("specified option/value and argument with value",
+            listOf(option, firstValue.toString(), option, secondValue.toString(), "--other-arg", "otherArgValue")),
+        RunnerArguments("boolean option and multiple options/values",
+            listOf("--other-arg", option, firstValue.toString(), option, secondValue.toString())),
+        RunnerArguments("option with value and multiple options/values",
+            listOf("--other-arg", "otherArgValue", option, firstValue.toString(), option, secondValue.toString())),
+        RunnerArguments("multiple options/values in middle of option with value and boolean option",
+            listOf("--other-arg",
+                "otherArgValue",
+                option,
+                firstValue.toString(),
+                option,
+                secondValue.toString(),
+                "--after-arg")),
+        RunnerArguments("multiple options/values in middle of multiple options with values",
+            listOf("--other-arg",
+                "otherArgValue",
+                option,
+                firstValue.toString(),
+                option,
+                secondValue.toString(),
+                "--after-arg",
+                "afterArgValue")),
+        RunnerArguments("multiple options/values at both ends with multiple options separating",
+            listOf(option,
+                firstValue.toString(),
+                "--other-arg",
+                "otherArgValue",
+                "--after-arg",
+                "afterArgValue",
+                option,
+                secondValue.toString()))
+    )
+
+    fun GradleRunner.assertProperty() = assertThat(property.get(this))
+
+    return dynamicContainer("property ${property.name} for repeatable option $option", listOf(
+        dynamicContainer("when it is absent in an argument list that is",
+            absentFromArguments.flatMap { (description, args) ->
+              listOf(
+                  dynamicGradleRunnerTest("$description then the property value is empty") {
+                    withArguments(args)
+                    assertProperty().isEmpty()
+                    assertArguments().containsExactlyElementsOf(args)
+                    assertArguments().doesNotContain(option, firstValue.toString(), secondValue.toString())
+                  },
+                  dynamicGradleRunnerTest("$description and the property is set to an empty collection then the argument list does not change") {
+                    withArguments(args)
+                    property.set(this, emptyList())
+                    assertProperty().isEmpty()
+                    assertArguments().doesNotContain(option, firstValue.toString(), secondValue.toString())
+                    assertArguments().containsOnlyElementsOf(args)
+                  },
+                  dynamicGradleRunnerTest("$description and the property is set to a single value then the argument list contains that option/value, the original argument list is included, and the property value is equal to the single value") {
+                    withArguments(args)
+                    property.set(this, listOf(firstValue))
+                    assertProperty().containsOnly(firstValue)
+                    assertArguments()
+                        .containsSequence(option, firstValue.toString())
+                        .containsAll(args)
+                        .hasSize(args.size + 2)
+                  },
+                  dynamicGradleRunnerTest("$description and the property is set to multiple values then the argument list contains an option/value for each, the original argument list is included, and the property value is equal to those values") {
+                    withArguments(args)
+                    property.set(this, listOf(firstValue, secondValue))
+                    assertProperty().containsOnly(firstValue, secondValue)
+                    assertArguments()
+                        .containsSequence(option, firstValue.toString())
+                        .containsSequence(option, secondValue.toString())
+                        .containsAll(args)
+                        .hasSize(args.size + 4)
+                  }
+              )
+            }),
+        dynamicContainer("when a single value is present in an argument list that is",
+            firstValueInArguments.flatMap { (description, args) ->
+              listOf(
+                  dynamicGradleRunnerTest("$description then the property value contains only that option value") {
+                    withArguments(args)
+                    assertProperty().containsOnly(firstValue)
+                    assertArguments().containsExactlyElementsOf(args)
+                  },
+                  dynamicGradleRunnerTest("$description and the property is assigned an empty collection then the option is no longer present and the property is empty") {
+                    withArguments(args)
+                    property.set(this, emptyList())
+                    assertProperty().isEmpty()
+                    assertArguments()
+                        .doesNotContainSequence(option, firstValue.toString())
+                        .hasSize(args.size - 2)
+                  },
+                  dynamicGradleRunnerTest("$description and the property is assigned a collection containing only the same value the arguments list does not change") {
+                    withArguments(args)
+                    property.set(this, listOf(firstValue))
+                    assertProperty().containsOnly(firstValue)
+                    assertArguments()
+                        .containsSequence(option, firstValue.toString())
+                        .containsAll(args)
+                  },
+                  dynamicGradleRunnerTest("$description and the property is assigned a collection containing only a different value then the property contains only that value and the arguments contains the new value") {
+                    withArguments(args)
+                    property.set(this, listOf(secondValue))
+                    assertProperty().containsOnly(secondValue)
+                    assertArguments()
+                        .containsSequence(option, secondValue.toString())
+                        .containsAll(args - listOf(option, firstValue.toString()))
+                  },
+                  dynamicGradleRunnerTest("$description and the property is assigned multiple values then the property contains those value and the arguments contains both values") {
+                    withArguments(args)
+                    property.set(this, listOf(secondValue, firstValue))
+                    assertProperty().containsOnly(firstValue, secondValue)
+                    assertArguments()
+                        .containsSequence(option, firstValue.toString())
+                        .containsSequence(option, secondValue.toString())
+                        .containsAll(args)
+                        .hasSize(args.size + 2)
+                  }
+              )
+            }),
+        dynamicContainer("when multiple values are present in an argument list that is",
+            bothValuesInArguments.flatMap { (description, args) ->
+              listOf(
+                  dynamicGradleRunnerTest("$description then the property value contains all values") {
+                    withArguments(args)
+                    assertProperty().containsOnly(firstValue, secondValue)
+                    assertArguments().containsExactlyElementsOf(args)
+                  },
+                  dynamicGradleRunnerTest("$description and the property is assigned an empty collection then the option is no longer present and the property is empty") {
+                    withArguments(args)
+                    property.set(this, emptyList())
+                    assertProperty().isEmpty()
+                    assertArguments()
+                        .doesNotContainSequence(option, firstValue.toString())
+                        .doesNotContainSequence(option, secondValue.toString())
+                        .containsExactlyElementsOf(args - listOf(option, firstValue.toString()) - listOf(option,
+                            secondValue.toString()))
+                  },
+                  dynamicGradleRunnerTest("$description and the property is assigned a collection containing only a single value then the property contains only that value and the arguments contains only that value") {
+                    withArguments(args)
+                    property.set(this, listOf(secondValue))
+                    assertProperty().containsOnly(secondValue)
+                    assertArguments()
+                        .containsSequence(option, secondValue.toString())
+                        .containsAll(args - listOf(option, firstValue.toString()))
+                        .hasSize(args.size - 2)
+                  },
+                  dynamicGradleRunnerTest("$description and the property is assigned both original values then the argument list does not change") {
+                    withArguments(args)
+                    property.set(this, listOf(secondValue, firstValue))
+                    assertProperty().containsExactlyInAnyOrder(firstValue, secondValue)
+                    assertArguments()
+                        .containsExactlyInAnyOrderElementsOf(args)
+                  }
+              )
+            })
+    ))
+  }
+
+  @TestFactory
   internal fun `single value options`(): Stream<DynamicNode> = Stream.of(
-      optionWithValueTestsFor("--build-file", GradleRunner::buildFile, Paths.get("first", "first.gradle"), Paths.get("second", "second.gradle"))
+      optionWithValueTestsFor("--build-file",
+          GradleRunner::buildFile,
+          Paths.get("first", "first.gradle"),
+          Paths.get("second", "second.gradle"))
   )
 
   private fun <T> optionWithValueTestsFor(
@@ -305,21 +503,16 @@ internal class GradleRunnerCliExtensionsTest {
   ): DynamicNode {
     require(firstValue != secondValue) { "values for testing must be different" }
 
-    val absentBeforeArguments = listOf(
-        RunnerArguments("empty", emptyList()),
-        RunnerArguments("single argument", listOf("--other-arg")),
-        RunnerArguments("argument with value", listOf("--other-arg", "otherArgValue")),
-        RunnerArguments("argument with value and a boolean option",
-            listOf("--other-arg", "otherArgValue", "--after-arg")),
-        RunnerArguments("multiple arguments each with value",
-            listOf("--other-arg", "otherArgValue", "--after-arg", "afterArgValue"))
-    )
     val presentBeforeArguments = listOf(
         RunnerArguments("only the specified option/value", listOf(option, firstValue.toString())),
-        RunnerArguments("specified option/value and boolean option", listOf(option, firstValue.toString(), "--other-arg")),
-        RunnerArguments("specified option/value and argument with value", listOf(option, firstValue.toString(), "--other-arg", "otherArgValue")),
-        RunnerArguments("boolean option and specified option/value", listOf("--other-arg", option, firstValue.toString())),
-        RunnerArguments("option with value and specified option/value", listOf("--other-arg", "otherArgValue", option, firstValue.toString())),
+        RunnerArguments("specified option/value and boolean option",
+            listOf(option, firstValue.toString(), "--other-arg")),
+        RunnerArguments("specified option/value and argument with value",
+            listOf(option, firstValue.toString(), "--other-arg", "otherArgValue")),
+        RunnerArguments("boolean option and specified option/value",
+            listOf("--other-arg", option, firstValue.toString())),
+        RunnerArguments("option with value and specified option/value",
+            listOf("--other-arg", "otherArgValue", option, firstValue.toString())),
         RunnerArguments("specified option/value in middle of option with value and boolean option",
             listOf("--other-arg", "otherArgValue", option, firstValue.toString(), "--after-arg")),
         RunnerArguments("specified option/value in middle of multiple options with values",
@@ -330,9 +523,9 @@ internal class GradleRunnerCliExtensionsTest {
     fun GradleRunner.assertPropertyEqualToFirstValue() = assertThat(property.get(this)).isEqualTo(firstValue)
     fun GradleRunner.assertPropertyEqualToSecondValue() = assertThat(property.get(this)).isEqualTo(secondValue)
 
-    return dynamicContainer("${property.name} for flag $option", listOf(
+    return dynamicContainer("${property.name} for option $option", listOf(
         dynamicContainer("when the option and value are absent in an argument list that is",
-            absentBeforeArguments.flatMap { (description, args) ->
+            absentFromArguments.flatMap { (description, args) ->
               listOf(
                   dynamicGradleRunnerTest("$description then the property value is null") {
                     withArguments(args)
@@ -340,14 +533,14 @@ internal class GradleRunnerCliExtensionsTest {
                     assertArguments().containsExactlyElementsOf(args)
                     assertArguments().doesNotContain(option, firstValue.toString(), secondValue.toString())
                   },
-                  dynamicGradleRunnerTest("$description and the property value is set to null then the argument list does not change") {
+                  dynamicGradleRunnerTest("$description and the property is set to null then the argument list does not change") {
                     withArguments(args)
                     property.set(this, null)
                     assertPropertyNull()
                     assertArguments().doesNotContain(option, firstValue.toString(), secondValue.toString())
                     assertArguments().containsOnlyElementsOf(args)
                   },
-                  dynamicGradleRunnerTest("$description and the property value is set then the argument list contains the option/value in addition to the argument list and the property is equal to the set value") {
+                  dynamicGradleRunnerTest("$description and the property is set then the argument list contains the option/value in addition to the argument list and the property is equal to the set value") {
                     withArguments(args)
                     property.set(this, firstValue)
                     assertPropertyEqualToFirstValue()
@@ -455,8 +648,9 @@ internal class GradleRunnerCliExtensionsTest {
   }
 
   /**
-   * Helper class to make constructing dynamic tests more straightforward.r
+   * Helper class to make constructing dynamic tests more straightforward.
    */
+// TODO: allow for 'Any' style list for easier construction
   private data class RunnerArguments(val argumentDescription: String, val arguments: List<String>)
 
   private fun GradleRunner.assertArguments() = assertThat(arguments)
