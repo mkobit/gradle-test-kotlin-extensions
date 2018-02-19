@@ -2,6 +2,7 @@ package com.mkobit.gradle.test.kotlin.testkit.runner
 
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.TestFactory
@@ -24,23 +25,34 @@ internal class GradleRunnerCliExtensionsTest {
     )
   }
 
+  @DisplayName("CLI")
   @TestFactory
-  internal fun `boolean property`(): Stream<DynamicNode> = Stream.of(
-      booleanFlagTestsFor("--build-cache", GradleRunner::buildCacheEnabled),
-      booleanFlagTestsFor("--continue", GradleRunner::continueAfterFailure),
-      booleanFlagTestsFor("--configure-on-demand", GradleRunner::configureOnDemand),
-      booleanFlagTestsFor("--debug", GradleRunner::debug),
-      booleanFlagTestsFor("--dry-run", GradleRunner::dryRun),
-      booleanFlagTestsFor("--info", GradleRunner::info),
-      booleanFlagTestsFor("--full-stacktrace", GradleRunner::fullStacktrace),
-      booleanFlagTestsFor("--no-build-cache", GradleRunner::buildCacheDisabled),
-      booleanFlagTestsFor("--no-scan", GradleRunner::buildScanDisabled),
-      booleanFlagTestsFor("--offline", GradleRunner::offline),
-      booleanFlagTestsFor("--profile", GradleRunner::profile),
-      booleanFlagTestsFor("--quiet", GradleRunner::quiet),
-      booleanFlagTestsFor("--scan", GradleRunner::buildScanEnabled),
-      booleanFlagTestsFor("--stacktrace", GradleRunner::stacktrace),
-      booleanFlagTestsFor("--warn", GradleRunner::warn)
+  internal fun `CLI`(): Stream<DynamicNode> = Stream.of(
+      dynamicContainer("repeatable value option",
+          repeatableOptionWithValuesTestsFor("--exclude-task", GradleRunner::excludedTasks, "taskA", "taskB"),
+          repeatableOptionWithValuesTestsFor("--init-script", GradleRunner::initScripts, "first.gradle", "other.gradle")
+      ),
+      dynamicContainer("single value option",
+          optionWithValueTestsFor("--build-file", GradleRunner::buildFile, Paths.get("first", "first.gradle"), Paths.get("second", "second.gradle")),
+          optionWithValueTestsFor("--settings-file", GradleRunner::settingsFile, Paths.get("settings.gradle"), Paths.get("settings.gradle.kts"))
+      ),
+      dynamicContainer("boolean toggle option",
+          booleanFlagTestsFor("--build-cache", GradleRunner::buildCacheEnabled),
+          booleanFlagTestsFor("--continue", GradleRunner::continueAfterFailure),
+          booleanFlagTestsFor("--configure-on-demand", GradleRunner::configureOnDemand),
+          booleanFlagTestsFor("--debug", GradleRunner::debug),
+          booleanFlagTestsFor("--dry-run", GradleRunner::dryRun),
+          booleanFlagTestsFor("--info", GradleRunner::info),
+          booleanFlagTestsFor("--full-stacktrace", GradleRunner::fullStacktrace),
+          booleanFlagTestsFor("--no-build-cache", GradleRunner::buildCacheDisabled),
+          booleanFlagTestsFor("--no-scan", GradleRunner::buildScanDisabled),
+          booleanFlagTestsFor("--offline", GradleRunner::offline),
+          booleanFlagTestsFor("--profile", GradleRunner::profile),
+          booleanFlagTestsFor("--quiet", GradleRunner::quiet),
+          booleanFlagTestsFor("--scan", GradleRunner::buildScanEnabled),
+          booleanFlagTestsFor("--stacktrace", GradleRunner::stacktrace),
+          booleanFlagTestsFor("--warn", GradleRunner::warn)
+      )
   )
 
   /**
@@ -69,7 +81,7 @@ internal class GradleRunnerCliExtensionsTest {
     fun GradleRunner.assertPropertyFalse() = assertThat(property.get(this)).isFalse()
     fun GradleRunner.assertPropertyTrue() = assertThat(property.get(this)).isTrue()
 
-    return dynamicContainer("${property.name} for flag $flag", listOf(
+    return dynamicContainer("$flag mapped to property ${property.name}", listOf(
         dynamicContainer("when the flag is absent in an argument list that is",
             absentFromArguments.flatMap { (description, args) ->
               listOf(
@@ -231,12 +243,6 @@ internal class GradleRunnerCliExtensionsTest {
     )
   }
 
-  @TestFactory
-  internal fun `repeatable value option`(): Stream<DynamicNode> = Stream.of(
-      repeatableOptionWithValuesTestsFor("--exclude-task", GradleRunner::excludedTasks, "taskA", "taskB"),
-      repeatableOptionWithValuesTestsFor("--init-script", GradleRunner::initScripts, "first.gradle", "other.gradle")
-  )
-
   private fun <T : Any> repeatableOptionWithValuesTestsFor(
       option: String,
       property: KMutableProperty1<GradleRunner, List<T>>,
@@ -300,7 +306,7 @@ internal class GradleRunnerCliExtensionsTest {
 
     fun GradleRunner.assertProperty() = assertThat(property.get(this))
 
-    return dynamicContainer("property ${property.name} for repeatable option $option", listOf(
+    return dynamicContainer("$option mapped to property ${property.name}", listOf(
         dynamicContainer("when it is absent in an argument list that is",
             absentFromArguments.flatMap { (description, args) ->
               listOf(
@@ -421,12 +427,6 @@ internal class GradleRunnerCliExtensionsTest {
     ))
   }
 
-  @TestFactory
-  internal fun `single value option`(): Stream<DynamicNode> = Stream.of(
-      optionWithValueTestsFor("--build-file", GradleRunner::buildFile, Paths.get("first", "first.gradle"), Paths.get("second", "second.gradle")),
-      optionWithValueTestsFor("--settings-file", GradleRunner::settingsFile, Paths.get("settings.gradle"), Paths.get("settings.gradle.kts"))
-  )
-
   private fun <T : Any> optionWithValueTestsFor(
       option: String,
       property: KMutableProperty1<GradleRunner, T?>,
@@ -453,7 +453,7 @@ internal class GradleRunnerCliExtensionsTest {
 
     fun GradleRunner.assertProperty() = assertThat(property.get(this))
 
-    return dynamicContainer("${property.name} for option $option", listOf(
+    return dynamicContainer("$option mapped to property ${property.name}", listOf(
         dynamicContainer("when the option and value are absent in an argument list that is",
             absentFromArguments.flatMap { (description, args) ->
               listOf(
@@ -589,3 +589,5 @@ internal class GradleRunnerCliExtensionsTest {
 
   private fun GradleRunner.assertArguments() = assertThat(arguments)
 }
+
+private fun dynamicContainer(displayName: String, vararg node: DynamicNode) = dynamicContainer(displayName, node.toList())
