@@ -26,10 +26,17 @@ public var GradleRunner.buildFile: Path?
     ensureOptionHasValue("--build-file", value)
   }
 
+@Deprecated("Renamed to buildCache", ReplaceWith("buildCache", "com.mkobit.gradle.test.kotlin.testkit.runner.buildCache"), DeprecationLevel.ERROR)
+public var GradleRunner.buildCacheEnabled: Boolean
+  get() = buildCache
+  set(value) {
+    buildCache = value
+  }
+
 /**
  * The `--build-cache` flag.
  */
-public var GradleRunner.buildCacheEnabled: Boolean
+public var GradleRunner.buildCache: Boolean
   get() = arguments.contains("--build-cache")
   set(value) {
     ensureFlagOptionState("--build-cache", value)
@@ -38,10 +45,17 @@ public var GradleRunner.buildCacheEnabled: Boolean
 /**
  * The `--no-build-cache` flag.
  */
-public var GradleRunner.buildCacheDisabled: Boolean
+public var GradleRunner.noBuildCache: Boolean
   get() = arguments.contains("--no-build-cache")
   set(value) {
     ensureFlagOptionState("--no-build-cache", value)
+  }
+
+@Deprecated("Renamed to noBuildScan", ReplaceWith("noBuildCache", "com.mkobit.gradle.test.kotlin.testkit.runner.noBuildCache"), DeprecationLevel.ERROR)
+public var GradleRunner.buildCacheDisabled: Boolean
+  get() = noBuildCache
+  set(value) {
+    noBuildCache = value
   }
 
 /**

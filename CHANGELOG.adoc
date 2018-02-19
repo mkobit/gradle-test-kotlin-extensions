@@ -29,6 +29,8 @@ For each release, a subsection should be added for each of the following if they
 * *Breaking* - `GradleRunner.initScripts` type changed from `List<String>` to `List<Path>`
 * `GradleRunner.buildScanEnabled` deprecated for removal and `GradleRunner.buildScan` added
 * `GradleRunner.buildScanDisabled` deprecated for removal and `GradleRunner.noBuildScan` added
+* `GradleRunner.buildCacheEnabled` deprecated for removal and `GradleRunner.buildCache` added
+* `GradleRunner.buildCacheDisabled` deprecated for removal and `GradleRunner.noBuildCache` added
 
 === Added
 
