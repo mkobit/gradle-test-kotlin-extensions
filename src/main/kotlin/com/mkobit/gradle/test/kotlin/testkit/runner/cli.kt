@@ -225,6 +225,24 @@ public var GradleRunner.projectProperties: Map<String, String?>
   }
 
 /**
+ * The `--no-parallel` flag.
+ */
+public var GradleRunner.noParallel: Boolean
+  get() = arguments.contains("--no-parallel")
+  set(value) {
+    ensureFlagOptionState("--no-parallel", value)
+  }
+
+/**
+ * The `--no-parallel` flag.
+ */
+public var GradleRunner.parallel: Boolean
+  get() = arguments.contains("--parallel")
+  set(value) {
+    ensureFlagOptionState("--parallel", value)
+  }
+
+/**
  * The `--profile` flag.
  */
 public var GradleRunner.profile: Boolean

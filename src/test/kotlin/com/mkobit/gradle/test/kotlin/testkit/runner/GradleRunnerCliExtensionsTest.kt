@@ -48,6 +48,8 @@ internal class GradleRunnerCliExtensionsTest {
           booleanFlagTestsFor("--full-stacktrace", GradleRunner::fullStacktrace),
           booleanFlagTestsFor("--no-build-cache", GradleRunner::buildCacheDisabled),
           booleanFlagTestsFor("--no-scan", GradleRunner::buildScanDisabled),
+          booleanFlagTestsFor("--no-parallel", GradleRunner::noParallel),
+          booleanFlagTestsFor("--parallel", GradleRunner::parallel),
           booleanFlagTestsFor("--offline", GradleRunner::offline),
           booleanFlagTestsFor("--profile", GradleRunner::profile),
           booleanFlagTestsFor("--quiet", GradleRunner::quiet),
