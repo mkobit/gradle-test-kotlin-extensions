@@ -8,6 +8,58 @@ import java.net.URI
 import java.nio.file.Path
 
 /**
+ * Runs a build using [GradleRunner.build] by appending the [tasks] to the [GradleRunner.getArguments]. The original
+ * [GradleRunner.getArguments] are restored after the build.
+ * @param tasks the tasks to execute
+ * @return the result of the build
+ * @see GradleRunner.build
+ */
+public fun GradleRunner.build(tasks: Iterable<String>): KBuildResult {
+  val originalArguments = arguments
+  withArguments(originalArguments + tasks)
+  try {
+    return DefaultKBuildResult(build())
+  } finally {
+    withArguments(originalArguments)
+  }
+}
+
+/**
+ * Runs a build using [GradleRunner.build] by appending the [tasks] to the [GradleRunner.getArguments]. The original
+ * [GradleRunner.getArguments] are restored after the build.
+ * @param tasks the tasks to execute
+ * @return the result of the build
+ * @see GradleRunner.build
+ */
+public fun GradleRunner.build(vararg tasks: String): KBuildResult = build(tasks.toList())
+
+/**
+ * Runs a build that is expected to fail using [GradleRunner.buildAndFail] by appending the [tasks] to
+ * the [GradleRunner.getArguments]. The original [GradleRunner.getArguments] are restored after the build.
+ * @param tasks the tasks to execute
+ * @return the result of the build
+ * @see GradleRunner.buildAndFail
+ */
+public fun GradleRunner.buildAndFail(tasks: Collection<String>): KBuildResult {
+  val originalArguments = arguments
+  withArguments(originalArguments + tasks)
+  try {
+    return DefaultKBuildResult(buildAndFail())
+  } finally {
+    withArguments(originalArguments)
+  }
+}
+
+/**
+ * Runs a build that is expected to fail using [GradleRunner.buildAndFail] by appending the [tasks] to
+ * the [GradleRunner.getArguments]. The original [GradleRunner.getArguments] are restored after the build.
+ * @param tasks the tasks to execute
+ * @return the result of the build
+ * @see GradleRunner.buildAndFail
+ */
+public fun GradleRunner.buildAndFail(vararg tasks: String): KBuildResult = buildAndFail(tasks.toList())
+
+/**
  * Configure and execute a [GradleRunner.build].
  * @param projectDir if not `null`, sets the project directory - see [GradleRunner.setupProjectDir]
  * @param arguments if not `null`, sets the argument to pass to the build - see [GradleRunner.withArguments]

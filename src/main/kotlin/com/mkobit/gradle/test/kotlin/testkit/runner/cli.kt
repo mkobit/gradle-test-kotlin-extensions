@@ -10,14 +10,6 @@ import java.nio.file.Paths
 // TODO: support short options for all of these, especially project properties
 
 /**
- * Appends the provided arguments to the current arguments.
- * @param additionalArguments the arguments to append
- */
-public fun GradleRunner.arguments(vararg additionalArguments: CharSequence) {
-  withArguments(arguments + additionalArguments.toList().map(CharSequence::toString))
-}
-
-/**
  * The `--build-file` option. Setting to `null` removes the option and value.
  */
 public var GradleRunner.buildFile: Path?

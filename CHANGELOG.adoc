@@ -24,6 +24,12 @@ For each release, a subsection should be added for each of the following if they
 
 == UNRELEASED
 
+=== Removed
+
+* *Breaking* - `GradleRunner.arguments(...)` method to append arguments.
+  This methods did not fit well when repeating a build multiple times.
+  The idea now is to reuse a single `GradleRunner` multiple times by calling the extension methods `build("task1", "task2")` and `buildAndFail("task1", "task2")` which restore the arguments after execution.
+
 === Changed
 
 * *Breaking* - `GradleRunner.initScripts` type changed from `List<String>` to `List<Path>`
@@ -54,6 +60,16 @@ For each release, a subsection should be added for each of the following if they
 ** `settingsFile` ⇒ `--settings-file`
 ** `configureOnDemand` ⇒ `--configure-on-demand`
 ** `includedBuilds` ⇒ `--include-build`
+* `KBuildResult` - an extension of link:https://docs.gradle.org/current/javadoc/org/gradle/testkit/runner/BuildResult.html[`BuildResult`].
+  There is nothing additional here yet, but may contain additional things in the future.
+* `KBuildTask` - an extension of link:https://docs.gradle.org/current/javadoc/org/gradle/testkit/runner/BuildTask.html[`BuildTask`].
+  There is nothing additional here yet, but may contain additional things in the future.
+* `GradleRunner` extension methods to run a build with the provided tasks and then restore the arguments.
+  This is useful for rerunning a build multiple times with different tasks or modified file changes.
+** `GradleRunner.build(tasks: Iterable<String>): KBuildResult`
+** `GradleRunner.build(vararg tasks: String): KBuildResult`
+** `GradleRunner.buildAndFail(tasks: Collection<String>): KBuildResult`
+** `GradleRunner.buildAndFail(vararg tasks: String): KBuildResult`
 
 == 0.2.1 (2017/12/13)
 

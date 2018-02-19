@@ -116,6 +116,8 @@ NOTE: These APIs are still experimental and are likely to change after some use.
       They don't provide a complete experience for fully managing command-line arguments right now and feel like a half-way solution.
       This area will be built upon on the future with better support and more use cases.
 
+[source, kotlin]
+----
 internal class FunctionalTests {
 
   @Test
@@ -125,9 +127,11 @@ internal class FunctionalTests {
       stacktrace = true
       projectProperties = mapOf("key1" to "prop1")
       systemProperties = mapOf("key2" to "value2")
-      arguments("test", "--tests", "my.test", "assemble")
     }
     // additional setup and execution
+    val firstBuild = gradleRunner.build("test", "--tests", "my.test", "assemble")
+    // Second build reuses all previous settings that were applied, but does not include arguments from previous `build(...)` invocation
+    val secondBuild = gradleRunner.buildAndFail("test", "--tests", "other.test", "assemble")
   }
 }
 ----
