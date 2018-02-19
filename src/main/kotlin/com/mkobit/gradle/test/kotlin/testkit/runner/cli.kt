@@ -316,12 +316,22 @@ private fun GradleRunner.ensureFlagOptionState(flag: String, include: Boolean) {
   }
 }
 
+/**
+ * Ensures that a repeatable options in the command line are the provided [values]. When empty, they are removed.
+ * @param option the option, for example `--init-script`.
+ * @param values the values for the [option]
+ */
 private fun GradleRunner.ensureRepeatableOptionHasValues(option: String, values: List<Any>) {
   withArguments(
       filterKeyValueArgumentsFilteringOutOption { it == option } + values.flatMap { listOf(option, it.toString()) }
   )
 }
 
+/**
+ * Ensures that the option has the specified [value]. If the [value] is `null`, then the option is removed.
+ * @param option the option, for example `--build-file`
+ * @param value the value of the option. When `null`, this means that the option should be removed
+ */
 private fun GradleRunner.ensureOptionHasValue(option: String, value: Any?) {
   val newOptionValue = if (value == null) {
     emptyList()
@@ -337,6 +347,11 @@ private fun GradleRunner.ensureOptionHasValue(option: String, value: Any?) {
   withArguments(newArguments)
 }
 
+/**
+ * Finds the value for an option in the arguments, if it present.
+ * @param option the option to locate the value for, for example `--settings-file`
+ * @return the value of the option, or `null` if it is not present
+ */
 private fun GradleRunner.findOptionValue(option: String): String? {
   var lastArgumentTest = false
   return arguments.find {
