@@ -124,6 +124,7 @@ internal class GradleRunnerCliExtensionsTest {
     ))
   }
 
+  // TODO: generative testing for the 'Map' use case
   @TestFactory
   internal fun `system properties`(): Stream<DynamicNode> {
     val stringToString1 = mapOf("Prop1" to "val1")
@@ -176,6 +177,7 @@ internal class GradleRunnerCliExtensionsTest {
     )
   }
 
+  // TODO: generative testing for the 'Map' use case
   @TestFactory
   internal fun `project properties `(): Stream<DynamicNode> {
     val stringToString1 = mapOf("Prop1" to "val1")
@@ -420,10 +422,8 @@ internal class GradleRunnerCliExtensionsTest {
 
   @TestFactory
   internal fun `single value option`(): Stream<DynamicNode> = Stream.of(
-      optionWithValueTestsFor("--build-file",
-          GradleRunner::buildFile,
-          Paths.get("first", "first.gradle"),
-          Paths.get("second", "second.gradle"))
+      optionWithValueTestsFor("--build-file", GradleRunner::buildFile, Paths.get("first", "first.gradle"), Paths.get("second", "second.gradle")),
+      optionWithValueTestsFor("--settings-file", GradleRunner::settingsFile, Paths.get("settings.gradle"), Paths.get("settings.gradle.kts"))
   )
 
   private fun <T : Any> optionWithValueTestsFor(

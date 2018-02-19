@@ -203,6 +203,15 @@ public var GradleRunner.profile: Boolean
   }
 
 /**
+ * The `--settings-file` option. Setting to `null` removes the option and value.
+ */
+public var GradleRunner.settingsFile: Path?
+  get() = findOptionValue("--settings-file")?.let { Paths.get(it) }
+  set(value) {
+    ensureOptionHasValue("--settings-file", value)
+  }
+
+/**
  * Updates the [GradleRunner.getArguments] to ensure that the provided [flag] is included or excluded
  * depending on the value of the [include]. The flag should be a flag like `--enable-thing`.
  * @param flag the flag to ensure is present in the [GradleRunner.getArguments]
