@@ -74,8 +74,7 @@ dependencies {
   api(gradleApi())
   api(gradleTestKit())
   implementation("io.github.microutils:kotlin-logging:1.5.3")
-  // Version specified due to: https://youtrack.jetbrains.com/issue/KT-21806
-  api(kotlin("stdlib-jre8", file("gradle/kotlin-version.txt").readText().trim()))
+  api(kotlin("stdlib-jre8"))
   testImplementation(kotlin("reflect"))
   testImplementation(DependencyInfo.assertJCore)
   testImplementation(DependencyInfo.mockitoCore)
