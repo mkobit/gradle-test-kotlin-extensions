@@ -27,19 +27,19 @@ internal class GradleRunnerCliExtensionsTest {
   @TestFactory
   internal fun `boolean property`(): Stream<DynamicNode> = Stream.of(
       booleanFlagTestsFor("--build-cache", GradleRunner::buildCacheEnabled),
-      booleanFlagTestsFor("--no-build-cache", GradleRunner::buildCacheDisabled),
       booleanFlagTestsFor("--continue", GradleRunner::continueAfterFailure),
-      booleanFlagTestsFor("--quiet", GradleRunner::quiet),
-      booleanFlagTestsFor("--stacktrace", GradleRunner::stacktrace),
-      booleanFlagTestsFor("--full-stacktrace", GradleRunner::fullStacktrace),
-      booleanFlagTestsFor("--info", GradleRunner::info),
-      booleanFlagTestsFor("--dry-run", GradleRunner::dryRun),
       booleanFlagTestsFor("--debug", GradleRunner::debug),
-      booleanFlagTestsFor("--warn", GradleRunner::warn),
-      booleanFlagTestsFor("--scan", GradleRunner::buildScanEnabled),
+      booleanFlagTestsFor("--dry-run", GradleRunner::dryRun),
+      booleanFlagTestsFor("--info", GradleRunner::info),
+      booleanFlagTestsFor("--full-stacktrace", GradleRunner::fullStacktrace),
+      booleanFlagTestsFor("--no-build-cache", GradleRunner::buildCacheDisabled),
       booleanFlagTestsFor("--no-scan", GradleRunner::buildScanDisabled),
       booleanFlagTestsFor("--offline", GradleRunner::offline),
-      booleanFlagTestsFor("--profile", GradleRunner::profile)
+      booleanFlagTestsFor("--profile", GradleRunner::profile),
+      booleanFlagTestsFor("--quiet", GradleRunner::quiet),
+      booleanFlagTestsFor("--scan", GradleRunner::buildScanEnabled),
+      booleanFlagTestsFor("--stacktrace", GradleRunner::stacktrace),
+      booleanFlagTestsFor("--warn", GradleRunner::warn)
   )
 
   /**
