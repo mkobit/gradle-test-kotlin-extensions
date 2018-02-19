@@ -229,78 +229,9 @@ internal class GradleRunnerCliExtensionsTest {
   }
 
   @TestFactory
-  internal fun `init scripts`(): Stream<DynamicNode> {
-    return Stream.of(
-        dynamicGradleRunnerTest("empty arguments") {
-          assertThat(initScripts)
-              .isEmpty()
-        },
-        dynamicGradleRunnerTest("reset arguments to empty") {
-          initScripts = listOf("init-script.gradle")
-          assertThat(initScripts)
-              .hasSize(1)
-          initScripts = emptyList()
-          assertThat(initScripts)
-              .isEmpty()
-        },
-        dynamicGradleRunnerTest("single init script") {
-          initScripts = listOf("init-script.gradle")
-          assertThat(initScripts)
-              .isEqualTo(listOf("init-script.gradle"))
-          assertThat(arguments)
-              .containsExactly("--init-script", "init-script.gradle")
-        },
-        dynamicGradleRunnerTest("multiple init scripts") {
-          initScripts = listOf("init-script.gradle", "other-script.gradle")
-          assertThat(initScripts)
-              .isEqualTo(listOf("init-script.gradle", "other-script.gradle"))
-          assertThat(arguments)
-              .containsSequence("--init-script", "init-script.gradle")
-              .containsSequence("--init-script", "other-script.gradle")
-        }
-    )
-  }
-
-  @TestFactory
-  internal fun `exclude tasks`(): Stream<DynamicNode> {
-    return Stream.of(
-        dynamicGradleRunnerTest("empty arguments") {
-          assertThat(excludedTasks)
-              .isEmpty()
-        },
-        dynamicGradleRunnerTest("reset arguments to empty") {
-          excludedTasks = listOf("taskA")
-          assertThat(excludedTasks)
-              .hasSize(1)
-          excludedTasks = emptyList()
-          assertThat(excludedTasks)
-              .isEmpty()
-        },
-        dynamicGradleRunnerTest("single init script") {
-          excludedTasks = listOf("taskA")
-          assertThat(excludedTasks)
-              .isEqualTo(listOf("taskA"))
-          assertThat(arguments)
-              .containsExactly("--exclude-task", "taskA")
-        },
-        dynamicGradleRunnerTest("multiple init scripts") {
-          excludedTasks = listOf("taskA", "taskB")
-          assertThat(excludedTasks)
-              .isEqualTo(listOf("taskA", "taskB"))
-          assertThat(arguments)
-              .containsSequence("--exclude-task", "taskA")
-              .containsSequence("--exclude-task", "taskB")
-        }
-    )
-  }
-
-  @TestFactory
   internal fun `repeatable value option`(): Stream<DynamicNode> = Stream.of(
       repeatableOptionWithValuesTestsFor("--exclude-task", GradleRunner::excludedTasks, "taskA", "taskB"),
-      repeatableOptionWithValuesTestsFor("--init-script",
-          GradleRunner::initScripts,
-          "first-script.gradle",
-          "other-script.gradle")
+      repeatableOptionWithValuesTestsFor("--init-script", GradleRunner::initScripts, "first.gradle", "other.gradle")
   )
 
   private fun <T : Any> repeatableOptionWithValuesTestsFor(
