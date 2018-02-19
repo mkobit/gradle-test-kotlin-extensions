@@ -9,6 +9,7 @@ import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable
 
 internal class ServiceLoaderRunnerConfigurerTest {
 
@@ -21,6 +22,7 @@ internal class ServiceLoaderRunnerConfigurerTest {
     runnerConfigurer = ServiceLoaderRunnerConfigurer()
   }
 
+  @DisabledIfEnvironmentVariable(named = "CIRCLE_JOB", matches = "^test-java-9$")
   @Test
   internal fun `no registered services for ServiceLoader`() {
     assertThatCode { runnerConfigurer(mockGradleRunner) }.doesNotThrowAnyException()
