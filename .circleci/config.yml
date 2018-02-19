@@ -53,6 +53,7 @@ jobs:
     <<: *java-8-defaults
     steps:
       - checkout
+      - *show-java-info
       - *generate-cache-key
       - *restore-home-cache
       - *run-gradle-build
@@ -62,6 +63,7 @@ jobs:
     <<: *java-9-defaults
     steps:
       - checkout
+      - *show-java-info
       - *generate-cache-key
       - *restore-home-cache
       - *run-gradle-build
