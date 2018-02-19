@@ -29,9 +29,9 @@ internal class GradleRunnerCliExtensionsTest {
   @TestFactory
   internal fun `CLI options and extension properties`(): Stream<DynamicNode> = Stream.of(
       dynamicContainer("repeatable value option",
-          repeatableOptionWithValuesTestsFor("--exclude-task", GradleRunner::excludedTasks, "taskA", "taskB"),
+          repeatableOptionWithValuesTestsFor("--include-build", GradleRunner::includedBuilds, Path("../other-project"), Path("../../my-project")),
           repeatableOptionWithValuesTestsFor("--init-script", GradleRunner::initScripts, Path("first.gradle"), Path("other.gradle")),
-          repeatableOptionWithValuesTestsFor("--include-build", GradleRunner::includedBuilds, Path("../other-project"), Path("../../my-project"))
+          repeatableOptionWithValuesTestsFor("--exclude-task", GradleRunner::excludedTasks, "taskA", "taskB")
       ),
       dynamicContainer("single value option",
           optionWithValueTestsFor("--build-file", GradleRunner::buildFile, Path("first", "first.gradle"), Path("second", "second.gradle")),
