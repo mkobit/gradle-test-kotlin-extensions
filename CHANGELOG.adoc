@@ -43,6 +43,17 @@ For each release, a subsection should be added for each of the following if they
 * Extension properties that may simplify or clarify assertions on `BuildTask`. For example:
 ** `BuildTask.success` is `true` when the outcome is `TaskOutcome.SUCCESS`
 ** `BuildTask.failed` is `true` when the outcome is `TaskOutcome.FAILED`
+* More `GradleRunner` CLI options support:
+** `rerunTasks` ⇒ `--rerun-tasks`
+** `refreshDependencies` ⇒ `--refresh-dependencies`
+** `refreshDependencies` ⇒ `--refresh-dependencies`
+** `projectCacheDir` ⇒ `--project-cache-dir`
+** `parallel` ⇒ `--parallel`
+** `noParallel` ⇒ `--no-parallel`
+** `maxWorkers` ⇒ `--max-workers`
+** `settingsFile` ⇒ `--settings-file`
+** `configureOnDemand` ⇒ `--configure-on-demand`
+** `includedBuilds` ⇒ `--include-build`
 
 == 0.2.1 (2017/12/13)
 
