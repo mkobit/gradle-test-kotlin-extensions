@@ -55,6 +55,7 @@ internal class GradleRunnerCliExtensionsTest {
           booleanFlagTestsFor("--profile", GradleRunner::profile),
           booleanFlagTestsFor("--quiet", GradleRunner::quiet),
           booleanFlagTestsFor("--refresh-dependencies", GradleRunner::refreshDependencies),
+          booleanFlagTestsFor("--rerun-tasks", GradleRunner::rerunTasks),
           booleanFlagTestsFor("--scan", GradleRunner::buildScan),
           booleanFlagTestsFor("--stacktrace", GradleRunner::stacktrace),
           booleanFlagTestsFor("--warn", GradleRunner::warn)

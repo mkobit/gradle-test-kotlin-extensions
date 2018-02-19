@@ -298,6 +298,15 @@ public var GradleRunner.refreshDependencies: Boolean
   }
 
 /**
+ * The `--rerun-tasks` flag.
+ */
+public var GradleRunner.rerunTasks: Boolean
+  get() = arguments.contains("--rerun-tasks")
+  set(value) {
+    ensureFlagOptionState("--rerun-tasks", value)
+  }
+
+/**
  * The `--settings-file` option. Setting to `null` removes the option and value.
  */
 public var GradleRunner.settingsFile: Path?
