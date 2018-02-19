@@ -24,6 +24,10 @@ For each release, a subsection should be added for each of the following if they
 
 == UNRELEASED
 
+=== Changed
+
+* *Breaking* - `GradleRunner.initScripts` type changed from `List<String>` to `List<Path>`
+
 === Added
 
 * `FileContext.append(CharSequence, Charset)` method to append character sequence content to a file

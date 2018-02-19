@@ -144,8 +144,8 @@ public var GradleRunner.warn: Boolean
 /**
  * The `--init-script` options.
  */
-public var GradleRunner.initScripts: List<String>
-  get() = findRepeatableOptionValues { it == "--init-script" }
+public var GradleRunner.initScripts: List<Path>
+  get() = findRepeatableOptionValues { it == "--init-script" }.map { Paths.get(it) }
   set(value) {
     ensureRepeatableOptionHasValues("--init-script", value)
   }
