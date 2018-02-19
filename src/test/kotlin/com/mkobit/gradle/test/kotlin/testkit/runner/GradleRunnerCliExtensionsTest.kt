@@ -28,6 +28,7 @@ internal class GradleRunnerCliExtensionsTest {
   internal fun `boolean property`(): Stream<DynamicNode> = Stream.of(
       booleanFlagTestsFor("--build-cache", GradleRunner::buildCacheEnabled),
       booleanFlagTestsFor("--continue", GradleRunner::continueAfterFailure),
+      booleanFlagTestsFor("--configure-on-demand", GradleRunner::configureOnDemand),
       booleanFlagTestsFor("--debug", GradleRunner::debug),
       booleanFlagTestsFor("--dry-run", GradleRunner::dryRun),
       booleanFlagTestsFor("--info", GradleRunner::info),

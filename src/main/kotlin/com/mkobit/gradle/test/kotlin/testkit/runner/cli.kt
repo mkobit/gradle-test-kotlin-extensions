@@ -45,6 +45,15 @@ public var GradleRunner.buildCacheDisabled: Boolean
   }
 
 /**
+ * The `--configure-on-demand` flag.
+ */
+public var GradleRunner.configureOnDemand: Boolean
+  get() = arguments.contains("--configure-on-demand")
+  set(value) {
+    ensureFlagOptionState("--configure-on-demand", value)
+  }
+
+/**
  * The `--continue` flag.
  */
 public var GradleRunner.continueAfterFailure: Boolean
