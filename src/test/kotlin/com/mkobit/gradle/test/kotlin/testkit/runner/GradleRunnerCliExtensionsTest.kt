@@ -43,7 +43,7 @@ internal class GradleRunnerCliExtensionsTest {
   )
 
   /**
-   * Creates a bunch of dynamic tests for use with a boolean toggleable option.
+   * Creates multiple tests for use with a boolean toggleable option.
    * The option should be in the form of `--build-cache`, where there is no value for the option.
    * @param flag the command line flag
    * @param property a reference to the extension property
@@ -303,7 +303,7 @@ internal class GradleRunnerCliExtensionsTest {
           "other-script.gradle")
   )
 
-  private fun <T> repeatableOptionWithValuesTestsFor(
+  private fun <T : Any> repeatableOptionWithValuesTestsFor(
       option: String,
       property: KMutableProperty1<GradleRunner, List<T>>,
       firstValue: T,
@@ -312,56 +312,56 @@ internal class GradleRunnerCliExtensionsTest {
     require(firstValue != secondValue) { "values for testing must be different" }
 
     val firstValueInArguments = listOf(
-        RunnerArguments("only a single option/value", listOf(option, firstValue.toString())),
-        RunnerArguments("single option/value and boolean option", listOf(option, firstValue.toString(), "--other-arg")),
+        RunnerArguments("only a single option/value", listOf(option, firstValue)),
+        RunnerArguments("single option/value and boolean option", listOf(option, firstValue, "--other-arg")),
         RunnerArguments("single option/value and argument with value",
-            listOf(option, firstValue.toString(), "--other-arg", "otherArgValue")),
-        RunnerArguments("boolean option and single option/value", listOf("--other-arg", option, firstValue.toString())),
+            listOf(option, firstValue, "--other-arg", "otherArgValue")),
+        RunnerArguments("boolean option and single option/value", listOf("--other-arg", option, firstValue)),
         RunnerArguments("option with value and single option/value",
-            listOf("--other-arg", "otherArgValue", option, firstValue.toString())),
+            listOf("--other-arg", "otherArgValue", option, firstValue)),
         RunnerArguments("single option/value in middle of option with value and boolean option",
-            listOf("--other-arg", "otherArgValue", option, firstValue.toString(), "--after-arg")),
+            listOf("--other-arg", "otherArgValue", option, firstValue, "--after-arg")),
         RunnerArguments("single option/value in middle of multiple options with values",
-            listOf("--other-arg", "otherArgValue", option, firstValue.toString(), "--after-arg", "afterArgValue"))
+            listOf("--other-arg", "otherArgValue", option, firstValue, "--after-arg", "afterArgValue"))
     )
 
     val bothValuesInArguments = listOf(
         RunnerArguments("only the multiple options/values",
-            listOf(option, firstValue.toString(), option, secondValue.toString())),
+            listOf(option, firstValue, option, secondValue)),
         RunnerArguments("multiple options/values and boolean option",
-            listOf(option, firstValue.toString(), option, secondValue.toString(), "--other-arg")),
+            listOf(option, firstValue, option, secondValue, "--other-arg")),
         RunnerArguments("specified option/value and argument with value",
-            listOf(option, firstValue.toString(), option, secondValue.toString(), "--other-arg", "otherArgValue")),
+            listOf(option, firstValue, option, secondValue, "--other-arg", "otherArgValue")),
         RunnerArguments("boolean option and multiple options/values",
-            listOf("--other-arg", option, firstValue.toString(), option, secondValue.toString())),
+            listOf("--other-arg", option, firstValue, option, secondValue)),
         RunnerArguments("option with value and multiple options/values",
-            listOf("--other-arg", "otherArgValue", option, firstValue.toString(), option, secondValue.toString())),
+            listOf("--other-arg", "otherArgValue", option, firstValue, option, secondValue)),
         RunnerArguments("multiple options/values in middle of option with value and boolean option",
             listOf("--other-arg",
                 "otherArgValue",
                 option,
-                firstValue.toString(),
+                firstValue,
                 option,
-                secondValue.toString(),
+                secondValue,
                 "--after-arg")),
         RunnerArguments("multiple options/values in middle of multiple options with values",
             listOf("--other-arg",
                 "otherArgValue",
                 option,
-                firstValue.toString(),
+                firstValue,
                 option,
-                secondValue.toString(),
+                secondValue,
                 "--after-arg",
                 "afterArgValue")),
         RunnerArguments("multiple options/values at both ends with multiple options separating",
             listOf(option,
-                firstValue.toString(),
+                firstValue,
                 "--other-arg",
                 "otherArgValue",
                 "--after-arg",
                 "afterArgValue",
                 option,
-                secondValue.toString()))
+                secondValue))
     )
 
     fun GradleRunner.assertProperty() = assertThat(property.get(this))
@@ -488,14 +488,14 @@ internal class GradleRunnerCliExtensionsTest {
   }
 
   @TestFactory
-  internal fun `single value options`(): Stream<DynamicNode> = Stream.of(
+  internal fun `single value option`(): Stream<DynamicNode> = Stream.of(
       optionWithValueTestsFor("--build-file",
           GradleRunner::buildFile,
           Paths.get("first", "first.gradle"),
           Paths.get("second", "second.gradle"))
   )
 
-  private fun <T> optionWithValueTestsFor(
+  private fun <T : Any> optionWithValueTestsFor(
       option: String,
       property: KMutableProperty1<GradleRunner, T?>,
       firstValue: T,
@@ -504,24 +504,22 @@ internal class GradleRunnerCliExtensionsTest {
     require(firstValue != secondValue) { "values for testing must be different" }
 
     val presentBeforeArguments = listOf(
-        RunnerArguments("only the specified option/value", listOf(option, firstValue.toString())),
+        RunnerArguments("only the specified option/value", listOf(option, firstValue)),
         RunnerArguments("specified option/value and boolean option",
-            listOf(option, firstValue.toString(), "--other-arg")),
+            listOf(option, firstValue, "--other-arg")),
         RunnerArguments("specified option/value and argument with value",
-            listOf(option, firstValue.toString(), "--other-arg", "otherArgValue")),
+            listOf(option, firstValue, "--other-arg", "otherArgValue")),
         RunnerArguments("boolean option and specified option/value",
-            listOf("--other-arg", option, firstValue.toString())),
+            listOf("--other-arg", option, firstValue)),
         RunnerArguments("option with value and specified option/value",
-            listOf("--other-arg", "otherArgValue", option, firstValue.toString())),
+            listOf("--other-arg", "otherArgValue", option, firstValue)),
         RunnerArguments("specified option/value in middle of option with value and boolean option",
-            listOf("--other-arg", "otherArgValue", option, firstValue.toString(), "--after-arg")),
+            listOf("--other-arg", "otherArgValue", option, firstValue, "--after-arg")),
         RunnerArguments("specified option/value in middle of multiple options with values",
-            listOf("--other-arg", "otherArgValue", option, firstValue.toString(), "--after-arg", "afterArgValue"))
+            listOf("--other-arg", "otherArgValue", option, firstValue, "--after-arg", "afterArgValue"))
     )
 
-    fun GradleRunner.assertPropertyNull() = assertThat(property.get(this)).isNull()
-    fun GradleRunner.assertPropertyEqualToFirstValue() = assertThat(property.get(this)).isEqualTo(firstValue)
-    fun GradleRunner.assertPropertyEqualToSecondValue() = assertThat(property.get(this)).isEqualTo(secondValue)
+    fun GradleRunner.assertProperty() = assertThat(property.get(this))
 
     return dynamicContainer("${property.name} for option $option", listOf(
         dynamicContainer("when the option and value are absent in an argument list that is",
@@ -529,21 +527,21 @@ internal class GradleRunnerCliExtensionsTest {
               listOf(
                   dynamicGradleRunnerTest("$description then the property value is null") {
                     withArguments(args)
-                    assertPropertyNull()
+                    assertProperty().isNull()
                     assertArguments().containsExactlyElementsOf(args)
                     assertArguments().doesNotContain(option, firstValue.toString(), secondValue.toString())
                   },
                   dynamicGradleRunnerTest("$description and the property is set to null then the argument list does not change") {
                     withArguments(args)
                     property.set(this, null)
-                    assertPropertyNull()
+                    assertProperty().isNull()
                     assertArguments().doesNotContain(option, firstValue.toString(), secondValue.toString())
                     assertArguments().containsOnlyElementsOf(args)
                   },
                   dynamicGradleRunnerTest("$description and the property is set then the argument list contains the option/value in addition to the argument list and the property is equal to the set value") {
                     withArguments(args)
                     property.set(this, firstValue)
-                    assertPropertyEqualToFirstValue()
+                    assertProperty().isEqualTo(firstValue)
                     assertArguments()
                         .containsSequence(option, firstValue.toString())
                         .containsAll(args)
@@ -557,12 +555,12 @@ internal class GradleRunnerCliExtensionsTest {
                   dynamicGradleRunnerTest("$description then the property is equal to the value") {
                     withArguments(args)
                     assertArguments().containsExactlyElementsOf(args)
-                    assertPropertyEqualToFirstValue()
+                    assertProperty().isEqualTo(firstValue)
                   },
                   dynamicGradleRunnerTest("$description and the property is set to null then the option/value is removed from the argument list and the property is null") {
                     withArguments(args)
                     property.set(this, null)
-                    assertPropertyNull()
+                    assertProperty().isNull()
                     assertArguments()
                         .doesNotContain(option, firstValue.toString(), secondValue.toString())
                         .containsOnlyElementsOf(args - listOf(option, firstValue.toString()))
@@ -570,7 +568,7 @@ internal class GradleRunnerCliExtensionsTest {
                   dynamicGradleRunnerTest("$description and the property is assigned a different value then the argument list has the new value and the property is the new value") {
                     withArguments(args)
                     property.set(this, secondValue)
-                    assertPropertyEqualToSecondValue()
+                    assertProperty().isEqualTo(secondValue)
                     assertArguments()
                         .doesNotContain(firstValue.toString())
                         .containsSequence(option, secondValue.toString())
@@ -579,7 +577,7 @@ internal class GradleRunnerCliExtensionsTest {
                   dynamicGradleRunnerTest("$description and the property is assigned the same value then the argument list does not change") {
                     withArguments(args)
                     property.set(this, firstValue)
-                    assertPropertyEqualToFirstValue()
+                    assertProperty().isEqualTo(firstValue)
                     assertArguments()
                         .containsOnlyElementsOf(args)
                         .containsSequence(option, firstValue.toString())
@@ -650,8 +648,12 @@ internal class GradleRunnerCliExtensionsTest {
   /**
    * Helper class to make constructing dynamic tests more straightforward.
    */
-// TODO: allow for 'Any' style list for easier construction
-  private data class RunnerArguments(val argumentDescription: String, val arguments: List<String>)
+  private data class RunnerArguments constructor(val argumentDescription: String, val arguments: List<String>) {
+    companion object {
+      operator fun invoke(argumentDescription: String, arguments: List<Any>): RunnerArguments =
+          RunnerArguments(argumentDescription, arguments.map(Any::toString))
+    }
+  }
 
   private fun GradleRunner.assertArguments() = assertThat(arguments)
 }
