@@ -26,6 +26,15 @@ public var GradleRunner.buildFile: Path?
     ensureOptionHasValue("--build-file", value)
   }
 
+/**
+ * The `--project-cache-dir` option. Setting to `null` removes the option and value.
+ */
+public var GradleRunner.projectCacheDir: Path?
+  get() = findOptionValue("--project-cache-dir")?.let { Paths.get(it) }
+  set(value) {
+    ensureOptionHasValue("--project-cache-dir", value)
+  }
+
 @Deprecated("Renamed to buildCache", ReplaceWith("buildCache", "com.mkobit.gradle.test.kotlin.testkit.runner.buildCache"), DeprecationLevel.ERROR)
 public var GradleRunner.buildCacheEnabled: Boolean
   get() = buildCache
