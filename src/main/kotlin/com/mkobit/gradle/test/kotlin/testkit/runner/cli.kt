@@ -289,6 +289,15 @@ public var GradleRunner.profile: Boolean
   }
 
 /**
+ * The `--refresh-dependencies` flag.
+ */
+public var GradleRunner.refreshDependencies: Boolean
+  get() = arguments.contains("--refresh-dependencies")
+  set(value) {
+    ensureFlagOptionState("--refresh-dependencies", value)
+  }
+
+/**
  * The `--settings-file` option. Setting to `null` removes the option and value.
  */
 public var GradleRunner.settingsFile: Path?
