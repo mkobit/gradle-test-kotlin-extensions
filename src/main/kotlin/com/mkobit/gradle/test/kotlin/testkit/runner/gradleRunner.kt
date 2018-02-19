@@ -18,7 +18,9 @@ public fun GradleRunner.build(tasks: Iterable<String>): KBuildResult {
   val originalArguments = arguments
   withArguments(originalArguments + tasks)
   try {
-    return DefaultKBuildResult(build())
+    val buildResult = build()
+    // We know if we didn't bomb out yet, the build directory must be set
+    return DefaultKBuildResult(projectDirPath!!, buildResult)
   } finally {
     withArguments(originalArguments)
   }
@@ -44,7 +46,9 @@ public fun GradleRunner.buildAndFail(tasks: Collection<String>): KBuildResult {
   val originalArguments = arguments
   withArguments(originalArguments + tasks)
   try {
-    return DefaultKBuildResult(buildAndFail())
+    val buildResult = buildAndFail()
+    // We know if we didn't bomb out yet, the build directory must be set
+    return DefaultKBuildResult(projectDirPath!!, buildResult)
   } finally {
     withArguments(originalArguments)
   }
