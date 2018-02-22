@@ -21,7 +21,7 @@ plugins {
   id("com.github.ben-manes.versions") version "0.17.0"
   id("com.jfrog.bintray") version "1.8.0"
   id("org.junit.platform.gradle.plugin")
-  id("org.jetbrains.dokka") version "0.9.16-eap-3"
+  id("org.jetbrains.dokka") version "0.9.16"
 }
 
 version = "0.3.0"

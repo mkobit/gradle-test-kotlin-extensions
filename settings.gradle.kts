@@ -12,19 +12,12 @@ pluginManagement {
         useVersion(kotlinVersion)
       } else if (requested.id.id.startsWith("org.junit.platform.gradle.plugin")) {
         useModule("org.junit.platform:junit-platform-gradle-plugin:$junitPlatformVersion")
-      } else if (requested.id.id.startsWith("org.jetbrains.dokka")) {
-        useModule("org.jetbrains.dokka:dokka-gradle-plugin:${requested.version}")
       }
     }
   }
   repositories {
     gradlePluginPortal()
     jcenter()
-    maven {
-      // Needed until https://github.com/Kotlin/dokka/issues/265 is released
-      url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
-      name = "DokkaEAP"
-    }
     mavenCentral()
   }
 }
