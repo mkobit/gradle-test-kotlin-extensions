@@ -6,8 +6,6 @@ import java.io.ByteArrayOutputStream
 import java.net.URL
 import org.gradle.api.internal.HasConvention
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.junit.platform.console.options.Details
-import org.junit.platform.gradle.plugin.JUnitPlatformExtension
 import org.gradle.jvm.tasks.Jar
 import org.jetbrains.dokka.DokkaConfiguration
 import org.jetbrains.dokka.gradle.DokkaTask
@@ -17,10 +15,9 @@ plugins {
   id("com.gradle.build-scan") version "1.11"
   `java-library`
   `maven-publish`
-  kotlin("jvm")
+  kotlin("jvm") version "1.2.21"
   id("com.github.ben-manes.versions") version "0.17.0"
   id("com.jfrog.bintray") version "1.8.0"
-  id("org.junit.platform.gradle.plugin")
   id("org.jetbrains.dokka") version "0.9.16"
 }
 
@@ -88,17 +85,6 @@ dependencies {
   testImplementation(kotlin("stdlib-jre8"))
 }
 
-junitPlatform {
-  platformVersion = DependencyInfo.junitPlatformVersion
-  filters {
-    engines {
-      include("junit-jupiter")
-    }
-  }
-  logManager = "org.apache.logging.log4j.jul.LogManager"
-  details = Details.TREE
-}
-
 java {
   sourceCompatibility = JavaVersion.VERSION_1_8
   targetCompatibility = JavaVersion.VERSION_1_8
@@ -110,7 +96,7 @@ main.java.setSrcDirs(emptyList<Any>())
 
 tasks {
   "wrapper"(Wrapper::class) {
-    gradleVersion = "4.5.1"
+    gradleVersion = "4.6"
     distributionType = Wrapper.DistributionType.ALL
   }
 
@@ -138,6 +124,14 @@ tasks {
 
   withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
+  }
+
+  "test"(Test::class) {
+    useJUnitPlatform()
+    systemProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager")
+    testLogging {
+      events("skipped", "failed")
+    }
   }
 
   val sourcesJar by creating(Jar::class) {
