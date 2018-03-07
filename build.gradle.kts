@@ -15,7 +15,7 @@ plugins {
   id("com.gradle.build-scan") version "1.11"
   `java-library`
   `maven-publish`
-  kotlin("jvm") version "1.2.21"
+  kotlin("jvm") version "1.2.30"
   id("com.github.ben-manes.versions") version "0.17.0"
   id("com.jfrog.bintray") version "1.8.0"
   id("org.jetbrains.dokka") version "0.9.16"
