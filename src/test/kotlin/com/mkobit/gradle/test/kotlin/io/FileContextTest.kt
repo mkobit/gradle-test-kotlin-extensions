@@ -2,7 +2,6 @@ package com.mkobit.gradle.test.kotlin.io
 
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
-import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DynamicNode
@@ -13,6 +12,8 @@ import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.TestInfo
 import org.junit.jupiter.api.extension.ExtendWith
 import testsupport.TempDirectory
+import testsupport.assertThatFileAlreadyExistsException
+import testsupport.assertThatNoSuchFileException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -100,7 +101,7 @@ internal class FileContextTest {
             assertThatIllegalArgumentException().isThrownBy { FileContext.RegularFileContext(doesntExist) }
           },
           dynamicTest("constructed with directory throws an IllegalArgumentException") {
-            assertThatExceptionOfType(IllegalArgumentException::class.java).isThrownBy {
+            assertThatIllegalArgumentException().isThrownBy {
               FileContext.RegularFileContext(directory)
             }
           },
@@ -228,11 +229,11 @@ internal class FileContextTest {
                 .isThrownBy { FileContext.DirectoryContext(doesntExist) }
           },
           dynamicTest("constructed with regular file throws IllegalArgumentException") {
-            assertThatExceptionOfType(IllegalArgumentException::class.java)
+            assertThatIllegalArgumentException()
                 .isThrownBy { FileContext.DirectoryContext(regularFile) }
           },
           dynamicTest("constructed with symlink throws IllegalArgumentException") {
-            assertThatExceptionOfType(IllegalArgumentException::class.java)
+            assertThatIllegalArgumentException()
                 .isThrownBy { FileContext.DirectoryContext(symlink) }
           },
           dynamicTest("constructed with existing directory does not throw an exception") {
@@ -281,13 +282,13 @@ internal class FileContextTest {
       @Test
       internal fun `when path is a directory and file is requested then a FileAlreadyExistsException is thrown`() {
         Files.createDirectory(directoryContext.path.resolve("directory"))
-        assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+        assertThatFileAlreadyExistsException()
             .isThrownBy { directoryContext.file("directory", requestType) }
       }
 
       @Test
       internal fun `when path is a nested directory, the parent directory doesn't exist, and fil eis requested then an exception is thrown`() {
-        assertThatExceptionOfType(NoSuchFileException::class.java)
+        assertThatNoSuchFileException()
             .isThrownBy { directoryContext.file("directory/fileName", requestType) }
       }
 
@@ -323,7 +324,7 @@ internal class FileContextTest {
       @Test
       internal fun `when file exists at the path and directory is requested then FileAlreadyExistsException is thrown`() {
         Files.createFile(directoryContext.path.resolve("regularFile"))
-        assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+        assertThatFileAlreadyExistsException()
             .isThrownBy { directoryContext.directory("regularFile", requestType) }
       }
 
@@ -331,7 +332,7 @@ internal class FileContextTest {
       internal fun `when nested file exists at the path and directory is requested then FileAlreadyExistsException is thrown`() {
         val dirPath = Files.createDirectories(directoryContext.path.resolve("nested/dir/path"))
         Files.createFile(dirPath.resolve("regularFile"))
-        assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+        assertThatFileAlreadyExistsException()
             .isThrownBy { directoryContext.directory("nested/dir/path/regularFile", requestType) }
       }
 
@@ -368,7 +369,7 @@ internal class FileContextTest {
         return Stream.of(
             dynamicTest("by explicitly passing in a ${FileAction::class.simpleName} of ${requestType::class.simpleName}") {
               Files.createDirectory(directoryContext.path.resolve("filename1"))
-              assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+              assertThatFileAlreadyExistsException()
                   .isThrownBy {
                     directoryContext.run {
                       "filename1"(requestType) {}
@@ -376,7 +377,7 @@ internal class FileContextTest {
                   }
             },
             dynamicTest("using default parameter value of ${FileAction::class.simpleName}") {
-              assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+              assertThatFileAlreadyExistsException()
                   .isThrownBy {
                     directoryContext.run {
                       "filename1" {}
@@ -435,7 +436,7 @@ internal class FileContextTest {
             dynamicTest("by explicitly passing in a ${FileAction::class.simpleName} of ${requestType::class.simpleName}") {
               directoryContext.run {
                 Files.createDirectory(directoryContext.path.resolve("filename1"))
-                assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+                assertThatFileAlreadyExistsException()
                     .isThrownBy {
                       "filename1"(requestType, content = content)
                     }
@@ -444,7 +445,7 @@ internal class FileContextTest {
             dynamicTest("using default parameter value of ${FileAction::class.simpleName}") {
               directoryContext.run {
                 Files.createDirectory(directoryContext.path.resolve("filename2"))
-                assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+                assertThatFileAlreadyExistsException()
                     .isThrownBy {
                       "filename2"(content = content)
                     }
@@ -468,7 +469,7 @@ internal class FileContextTest {
 
       @Test
       internal fun `when the path is nested and the parent directory doesn't exist then an exception is thrown`() {
-        assertThatExceptionOfType(NoSuchFileException::class.java)
+        assertThatNoSuchFileException()
             .isThrownBy { directoryContext.file("path/to/nonExistentDir/file", requestType) }
       }
 
@@ -485,7 +486,7 @@ internal class FileContextTest {
       internal fun `when the file exists and file is requested then a FileAlreadyExistsException is thrown`() {
         val filename = "existingFile"
         Files.createFile(directoryContext.path.resolve(filename))
-        assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+        assertThatFileAlreadyExistsException()
             .isThrownBy { directoryContext.file(filename, requestType) }
       }
 
@@ -494,7 +495,7 @@ internal class FileContextTest {
         val dirPath = Files.createDirectories(directoryContext.path.resolve("path/to/dir"))
         val filename = "existingFile"
         Files.createFile(dirPath.resolve(filename))
-        assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+        assertThatFileAlreadyExistsException()
             .isThrownBy { directoryContext.file("path/to/dir/$filename", requestType) }
       }
 
@@ -502,7 +503,7 @@ internal class FileContextTest {
       internal fun `when a directory already exists at the path and file is requested then a FileAlreadyExistsException is thrown`() {
         val directoryName = "directory"
         Files.createDirectory(directoryContext.path.resolve(directoryName))
-        assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+        assertThatFileAlreadyExistsException()
             .isThrownBy { directoryContext.file(directoryName, requestType) }
       }
 
@@ -534,19 +535,19 @@ internal class FileContextTest {
       @Test
       internal fun `when the directory exists and directory is requested then an exception is thrown`() {
         Files.createDirectory(directoryContext.path.resolve("existingDir"))
-        assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+        assertThatFileAlreadyExistsException()
             .isThrownBy { directoryContext.directory("existingDir", requestType) }
       }
       @Test
       internal fun `when the directory exists and directory is requested in a nested directory then an exception is thrown`() {
         Files.createDirectories(directoryContext.path.resolve("nested/path/to/existingDir"))
-        assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+        assertThatFileAlreadyExistsException()
             .isThrownBy { directoryContext.directory("nested/path/to/existingDir", requestType) }
       }
       @Test
       internal fun `when a file exists at the path and directory is requested then an exception is thrown`() {
         Files.createFile(directoryContext.path.resolve("existingFile"))
-        assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+        assertThatFileAlreadyExistsException()
             .isThrownBy { directoryContext.directory("existingFile", requestType) }
       }
     }
@@ -557,7 +558,7 @@ internal class FileContextTest {
 
       @Test
       internal fun `when file does not exist then an exception is thrown`() {
-        assertThatExceptionOfType(NoSuchFileException::class.java)
+        assertThatNoSuchFileException()
             .isThrownBy { directoryContext.file("doesntExist", requestType) }
       }
 
@@ -585,13 +586,13 @@ internal class FileContextTest {
       @Test
       internal fun `when path is a directory then an exception is thrown`() {
         Files.createDirectory(directoryContext.path.resolve("directory"))
-        assertThatExceptionOfType(NoSuchFileException::class.java)
+        assertThatNoSuchFileException()
             .isThrownBy { directoryContext.file("directory", requestType) }
       }
 
       @Test
       internal fun `"when directory does not exist and directory is requested then a NoSuchFileException is thrown`() {
-        assertThatExceptionOfType(NoSuchFileException::class.java)
+        assertThatNoSuchFileException()
             .isThrownBy { directoryContext.directory("nonExistentDirectory", requestType) }
       }
 
@@ -617,7 +618,7 @@ internal class FileContextTest {
       internal fun `when file exists and directory is requested then a NoSuchFileException is thrown`() {
         val filename = "existingFile"
         Files.createFile(directoryContext.path.resolve(filename))
-        assertThatExceptionOfType(NoSuchFileException::class.java)
+        assertThatNoSuchFileException()
             .isThrownBy { directoryContext.directory(filename, requestType) }
       }
     }
