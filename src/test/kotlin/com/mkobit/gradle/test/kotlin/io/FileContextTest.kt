@@ -336,16 +336,16 @@ internal class FileContextTest {
       }
 
       @TestFactory
-      internal fun `when string invocation is used and directory does not exist then the directory is created`(): Stream<DynamicNode> {
+      internal fun `when string invocation is called and directory does not exist then a file is created`(): Stream<DynamicNode> {
         return Stream.of(
             dynamicTest("by explicitly passing in a ${FileAction::class.simpleName} of ${requestType::class.simpleName}") {
               val context = directoryContext.run {
                 "filename1"(requestType) {}
               }
               assertThat(context)
-                  .isInstanceOf(FileContext.DirectoryContext::class.java)
+                  .isInstanceOf(FileContext.RegularFileContext::class.java)
               assertThat(context.path)
-                  .isDirectory()
+                  .isRegularFile()
                   .hasParent(directoryContext.path)
                   .hasFileName("filename1")
             },
@@ -354,9 +354,9 @@ internal class FileContextTest {
                 "filename2" {}
               }
               assertThat(context)
-                  .isInstanceOf(FileContext.DirectoryContext::class.java)
+                  .isInstanceOf(FileContext.RegularFileContext::class.java)
               assertThat(context.path)
-                  .isDirectory()
+                  .isRegularFile()
                   .hasParent(directoryContext.path)
                   .hasFileName("filename2")
             }
@@ -364,90 +364,30 @@ internal class FileContextTest {
       }
 
       @TestFactory
-      internal fun `when string invocation is used and directory exists then it is retrieved`(): Stream<DynamicNode> {
+      internal fun `when string invocation is called and directory exists then FileAlreadyExistsException is thrown`(): Stream<DynamicNode> {
         return Stream.of(
             dynamicTest("by explicitly passing in a ${FileAction::class.simpleName} of ${requestType::class.simpleName}") {
-              val context = directoryContext.run {
-                Files.createDirectory(directoryContext.path.resolve("filename1"))
-                "filename1"(requestType) {}
-              }
-              assertThat(context)
-                  .isInstanceOf(FileContext.DirectoryContext::class.java)
-              assertThat(context.path)
-                  .isDirectory()
-                  .hasParent(directoryContext.path)
-                  .hasFileName("filename1")
-            },
-            dynamicTest("using default parameter value of ${FileAction::class.simpleName}") {
-              val context = directoryContext.run {
-                Files.createDirectory(directoryContext.path.resolve("filename2"))
-                "filename2" {}
-              }
-              assertThat(context)
-                  .isInstanceOf(FileContext.DirectoryContext::class.java)
-              assertThat(context.path)
-                  .isDirectory()
-                  .hasParent(directoryContext.path)
-                  .hasFileName("filename2")
-            }
-        )
-      }
-
-      @TestFactory
-      internal fun `when string invocation is used and file exists at path then FileAlreadyExistsException is thrown`(): Stream<DynamicNode> {
-        return Stream.of(
-            dynamicTest("by explicitly passing in a ${FileAction::class.simpleName} of ${requestType::class.simpleName}") {
-              directoryContext.run {
-                Files.createFile(directoryContext.path.resolve("filename1"))
-                assertThatExceptionOfType(FileAlreadyExistsException::class.java)
-                    .isThrownBy {
+              Files.createDirectory(directoryContext.path.resolve("filename1"))
+              assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+                  .isThrownBy {
+                    directoryContext.run {
                       "filename1"(requestType) {}
                     }
-              }
+                  }
             },
             dynamicTest("using default parameter value of ${FileAction::class.simpleName}") {
-              directoryContext.run {
-                Files.createFile(directoryContext.path.resolve("filename2"))
-                assertThatExceptionOfType(FileAlreadyExistsException::class.java)
-                    .isThrownBy {
-                      "filename2" {}
+              assertThatExceptionOfType(FileAlreadyExistsException::class.java)
+                  .isThrownBy {
+                    directoryContext.run {
+                      "filename1" {}
                     }
-              }
+                  }
             }
         )
       }
 
       @TestFactory
-      internal fun `when string invocation is used with content and file does not exist then the file is created with the provided content`(): Stream<DynamicNode> {
-        val content = "this is file content"
-        return Stream.of(
-            dynamicTest("by explicitly passing in a ${FileAction::class.simpleName} of ${requestType::class.simpleName}") {
-              val context = directoryContext.run {
-                "filename1"(requestType, content = content)
-              }
-              assertThat(context)
-                  .isInstanceOf(FileContext.RegularFileContext::class.java)
-              assertThat(context.path)
-                  .hasContent(content)
-                  .hasParent(directoryContext.path)
-                  .hasFileName("filename1")
-            },
-            dynamicTest("using default parameter value of ${FileAction::class.simpleName}") {
-              val context = directoryContext.run {
-                 "filename2"(content = content)
-              }
-              assertThat(context)
-                  .isInstanceOf(FileContext.RegularFileContext::class.java)
-              assertThat(context.path)
-                  .hasContent(content)
-                  .hasParent(directoryContext.path)
-                  .hasFileName("filename2")
-            }
-        )
-      }
-
-      @TestFactory
-      internal fun `when string invocation is called, file already exists, and the provided content is Unmodified, then the file is retrieved with its original content`(): Stream<DynamicNode> {
+      internal fun `when string invocation is called, file already exists, and the provided content is Original, then the file is retrieved with its original content`(): Stream<DynamicNode> {
         val originalContent = "this is the original file content"
         return Stream.of(
             dynamicTest("by explicitly passing in a ${FileAction::class.simpleName} of ${requestType::class.simpleName}") {
@@ -465,8 +405,21 @@ internal class FileContextTest {
               val filename = "filename2"
               Files.write(Files.createFile(directoryContext.path.resolve(filename)), originalContent.toByteArray())
               val context = directoryContext.run {
-               "filename2"(content = Original)
+                filename(content = Original)
               }
+              assertThat(context.path)
+                  .hasContent(originalContent)
+                  .hasFileName(filename)
+                  .hasParent(directoryContext.path)
+            },
+            dynamicTest("using default parameter value of ${FileAction::class.simpleName} and using default content parameter of Original") {
+              val filename = "filename3"
+              Files.write(Files.createFile(directoryContext.path.resolve(filename)), originalContent.toByteArray())
+              val context = directoryContext.run {
+                filename {
+                }
+              }
+              assertThat(context).isInstanceOf(FileContext.RegularFileContext::class.java)
               assertThat(context.path)
                   .hasContent(originalContent)
                   .hasFileName(filename)
@@ -476,7 +429,7 @@ internal class FileContextTest {
       }
 
       @TestFactory
-      internal fun `when string invocation is used with content and directory exists then FileAlreadyExistsException is thrown`(): Stream<DynamicNode> {
+      internal fun `when string invocation is called with content and directory exists then FileAlreadyExistsException is thrown`(): Stream<DynamicNode> {
         val content = "this is file content"
         return Stream.of(
             dynamicTest("by explicitly passing in a ${FileAction::class.simpleName} of ${requestType::class.simpleName}") {

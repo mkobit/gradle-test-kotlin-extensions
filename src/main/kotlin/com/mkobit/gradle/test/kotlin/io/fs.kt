@@ -239,33 +239,15 @@ public sealed class FileContext(val path: Path) {
     }
 
     /**
-     * Produce a [DirectoryContext] instance with a [Path] resolved from this instance's [path] and the [CharSequence]
-     * that this method was invoked on.
-     * The instance is provisioned based on the provided [fileAction].
-     *
-     * @param fileAction the action to take for the file
-     * @param action the lambda that can provide additional setup of the file
-     * @return a [DirectoryContext] for the resolved directory
-     * @throws NoSuchFileException if the [action] is [FileAction.Get] and the file is not a
-     * directory
-     * @throws FileAlreadyExistsException if the [action] is a creation method
-     * ([FileAction.MaybeCreate] or [FileAction.Create]) and a file already exists at the resolved
-     * path
-     * @see directory
-     */
-    @Throws(NoSuchFileException::class, FileAlreadyExistsException::class)
-    public operator fun CharSequence.invoke(
-        fileAction: FileAction = FileAction.MaybeCreate,
-        action: DirectoryContext.() -> Unit
-    ): DirectoryContext = directory(this, fileAction, action)
-
-    /**
      * Produce a [RegularFileContext] instance with a [Path] resolved from this instance's [path] and the [CharSequence]
-     * that this method was invoked on. The content of the file will be TODO
+     * that this method was invoked on.
+     *
+     * The [content] will be written to the file unless [Original] is specified.
      * The instance is provisioned based on the provided [fileAction].
      *
      * @param fileAction the action to take for the file
-     * @param content the optional content to write into the file. If `null`, then no content is written to the file.
+     * @param content the optional content to write into the file. If [Original] is specified,
+     * then the file content will not be changed.
      * @param encoding the encoding to use with the content, defaults to [Charsets.UTF_8]
      * @param action the lambda that can provide additional setup of the file
      * @return a [RegularFileContext] for the resolved file
@@ -279,7 +261,7 @@ public sealed class FileContext(val path: Path) {
     @Throws(NoSuchFileException::class, FileAlreadyExistsException::class)
     public operator fun CharSequence.invoke(
         fileAction: FileAction = FileAction.MaybeCreate,
-        content: CharSequence,
+        content: CharSequence = Original,
         encoding: Charset = Charsets.UTF_8,
         action: RegularFileContext.() -> Unit = NoOp
     ): RegularFileContext = file(this, fileAction) {
