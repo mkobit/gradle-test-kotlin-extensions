@@ -45,6 +45,10 @@ context.run {
 
 * *Breaking* - Removed `CharacterSequence.invoke` methods that produce a `DirectoryContext`.
 
+=== Fixed
+
+* `FileContext.replaceEachLine` uses the supplied encoding instead of always using `UTF-8`
+
 == 0.3.0 (2018/02/19)
 
 === Removed

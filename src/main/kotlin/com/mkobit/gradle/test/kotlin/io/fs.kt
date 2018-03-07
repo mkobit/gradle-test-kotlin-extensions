@@ -126,7 +126,7 @@ public sealed class FileContext(val path: Path) {
               else -> newLine
             }
           }
-      Files.write(path, newLines)
+      Files.write(path, newLines, charset)
     }
   }
 
