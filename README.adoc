@@ -54,19 +54,22 @@ internal class FunctionalTests {
   internal fun `file system manipulation`() {
     val tempDir: File = createTempDir()
     val buildResult = GradleRunner.create().withProjectDir(tempDir).setupProjectDir {
-       file("settings.gradle") { content = "// settings.gradle".toByteArray()}
-       file("build.gradle") { content = "// build.gradle".toByteArray() }
-       directory("src/main/java") {
-         file("MainClass.java") { content = "public class Hello {}".toByteArray() }
-         directory("com/mkobit/") {
-           file("NestedDude.java") {
-             content = "package com.mkobit;${System.lineSeparator()}".toByteArray()
-             append("public class NestedDude {}${System.lineSeparator()}".toByteArray())
-             append("// Additional appended content${System.lineSeparator()}".toByteArray())
-           }
-         }
-       }
-     }.build()
+      file("settings.gradle") { content = "// settings.gradle".toByteArray()}
+      file("build.gradle") { content = "// build.gradle".toByteArray() }
+      directory("src/main/java") {
+        file("MainClass.java") { content = "public class Hello {}".toByteArray() }
+        directory("com/mkobit/") {
+          file("NestedDude.java") {
+            content = "package com.mkobit;".toByteArray()
+            appendNewline()
+            append("public class NestedDude {}")
+            appendNewline()
+            append("// Additional appended content")
+            appendNewline()
+          }
+        }
+      }
+    }.build()
     // Assert on BuildResult
   }
 }
@@ -75,38 +78,48 @@ internal class FunctionalTests {
 The `file` and `directory` methods can take additional options to `Create`, `Get`, or `MaybeCreate`.
 See the `com.mkobit.gradle.test.kotlin.io.FileAction` for other options.
 
-There are also a few `String.invoke` methods to possibly provide a more friendly DSL.
+There are also some DSL-friendly methods:
 
-.Setting up file system resources with DSL friendly methods
+.Setting up file system resources with DSL methods
 [source, kotlin]
 ----
-import org.gradle.testkit.runner.BuildResult
-import org.gradle.testkit.runner.GradleRunner
-import java.io.File
-import com.mkobit.gradle.test.kotlin.testkit.runner.build
-import com.mkobit.gradle.test.kotlin.testkit.runner.buildAndFail
-import com.mkobit.gradle.test.kotlin.testkit.runner.setupProjectDir
 import com.mkobit.gradle.test.kotlin.io.Original
+import com.mkobit.gradle.test.kotlin.testkit.runner.setupProjectDir
+import org.gradle.testkit.runner.GradleRunner
+import org.junit.jupiter.api.Test
+import java.io.File
 
 internal class FunctionalTests {
   @Test
   internal fun `file system manipulation`() {
     val tempDir: File = createTempDir()
     val buildResult = GradleRunner.create().withProjectDir(tempDir).setupProjectDir {
-       "settings.gradle"(content = "// settings.gradle")
-       "build.gradle"(content = "// build.gradle")
-       "src/main/java" {
-         "MainClass.java"(content = "public class Hello {}")
-         "com/mkobit/" {
-           // 'Original' constant here means to not modify any existing content
-           "NestedDude.java"(content = Original) {
-             content = "package com.mkobit;${System.lineSeparator()}".toByteArray()
-             append("public class NestedDude {}${System.lineSeparator()}".toByteArray())
-             append("// Additional appended content${System.lineSeparator()}".toByteArray())
-           }
-         }
-       }
-     }.build()
+      "settings.gradle"(content = "// settings.gradle")
+      "build.gradle"(content = "// build.gradle")
+      directory("src/main/java") {
+        "MainClass.java"(content = "public class Hello {}")
+        directory("com/mkobit/") {
+          // 'Original' constant here means to not modify any existing content
+          "NestedDude.java"(content = Original) {
+            content = "package com.mkobit;".toByteArray()
+            appendNewline()
+            append("public class NestedDude {}${System.lineSeparator()}")
+            appendNewline()
+            append("// Additional appended content${System.lineSeparator()}")
+            appendNewline()
+          }
+          // 'Original' is the default content, so it does not have to be specified
+          "OtherDude.java" {
+            content = """
+              package com.mkobit;
+              public class OtherDude {
+              }
+            """.trimIndent().toByteArray()
+            appendNewline()
+          }
+        }
+      }
+    }.build()
     // Assert on BuildResult
   }
 }

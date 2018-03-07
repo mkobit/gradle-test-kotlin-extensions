@@ -22,6 +22,29 @@ For each release, a subsection should be added for each of the following if they
 * `Fixed` for any bug fixes.
 * `Security` in case of vulnerabilities.
 
+== UNRELEASED
+
+=== Changed
+
+* `RegularFileContext` method `CharacterSequence.invoke` now has a default `content` value of `Original`.
+  This allows for more concise file setup.
++
+[source, kotlin]
+----
+val context: FileContext.DirectoryContext = ...
+context.run {
+  // These are equivalent
+  "myfile"(content = Original {
+  }
+  "myfile" {
+  }
+}
+----
+
+=== Removed
+
+* *Breaking* - Removed `CharacterSequence.invoke` methods that produce a `DirectoryContext`.
+
 == 0.3.0 (2018/02/19)
 
 === Removed
