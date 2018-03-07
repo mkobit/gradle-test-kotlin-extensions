@@ -12,7 +12,7 @@ import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
 plugins {
-  id("com.gradle.build-scan") version "1.11"
+  id("com.gradle.build-scan") version "1.12.1"
   `java-library`
   `maven-publish`
   kotlin("jvm") version "1.2.30"
