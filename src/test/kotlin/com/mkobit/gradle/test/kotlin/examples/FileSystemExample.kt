@@ -75,6 +75,16 @@ internal class FileSystemExample {
               }
             }
           }
+          directory("dir1").directory("dir2").directory("dir3") {
+            file("file1.txt") {
+              content = "nested dir content".toByteArray()
+            }
+          }
+          directory("dir1").directory("dir2") {
+            file("file1.txt") {
+              content = "dir2 content".toByteArray()
+            }
+          }
         }
       }
     }
@@ -102,6 +112,19 @@ internal class FileSystemExample {
                       changed content
                       additional content
                     """.trimIndent())
+                assertThat(it.resolve("dir2"))
+                    .isDirectory()
+                    .satisfies {
+                      assertThat(it.resolve("file1.txt"))
+                          .isRegularFile()
+                          .hasContent("dir2 content")
+                      assertThat(it.resolve("dir3"))
+                          .isDirectory().satisfies {
+                            assertThat(it.resolve("file1.txt"))
+                                .isRegularFile()
+                                .hasContent("nested dir content")
+                          }
+                    }
               }
         }
   }

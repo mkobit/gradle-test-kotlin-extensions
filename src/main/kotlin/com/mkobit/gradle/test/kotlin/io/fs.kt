@@ -240,6 +240,51 @@ public sealed class FileContext(val path: Path) {
     }
 
     /**
+     * Produces a [DirectoryContext] relative to `this` instance.
+     * @return the new [DirectoryContext]
+     * @see directory
+     */
+    public operator fun div(path: CharSequence): DirectoryContext = directory(path)
+
+    /**
+     * Runs the provided [action] with `this` as the receiver.
+     *
+     * This is useful for DSL construction.
+     * Note that `directoryContext / { }` is equivalent to `directoryContext.apply { }`.
+     * @param action the function to run on the receiver
+     * @return `this` instance
+     * @see apply
+     */
+    public operator fun div(action: DirectoryContext.() -> Unit): DirectoryContext = this.apply(action)
+
+    /**
+     * Produces a [DirectoryContext] relative to the receiver.
+     * @receiver the path of the context to resolve
+     * @param action the lambda to provide setup of the directory
+     * @return the new [DirectoryContext]
+     * @see directory
+     */
+    public operator fun CharSequence.div(action: DirectoryContext.() -> Unit): DirectoryContext =
+        this@DirectoryContext.directory(this, action = action)
+
+    /**
+     * Produces a [DirectoryContext] relative to the receiver and the provided [directoryPath] (in that order).
+     *
+     * This is used for DSL method of nested directory creation. For example:
+     * ```
+     * directoryContext.apply {
+     *   "dir1" / "dir2"
+     * }
+     * ```
+     * @receiver the path to resolve relative to `this` instance
+     * @param directoryPath the path to resolve relative to the [DirectoryContext] produced by the `receiver`
+     * @return the new [DirectoryContext] resolved from both the `reciever` and the [directoryPath]
+     * @see directory
+     */
+    public operator fun CharSequence.div(directoryPath: CharSequence): DirectoryContext =
+        directory(this).directory(directoryPath)
+
+    /**
      * Produce a [RegularFileContext] instance with a [Path] resolved from this instance's [path] and the [CharSequence]
      * that this method was invoked on.
      *

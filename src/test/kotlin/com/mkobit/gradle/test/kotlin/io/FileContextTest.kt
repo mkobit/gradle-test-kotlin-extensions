@@ -488,6 +488,51 @@ internal class FileContextTest {
             }
         )
       }
+
+      @Test
+      internal fun `when div operator called and directory does not exist`() {
+        val subdirContext = directoryContext / "dirname"
+        assertThat(subdirContext).isInstanceOf(FileContext.DirectoryContext::class.java)
+        assertThat(subdirContext.path)
+            .isDirectory()
+            .hasFileName("dirname")
+            .hasParent(directoryContext.path)
+      }
+
+      @Test
+      internal fun `when div operator called and directory does exist`() {
+        val dirname = "dirname"
+        Files.createDirectory(directoryContext.path.resolve(dirname))
+        val subdirContext = directoryContext / dirname
+        assertThat(subdirContext).isInstanceOf(FileContext.DirectoryContext::class.java)
+        assertThat(subdirContext.path)
+            .isDirectory()
+            .hasFileName(dirname)
+            .hasParent(directoryContext.path)
+      }
+
+      @Test
+      internal fun `when div operator called and file exists at location then FileAlreadyExistsException is thrown `() {
+        val filename = "filename"
+        Files.createFile(directoryContext.path.resolve(filename))
+        assertThatFileAlreadyExistsException().isThrownBy {
+          directoryContext / filename
+        }
+      }
+
+      @Test
+      internal fun `when div operator called in DSL context`() {
+        directoryContext.run {
+          "subdir1" / {
+
+          }
+          "subdir1" / "subdir2" / {
+
+          }
+          "subdir1" / "subdir2" / "subdir3" / {
+          }
+        }
+      }
     }
 
     @Nested
