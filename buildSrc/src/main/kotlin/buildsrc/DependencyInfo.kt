@@ -16,7 +16,7 @@ object DependencyInfo {
       junitJupiterParams
   )
 
-  val assertJCore = "org.assertj:assertj-core:3.9.0"
+  val assertJCore = "org.assertj:assertj-core:3.9.1"
   val kotlinLogging = "io.github.microutils:kotlin-logging:1.5.3"
   val mockitoCore = "org.mockito:mockito-core:2.15.0"
   val mockitoKotlin = "com.nhaarman:mockito-kotlin:1.5.0"
