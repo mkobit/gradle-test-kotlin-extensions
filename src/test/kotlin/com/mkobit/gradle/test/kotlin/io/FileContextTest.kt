@@ -520,19 +520,6 @@ internal class FileContextTest {
         }
       }
 
-      @Test
-      internal fun `when div operator called in DSL context`() {
-        directoryContext.run {
-          "subdir1" / {
-
-          }
-          "subdir1" / "subdir2" / {
-
-          }
-          "subdir1" / "subdir2" / "subdir3" / {
-          }
-        }
-      }
     }
 
     @Nested
@@ -618,12 +605,14 @@ internal class FileContextTest {
         assertThatFileAlreadyExistsException()
             .isThrownBy { directoryContext.directory("existingDir", requestType) }
       }
+
       @Test
       internal fun `when the directory exists and directory is requested in a nested directory then an exception is thrown`() {
         Files.createDirectories(directoryContext.path.resolve("nested/path/to/existingDir"))
         assertThatFileAlreadyExistsException()
             .isThrownBy { directoryContext.directory("nested/path/to/existingDir", requestType) }
       }
+
       @Test
       internal fun `when a file exists at the path and directory is requested then an exception is thrown`() {
         Files.createFile(directoryContext.path.resolve("existingFile"))
