@@ -18,14 +18,15 @@ private annotation class FilesDsl
 private val NoOp: Any.() -> Unit = {}
 
 /**
- * A constant to be used with the DSL methods for a file that means "use the existing content".
+ * A singleton to be used with the DSL methods for a file that means "use the existing content".
  */
-public val Original: CharSequence = object : CharSequence {
+public object Original : CharSequence {
+  // TODO: these may be revisited - maybe make it just be an empty string?
   override val length: Int
-    get() = throw UnsupportedOperationException("Cannot retrieve length from ${this::class.java.canonicalName}")
+    get() = throw UnsupportedOperationException("Cannot access length from ${this::class.java.canonicalName}")
 
   override fun get(index: Int): Char {
-    throw UnsupportedOperationException("Cannot call subSequence from ${this::class.java.canonicalName}")
+    throw UnsupportedOperationException("Cannot call get from ${this::class.java.canonicalName}")
   }
 
   override fun subSequence(startIndex: Int, endIndex: Int): CharSequence {
