@@ -141,7 +141,7 @@ public sealed class FileContext(val path: Path) {
     }
 
     /**
-     * Produce a [RegularFileContext] instance with a [Path] resolved from this instance's [path].
+     * Produces a [RegularFileContext] instance with a [Path] resolved from this instance's [path].
      * The instance is provisioned based on the provided [fileAction].
      *
      * @param filename the filename to resolve in this instance's [path]
@@ -189,12 +189,12 @@ public sealed class FileContext(val path: Path) {
     }
 
     /**
-     * Produce a [DirectoryContext] instance with a [Path] resolved from this instance's [path].
+     * Produces a [DirectoryContext] instance with a [Path] resolved from this instance's [path].
      * The instance is provisioned based on the provided [fileAction].
      *
-     * @param directoryName the directory name to resolve in this instance's [path]
+     * @param directoryPath the directory path to resolve in this instance's [path]
      * @param fileAction the action to take for the file
-     * @param action the lambda that can provide additional setup of the file
+     * @param action the action to execute on the file
      * @return a [DirectoryContext] for the resolved directory
      * @throws NoSuchFileException if the [action] is [FileAction.Get] and the file is not a
      * directory
@@ -204,11 +204,11 @@ public sealed class FileContext(val path: Path) {
      */
     @Throws(NoSuchFileException::class, FileAlreadyExistsException::class)
     public fun directory(
-        directoryName: CharSequence,
+        directoryPath: CharSequence,
         fileAction: FileAction = FileAction.MaybeCreate,
         action: DirectoryContext.() -> Unit = NoOp
     ): DirectoryContext {
-      val filePath = path.resolve(directoryName.toString())
+      val filePath = path.resolve(directoryPath.toString())
       return translateIoExceptions {
         when (fileAction) {
           is FileAction.Get -> {
@@ -240,7 +240,53 @@ public sealed class FileContext(val path: Path) {
     }
 
     /**
-     * Produce a [RegularFileContext] instance with a [Path] resolved from this instance's [path] and the [CharSequence]
+     * Produces a [DirectoryContext] relative to `this` instance.
+     * @return the new [DirectoryContext]
+     * @param directoryPath the directory path to resolve in this instance's [path]
+     * @see directory
+     */
+    public operator fun div(directoryPath: CharSequence): DirectoryContext = directory(directoryPath)
+
+    /**
+     * Runs the provided [action] with `this` as the receiver.
+     *
+     * This is useful for DSL construction.
+     * Note that `directoryContext / { }` is equivalent to `directoryContext.apply { }`.
+     * @param action the function to run on the created [DirectoryContext]
+     * @return `this` instance
+     * @see apply
+     */
+    public operator fun div(action: DirectoryContext.() -> Unit): DirectoryContext = this.apply(action)
+
+    /**
+     * Produces a [DirectoryContext] relative to the receiver.
+     * @receiver the path of the context to resolve
+     * @param action the function to run on the created [DirectoryContext]
+     * @return the new [DirectoryContext]
+     * @see directory
+     */
+    public operator fun CharSequence.div(action: DirectoryContext.() -> Unit): DirectoryContext =
+        this@DirectoryContext.directory(this, action = action)
+
+    /**
+     * Produces a [DirectoryContext] relative to the receiver and the provided [directoryPath] (in that order).
+     *
+     * This is used for DSL method of nested directory creation. For example:
+     * ```
+     * directoryContext.apply {
+     *   "dir1" / "dir2"
+     * }
+     * ```
+     * @receiver the path to resolve relative to `this` instance
+     * @param directoryPath the path to resolve relative to the [DirectoryContext] produced by the `receiver`
+     * @return the new [DirectoryContext] resolved from both the `receiver` and the [directoryPath]
+     * @see directory
+     */
+    public operator fun CharSequence.div(directoryPath: CharSequence): DirectoryContext =
+        directory(this).directory(directoryPath)
+
+    /**
+     * Produces a [RegularFileContext] instance with a [Path] resolved from this instance's [path] and the [CharSequence]
      * that this method was invoked on.
      *
      * The [content] will be written to the file unless [Original] is specified.
@@ -250,7 +296,7 @@ public sealed class FileContext(val path: Path) {
      * @param content the optional content to write into the file. If [Original] is specified,
      * then the file content will not be changed.
      * @param encoding the encoding to use with the content, defaults to [Charsets.UTF_8]
-     * @param action the lambda that can provide additional setup of the file
+     * @param action the action to execute on the file
      * @return a [RegularFileContext] for the resolved file
      * @throws NoSuchFileException if the [action] is [FileAction.Get] and the file is not a
      * regular file

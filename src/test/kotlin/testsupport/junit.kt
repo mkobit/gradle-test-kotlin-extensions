@@ -14,9 +14,12 @@ import org.junit.jupiter.api.extension.ParameterResolutionException
 import org.junit.jupiter.api.extension.ParameterContext
 import org.junit.jupiter.api.extension.ParameterResolver
 import org.junit.jupiter.api.extension.AfterEachCallback
+import org.junit.platform.commons.support.AnnotationSupport
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.UUID
+import kotlin.reflect.KClass
 
 
 class BooleanArgumentsProvider : ArgumentsProvider {
@@ -45,11 +48,56 @@ class TempDirectory : AfterEachCallback, ParameterResolver {
   @Target(AnnotationTarget.VALUE_PARAMETER)
   annotation class Root
 
-  override fun supportsParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Boolean =
-      parameterContext.parameter.isAnnotationPresent(Root::class.java) && parameterContext.parameter.type == Path::class.java
+  @Retention(AnnotationRetention.RUNTIME)
+  @Target(AnnotationTarget.VALUE_PARAMETER)
+  annotation class File(val parentPath: String = "")
 
-  override fun resolveParameter(parameterContext: ParameterContext, context: ExtensionContext): Any {
-    return getLocalStore(context).getOrComputeIfAbsent<String, Any>(KEY) { key -> createTempDirectory(context) }
+  @Retention(AnnotationRetention.RUNTIME)
+  @Target(AnnotationTarget.VALUE_PARAMETER)
+  annotation class Directory(val parentPath: String = "")
+
+  companion object {
+    private val KEY = TempDirectory::class
+  }
+
+  override fun supportsParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Boolean {
+    return parameterContext.parameter.run {
+      AnnotationSupport.isAnnotated(this, Root::class.java) ||
+          AnnotationSupport.isAnnotated(this, File::class.java) ||
+          AnnotationSupport.isAnnotated(this, Directory::class.java)
+    } && parameterContext.parameter.type == Path::class.java
+  }
+
+  override fun resolveParameter(parameterContext: ParameterContext, context: ExtensionContext): Path {
+    val root = getLocalStore(context).getOrComputeIfAbsent<KClass<TempDirectory>, Path>(
+        KEY,
+        { _ -> createTempDirectory(context) },
+        Path::class.java
+    )
+    return parameterContext.parameter.run {
+      when {
+        AnnotationSupport.isAnnotated(this, Root::class.java) -> root
+        AnnotationSupport.isAnnotated(this, File::class.java) -> {
+          val file = AnnotationSupport.findAnnotation(this, File::class.java).get()
+          if (file.parentPath.isBlank()) {
+            val p = root.resolve(UUID.randomUUID().toString())
+            Files.createFile(p)
+          } else {
+            val directory = Files.createDirectories(root.resolve(file.parentPath))
+            Files.createFile(directory.resolve(UUID.randomUUID().toString()))
+          }
+        }
+        AnnotationSupport.isAnnotated(this, Directory::class.java) -> {
+          val directory = AnnotationSupport.findAnnotation(this, Directory::class.java).get()
+          if (directory.parentPath.isBlank()) {
+          Files.createDirectory(root.resolve(UUID.randomUUID().toString()))
+          } else {
+            Files.createDirectories(root.resolve(directory.parentPath).resolve(UUID.randomUUID().toString()))
+          }
+        }
+        else -> throw ParameterResolutionException("could not resolve parameter $this")
+      }
+    }
   }
 
   @Throws(Exception::class)
@@ -69,13 +117,10 @@ class TempDirectory : AfterEachCallback, ParameterResolver {
 
   private fun createTempDirectory(context: ExtensionContext): Path {
     try {
-      val tempDirName: String
-      if (context.testMethod.isPresent) {
-        tempDirName = context.testMethod.get().name
-      } else if (context.testClass.isPresent) {
-        tempDirName = context.testClass.get().name
-      } else {
-        tempDirName = context.displayName
+      val tempDirName: String = when {
+        context.testMethod.isPresent -> context.testMethod.get().name
+        context.testClass.isPresent -> context.testClass.get().name
+        else -> context.displayName
       }
 
       return Files.createTempDirectory(tempDirName)
@@ -105,10 +150,5 @@ class TempDirectory : AfterEachCallback, ParameterResolver {
         return FileVisitResult.CONTINUE
       }
     })
-  }
-
-  companion object {
-
-    private const val KEY = "tempDirectory"
   }
 }

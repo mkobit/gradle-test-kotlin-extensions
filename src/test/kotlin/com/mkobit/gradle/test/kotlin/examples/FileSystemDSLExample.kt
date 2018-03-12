@@ -45,7 +45,8 @@ internal class FileSystemDSLExample {
           }
         """.trimIndent().toByteArray()
         }
-        directory("myFiles") {
+        // The div ('/') operator can be used for simple directory operations
+        "myFiles" / {
           "file1.txt"(content = "some text in here")
           "file2.txt" {
             append("some text content")
@@ -55,7 +56,7 @@ internal class FileSystemDSLExample {
             append("some byte array content".toByteArray())
             appendNewline()
           }
-          directory("dir1") {
+          "dir1" / {
             "file1.txt" {
               content = "assign content".toByteArray()
             }
@@ -70,6 +71,13 @@ internal class FileSystemDSLExample {
                 }
               }
             }
+          }
+          "dir1" / "dir2" / "dir3" / {
+            "file1.txt"(content = "nested dir content")
+          }
+          "dir1" / "dir2" / "dir3"
+          "dir1" / "dir2" / {
+            "file1.txt"(content = "dir2 content")
           }
         }
       }
@@ -98,6 +106,19 @@ internal class FileSystemDSLExample {
                       changed content
                       additional content
                     """.trimIndent())
+                assertThat(it.resolve("dir2"))
+                    .isDirectory()
+                    .satisfies {
+                      assertThat(it.resolve("file1.txt"))
+                          .isRegularFile()
+                          .hasContent("dir2 content")
+                      assertThat(it.resolve("dir3"))
+                          .isDirectory().satisfies {
+                            assertThat(it.resolve("file1.txt"))
+                                .isRegularFile()
+                                .hasContent("nested dir content")
+                          }
+                    }
               }
         }
   }
