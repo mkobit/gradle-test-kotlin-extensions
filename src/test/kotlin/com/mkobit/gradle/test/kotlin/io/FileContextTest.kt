@@ -454,7 +454,7 @@ internal class FileContextTest {
         )
       }
 
-      @Test internal fun `when div operator called and directory does not exist`() {
+      @Test internal fun `when div operator called and directory does not exist then it is created`() {
         val directoryName = randomString()
         val subdirContext = directoryContext / directoryName
         assertThat(subdirContext).isInstanceOf(FileContext.DirectoryContext::class.java)
@@ -464,23 +464,66 @@ internal class FileContextTest {
             .hasParent(directoryContext.path)
       }
 
-      @Test internal fun `when div operator called and directory does exist`() {
-        val directoryName = randomString()
-        directoryContext.path.newDirectory(directoryName)
-        val subdirContext = directoryContext / directoryName
+      @Test internal fun `when div operator called and directory does exist then it is retrieved`(@TempDirectory.Directory directory: Path) {
+        val subdirContext = directoryContext / directory.fileNameString
         assertThat(subdirContext).isInstanceOf(FileContext.DirectoryContext::class.java)
         assertThat(subdirContext.path)
             .isDirectory()
-            .hasFileName(directoryName)
+            .endsWith(directory)
             .hasParent(directoryContext.path)
       }
 
-      @Test internal fun `when div operator called and file exists at location then FileAlreadyExistsException is thrown `() {
-        val filename = randomString()
-        directoryContext.path.newFile(filename)
+      @Test internal fun `when div operator called and file exists at location then FileAlreadyExistsException is thrown `(@TempDirectory.File file: Path) {
         assertThatFileAlreadyExistsException().isThrownBy {
-          directoryContext / filename
+          directoryContext / file.fileNameString
         }
+      }
+
+      @Test
+      internal fun `when div operator called with multiple paths then it is created`() {
+        val childContext = directoryContext / "first" / "second" / "third"
+
+        assertThat(childContext).isInstanceOf(FileContext.DirectoryContext::class.java)
+        assertThat(childContext.path)
+            .isDirectory()
+            .endsWith(Paths.get("first", "second", "third"))
+      }
+
+      @Test
+      internal fun `when div operator called with body then the body is applied to the instance`() {
+        var invoked = false
+        val result = directoryContext / {
+          invoked = true
+          assertThat(this)
+              .isSameAs(directoryContext)
+        }
+        assertThat(invoked)
+            .withFailMessage("Body was not invoked")
+            .isTrue()
+        assertThat(result)
+            .describedAs("Body returns same instance of invocation")
+            .isSameAs(directoryContext)
+      }
+
+      @Test
+      internal fun `when div operator called with path and body then the body is applied to the path`() {
+        var invoked = false
+        var invokedResult: FileContext.DirectoryContext? = null
+        val result = directoryContext / "childDir" / {
+          invoked = true
+          assertThat(this).isInstanceOf(FileContext.DirectoryContext::class.java)
+          assertThat(path)
+              .hasFileName("childDir")
+              .isDirectory()
+              .hasParent(directoryContext.path)
+          invokedResult = this
+        }
+        assertThat(invoked)
+            .withFailMessage("Body was not invoked")
+            .isTrue()
+        assertThat(result)
+            .describedAs("Body returns receiver of body")
+            .isSameAs(invokedResult)
       }
     }
 
