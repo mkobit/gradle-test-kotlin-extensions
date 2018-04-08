@@ -70,11 +70,11 @@ repositories {
 dependencies {
   api(gradleApi())
   api(gradleTestKit())
-  implementation("io.github.microutils:kotlin-logging:1.5.3")
+  implementation(DependencyInfo.kotlinLogging)
   api(kotlin("stdlib-jre8"))
   testImplementation(kotlin("reflect"))
   testImplementation(DependencyInfo.assertJCore)
-  testImplementation(DependencyInfo.mockitoCore)
+  testImplementation(DependencyInfo.mockito)
   testImplementation(DependencyInfo.mockitoKotlin)
   DependencyInfo.junitTestImplementationArtifacts.forEach {
     testImplementation(it)
