@@ -45,6 +45,8 @@ context.run {
 === Removed
 
 * *Breaking* - Removed `CharacterSequence.invoke` methods that produce a `DirectoryContext`.
+* *Breaking* - Removed `GradleRunner.buildWith` and `GradleRunner.buildAndFailWith` extensions.
+  The improved execution patterns are `com.mkobit.gradle.test.kotlin.testkit.runner.build` and `com.mkobit.gradle.test.kotlin.testkit.runner.buildAndFail` extensions that accept an amount of CLI build arguments to execute with.
 
 === Fixed
 
