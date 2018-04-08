@@ -33,15 +33,9 @@ internal class SystemPropertyLoaderTest {
   internal fun `retrieve all properties`() {
     SoftAssertions.assertSoftly {
       it.run {
-        assertThat(loader.allProperties()).hasEntrySatisfying("java.home") {
-          assertThat(it).isNotNull
-        }.hasEntrySatisfying("user.name") {
-          assertThat(it).isNotNull
-        }.hasEntrySatisfying("java.version") {
-          assertThat(it).isNotNull
-        }.hasEntrySatisfying("java.vendor") {
-          assertThat(it).isNotNull
-        }
+        assertThat(loader.allProperties())
+            .containsKeys("java.home", "user.name", "java.version", "java.vendor")
+            .doesNotContainKey("mkobit.randomkey.does.not.exist.should.not")
       }
     }
   }
