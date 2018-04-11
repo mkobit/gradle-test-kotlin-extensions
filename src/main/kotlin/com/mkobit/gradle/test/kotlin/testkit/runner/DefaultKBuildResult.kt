@@ -21,4 +21,6 @@ internal class DefaultKBuildResult(
   override fun taskPaths(outcome: TaskOutcome): List<String> = delegate.taskPaths(outcome)
 
   override fun getOutput(): String = delegate.output
+
+  override fun toString(): String = "DefaultKBuildResult(projectDir=$projectDir, tasks=$tasks)"
 }

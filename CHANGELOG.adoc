@@ -22,6 +22,12 @@ For each release, a subsection should be added for each of the following if they
 * `Fixed` for any bug fixes.
 * `Security` in case of vulnerabilities.
 
+== 0.5.0 (2018/04/11)
+
+=== Changed
+
+* Added `toString()` implementations to both `DefaultKBuildResult` and `DefaultKBuildTask` to make assertion output friendlier
+
 == 0.4.0 (2018/04/08)
 
 === Changed
