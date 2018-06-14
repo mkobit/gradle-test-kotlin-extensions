@@ -18,9 +18,15 @@ For each release, a subsection should be added for each of the following if they
 * `Added` for new features.
 * `Changed` for changes in existing functionality.
 * `Deprecated` for soon-to-be removed features.
-* `Removed` for now removed features.
 * `Fixed` for any bug fixes.
+* `Removed` for now removed features.
 * `Security` in case of vulnerabilities.
+
+== UNRELEASED
+
+=== Changed
+
+* Dependency version updates
 
 == 0.5.0 (2018/04/11)
 

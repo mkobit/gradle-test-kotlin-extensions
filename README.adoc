@@ -19,6 +19,13 @@
 
 Kotlin extensions and utilities for testing Gradle projects.
 
+== Goals
+
+* Concise and obvious file system set up and manipulation
+* Simplify construction of build arguments
+* Simplify execution of multiple builds
+* Stay very close to built-in Gradle APIs
+
 == Usage
 
 .Add as a dependency

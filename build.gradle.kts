@@ -12,13 +12,13 @@ import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
 plugins {
-  id("com.gradle.build-scan") version "1.13.1"
+  id("com.gradle.build-scan") version "1.14"
   `java-library`
   `maven-publish`
-  kotlin("jvm") version "1.2.31"
-  id("com.github.ben-manes.versions") version "0.17.0"
-  id("com.jfrog.bintray") version "1.8.0"
-  id("org.jetbrains.dokka") version "0.9.16"
+  kotlin("jvm") version "1.2.50"
+  id("com.github.ben-manes.versions") version "0.18.0"
+  id("com.jfrog.bintray") version "1.8.1"
+  id("org.jetbrains.dokka") version "0.9.17"
 }
 
 version = "0.5.0"
@@ -96,7 +96,7 @@ main.java.setSrcDirs(emptyList<Any>())
 
 tasks {
   "wrapper"(Wrapper::class) {
-    gradleVersion = "4.6"
+    gradleVersion = "4.8"
     distributionType = Wrapper.DistributionType.ALL
   }
 
