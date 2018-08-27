@@ -9,6 +9,7 @@ object DependencyInfo {
   const val slf4jVersion = "1.7.25"
 
   const val assertJCore = "org.assertj:assertj-core:3.11.0"
+  const val junitPioneer = "org.junit-pioneer:junit-pioneer:0.1.2"
   const val mockito = "org.mockito:mockito-core:2.21.0"
   const val mockitoKotlin = "com.nhaarman:mockito-kotlin:1.6.0"
   val junitPlatformRunner = junitPlatform("runner")

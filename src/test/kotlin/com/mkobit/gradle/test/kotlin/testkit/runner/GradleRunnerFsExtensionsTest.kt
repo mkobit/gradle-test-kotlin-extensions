@@ -7,7 +7,7 @@ import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.extension.ExtendWith
-import testsupport.TempDirectory
+import org.junitpioneer.jupiter.TempDirectory
 import testsupport.assertSoftly
 import testsupport.dynamicGradleRunnerTest
 import java.io.File
@@ -41,7 +41,7 @@ internal class GradleRunnerFsExtensionsTest {
   }
 
   @Test
-  internal fun `set up a Gradle project using full methods DSL`(@TempDirectory.Root root: Path) {
+  internal fun `set up a Gradle project using full methods DSL`(@TempDirectory.TempDir root: Path) {
     GradleRunner.create().withProjectDir(root.toFile()).setupProjectDir {
       file("settings.gradle") { content = "// settings.gradle".toByteArray()}
       file("build.gradle") { content = "// build.gradle".toByteArray() }
