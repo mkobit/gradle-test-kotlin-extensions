@@ -143,29 +143,20 @@ internal class FileContextTest {
           .isEmpty()
     }
 
-    @Test internal fun `content can be read`() {
+    @Test internal fun `ByteArray content can be written and read`() {
       val content = "here is some file content".toByteArray()
       Files.write(fileContext.path, content)
       assertThat(fileContext.content)
           .isEqualTo(content)
     }
 
-    @Test internal fun `empty content can be written`() {
+    @Test internal fun `empty ByteArray content can be written and read`() {
       fileContext.content = ByteArray(0)
       assertThat(fileContext.content)
           .isEmpty()
     }
 
-    @Test internal fun `entire contents can be written`() {
-      val content = "this is some file content"
-      fileContext.content = content.toByteArray()
-      assertThat(fileContext.content)
-          .isEqualTo(content.toByteArray())
-      assertThat(fileContext.path)
-          .hasContent(content)
-    }
-
-    @Test internal fun `append byte array content to existing file`() {
+    @Test internal fun `append ByteArray content to existing file`() {
       val originalContent = "this is the the original content"
       val appendedContent = "this is the appended content"
       fileContext.content = originalContent.toByteArray()
