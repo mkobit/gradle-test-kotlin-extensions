@@ -12,12 +12,12 @@ import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
 plugins {
-  id("com.gradle.build-scan") version "1.14"
+  id("com.gradle.build-scan") version "1.16"
   `java-library`
   `maven-publish`
-  kotlin("jvm") version "1.2.50"
-  id("com.github.ben-manes.versions") version "0.18.0"
-  id("com.jfrog.bintray") version "1.8.1"
+  kotlin("jvm") version "1.2.61"
+  id("com.github.ben-manes.versions") version "0.20.0"
+  id("com.jfrog.bintray") version "1.8.4"
   id("org.jetbrains.dokka") version "0.9.17"
 }
 
@@ -71,7 +71,7 @@ dependencies {
   api(gradleApi())
   api(gradleTestKit())
   implementation(DependencyInfo.kotlinLogging)
-  api(kotlin("stdlib-jre8"))
+  api(kotlin("stdlib-jdk8"))
   testImplementation(kotlin("reflect"))
   testImplementation(DependencyInfo.assertJCore)
   testImplementation(DependencyInfo.mockito)
@@ -82,7 +82,6 @@ dependencies {
   DependencyInfo.junitTestRuntimeOnlyArtifacts.forEach {
     testRuntimeOnly(it)
   }
-  testImplementation(kotlin("stdlib-jre8"))
 }
 
 java {
@@ -95,7 +94,7 @@ val main = java.sourceSets["main"]!!
 main.java.setSrcDirs(emptyList<Any>())
 
 tasks {
-  "wrapper"(Wrapper::class) {
+  val wrapper by getting(Wrapper::class) {
     gradleVersion = "4.9"
   }
 
@@ -146,7 +145,7 @@ tasks {
     outputDirectory = "$buildDir/javadoc"
     // See https://github.com/Kotlin/dokka/issues/196
     externalDocumentationLink(delegateClosureOf<DokkaConfiguration.ExternalDocumentationLink.Builder> {
-      url = URL("https://docs.gradle.org/current/javadoc/")
+      url = URL("https://docs.gradle.org/${wrapper.gradleVersion}/javadoc/")
     })
     externalDocumentationLink(delegateClosureOf<DokkaConfiguration.ExternalDocumentationLink.Builder> {
       url = URL("https://docs.oracle.com/javase/8/docs/api/")
