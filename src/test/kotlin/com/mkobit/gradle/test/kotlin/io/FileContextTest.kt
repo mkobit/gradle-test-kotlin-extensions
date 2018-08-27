@@ -231,8 +231,8 @@ internal class FileContextTest {
       val directory: Path = Files.createDirectory(tempDir.resolve("tempDir"))
       val regularFile: Path = Files.createFile(tempDir.resolve("tempFile"))
       val doesntExist = directory.resolve("dontexist")
-      val symlink = Files.createSymbolicLink(directory.resolve("symlinkDestination"),
-          Files.createFile(directory.resolve("symlinkSource")))
+      val symlink = Files.createSymbolicLink(directory.resolve("newlink"),
+          Files.createFile(directory.resolve("linkTarget")))
       return Stream.of(
           dynamicTest("constructed with nonexistent file throws IllegalArgumentException") {
             assertThatIllegalArgumentException()
