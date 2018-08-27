@@ -608,60 +608,60 @@ internal class FileContextTest {
     @Nested inner class FileActionGet {
       private val requestType = FileAction.Get
 
-      @Test internal fun `when file does not exist then an exception is thrown`() {
+      @Test internal fun `when a file does not exist then a NoSuchFileException is thrown`() {
         assertThatNoSuchFileException()
-            .isThrownBy { directoryContext.file("doesntExist", requestType) }
+            .isThrownBy { directoryContext.file("nonExistentFile", requestType) }
       }
 
-      @Test internal fun `when file exists directly in the directory then directoryContext can be retrieved`(@TempDirectory.TempDir directory: Path) {
-        val file = Files.createFile(directory.resolve("file"))
-        val fileContext = directoryContext.file(file.fileNameString, requestType)
+      @Test internal fun `when a file is requested and the file exists then the context is retrieved`() {
+        val file = directoryContext.path.newFile("preExistingFile")
+        val fileContext: FileContext.RegularFileContext = directoryContext.file(file.fileNameString, requestType)
         assertThat(fileContext.path)
             .hasParent(directoryContext.path)
             .isRegularFile()
             .isEqualTo(file)
       }
 
-      @Test internal fun `when file exists in a nested directory then directoryContext can be retrieved`(@TempDirectory.TempDir directory: Path) {
-        val file = Files.createFile(Files.createDirectory(directory.resolve("nested")).resolve("file.txt"))
-        val filePath = directoryContext.path.relativize(file)
-        val fileContext = directoryContext.file(filePath.toString(), requestType)
+      @Test internal fun `when a nested file is requested and the file exists then the context is retrieved`() {
+        val file = directoryContext.path.newDirectory("path/to/dir").newFile("preExistingFile")
+        val fileContext: FileContext.RegularFileContext = directoryContext.file("path/to/dir/preExistingFile", requestType)
         assertThat(fileContext.path)
             .isRegularFile()
-            .endsWith(filePath)
+            .startsWith(directoryContext.path)
+            .endsWith(file)
       }
 
-      @Test internal fun `when path is a directory then an exception is thrown`(@TempDirectory.TempDir directory: Path) {
+      @Test internal fun `when a file is requested and the file is a directory then a NoSuchFileException is thrown`() {
+        directoryContext.path.newDirectory("preExistingDir")
         assertThatNoSuchFileException()
-            .isThrownBy { directoryContext.file(directory.fileNameString, requestType) }
+            .isThrownBy { directoryContext.file("preExistingDir", requestType) }
       }
 
-      @Test internal fun `when directory does not exist and directory is requested then a NoSuchFileException is thrown`() {
+      @Test internal fun `when a directory is requested and the directory does not exist then a NoSuchFileException is thrown`() {
         assertThatNoSuchFileException()
             .isThrownBy { directoryContext.directory("nonExistentDirectory", requestType) }
       }
 
-      @Disabled("temporary disable while reworking test structure")
-      @Test internal fun `when direct child directory exists then directoryContext can be retrieved`(@TempDirectory.TempDir directory: Path) {
-        val context = directoryContext.directory(directory.fileNameString, requestType)
+      @Test internal fun `when directory is requested and the directory exists then the context is retrieved`() {
+        val directory = directoryContext.path.newDirectory("preExistingDirectory")
+        val context: FileContext.DirectoryContext = directoryContext.directory("preExistingDirectory", requestType)
         assertThat(context.path)
             .isDirectory()
             .isEqualTo(directory)
       }
 
-      @Test internal fun `when nested directory exists and directory is requested then it is retrieved`(@TempDirectory.TempDir tempDir: Path) {
-        val directory = Files.createDirectories(tempDir.resolve("nested/dir"))
-        val relative = directoryContext.path.relativize(directory)
-        val context = directoryContext.directory(relative.toString(), requestType)
+      @Test internal fun `when nested directory is requested and the directory exists then the context is retrieved`() {
+        val directory = directoryContext.path.newDirectory("nested/pre/existing/dir")
+        val context: FileContext.DirectoryContext = directoryContext.directory("nested/pre/existing/dir", requestType)
         assertThat(context.path)
             .isDirectory()
             .isEqualTo(directory)
       }
 
-      @Test internal fun `when file exists and directory is requested then a NoSuchFileException is thrown`(@TempDirectory.TempDir directory: Path) {
-        val file = Files.createFile(directory.resolve("file"))
+      @Test internal fun `when directory is requested and file exists then a NoSuchFileException is thrown`() {
+        val file = directoryContext.path.newFile("preExistingFile")
         assertThatNoSuchFileException()
-            .isThrownBy { directoryContext.directory(file.fileNameString, requestType) }
+            .isThrownBy { directoryContext.directory("preExistingFile", requestType) }
       }
     }
   }
