@@ -6,6 +6,7 @@ import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
@@ -42,27 +43,31 @@ internal class FileContextTest {
           .isNotNull()
     }
 
-    @TestFactory internal fun `operations throw UnsupportedOperationException`(): Stream<DynamicNode> {
-      return Stream.of(
-          dynamicTest("CharSequence.length") {
-            assertThatExceptionOfType(UnsupportedOperationException::class.java)
-                .isThrownBy {
-                  Original.length
-                }.withMessageContaining("Cannot access length from com.mkobit.gradle.test.kotlin.io.Original")
-          },
-          dynamicTest("CharSequence.get(index)") {
-            assertThatExceptionOfType(UnsupportedOperationException::class.java)
-                .isThrownBy {
-                  Original[0]
-                }.withMessageContaining("Cannot call get from com.mkobit.gradle.test.kotlin.io.Original")
-          },
-          dynamicTest("CharSequence.subSequence(startIndex, endIndex)") {
-            assertThatExceptionOfType(UnsupportedOperationException::class.java)
-                .isThrownBy {
-                  Original.subSequence(0, 0)
-                }.withMessageContaining("Cannot call subSequence from com.mkobit.gradle.test.kotlin.io.Original")
-          }
-      )
+    @DisplayName("CharSequence.length throws UnsupportedOperationException")
+    @Test
+    internal fun `CharSequence_length throws UnsupportedOperationException`() {
+      assertThatExceptionOfType(UnsupportedOperationException::class.java)
+        .isThrownBy {
+          Original.length
+        }.withMessageContaining("Cannot access length from com.mkobit.gradle.test.kotlin.io.Original")
+    }
+
+    @DisplayName("CharSequence.get(index) throws UnsupportedOperationException")
+    @Test
+    internal fun `CharSequence_get throws UnsupportedOperationException`() {
+      assertThatExceptionOfType(UnsupportedOperationException::class.java)
+        .isThrownBy {
+          Original[0]
+        }.withMessageContaining("Cannot call get from com.mkobit.gradle.test.kotlin.io.Original")
+    }
+
+    @DisplayName("CharSequence.subSequence(startIndex, endIndex) throws UnsupportedOperationException")
+    @Test
+    internal fun `CharSequence_subSequence throws UnsupportedOperationException`() {
+      assertThatExceptionOfType(UnsupportedOperationException::class.java)
+        .isThrownBy {
+          Original.subSequence(0, 0)
+        }.withMessageContaining("Cannot call subSequence from com.mkobit.gradle.test.kotlin.io.Original")
     }
   }
 
