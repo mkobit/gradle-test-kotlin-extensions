@@ -26,6 +26,7 @@ For each release, a subsection should be added for each of the following if they
 
 === Changed
 
+* Kotlin `stdlib-jre8` dependency removed in favor of `stdlib-jdk8`
 * Dependency version updates
 
 == 0.5.0 (2018/04/11)
