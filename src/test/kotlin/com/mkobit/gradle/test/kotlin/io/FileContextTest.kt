@@ -71,52 +71,36 @@ internal class FileContextTest {
     }
   }
 
-  @TestFactory internal fun `file attributes`(@TempDirectory.TempDir root: Path): Stream<DynamicNode> {
-    val instant = Instant.from(
+  @Suppress("UNUSED")
+  private interface FileAttributesTests {
+    val context: FileContext
+
+    @Test fun `can get and set last modified time`() {
+      val instant = Instant.from(
         LocalDateTime.of(2011, Month.NOVEMBER, 26, 7, 2)
-            .atZone(ZoneId.systemDefault())
-    )
-    val clock = Clock.fixed(instant, ZoneId.systemDefault())
-    return Stream.of(
-        dynamicTest("regular file modification time") {
-          val context = FileContext.RegularFileContext(root.newFile("fileModTime"))
-          assertThat(context.lastModifiedTime)
-              .isNotNull()
-          context.lastModifiedTime = clock.instant()
-          assertThat(context.lastModifiedTime)
-              .isEqualTo(instant)
-        },
-        dynamicTest("directory modification time") {
-          val context = FileContext.DirectoryContext(root.newDirectory("dirModTime"))
-          assertThat(context.lastModifiedTime)
-              .isNotNull()
-          context.lastModifiedTime = clock.instant()
-          assertThat(context.lastModifiedTime)
-              .isEqualTo(instant)
-        },
-        // TODO: make a cross-platform test here to make sure true and false can both be tested
-        dynamicTest("regular file hidden status") {
-          val context = FileContext.RegularFileContext(root.newFile("notHiddenFile"))
-          assertThat(context.isHidden)
-              .isFalse()
-        },
-        dynamicTest("directory hidden status") {
-          val context = FileContext.DirectoryContext(root.newDirectory("notHiddenDir"))
-          assertThat(context.isHidden)
-              .isFalse()
-        },
-        dynamicTest("regular file size") {
-          val bytes = 10
-          val context = FileContext.RegularFileContext(root.newFile("fileSize", ByteArray(bytes, Int::toByte)))
-          assertThat(context.size)
-              .isEqualTo(bytes.toLong())
-              .isEqualTo(context.content.size.toLong())
-        }
-    )
+          .atZone(ZoneId.systemDefault())
+      )
+      val clock = Clock.fixed(instant, ZoneId.systemDefault())
+
+      assertThat(context.lastModifiedTime)
+        .isNotNull()
+      context.lastModifiedTime = clock.instant()
+      assertThat(context.lastModifiedTime)
+        .isEqualTo(instant)
+    }
+
+    @Test fun `can get hidden status`() {
+      // TODO: make a cross-platform test here to make sure true and false can both be tested
+      assertThat(context.isHidden)
+        .isFalse()
+    }
   }
 
-  @Nested inner class RegularFileContextTest {
+  @Nested inner class RegularFileContextTest : FileAttributesTests {
     private lateinit var fileContext: FileContext.RegularFileContext
+
+    override val context: FileContext
+      get() = fileContext
 
     @BeforeEach internal fun setUp(@TempDirectory.TempDir root: Path, testInfo: TestInfo) {
       fileContext = FileContext.RegularFileContext(Files.createFile(root.resolve(testInfo.displayName)))
@@ -144,6 +128,14 @@ internal class FileContextTest {
             }.doesNotThrowAnyException()
           }
       )
+    }
+
+    @Test internal fun `can get the file size in bytes`() {
+      val bytes = 10
+      fileContext.content = ByteArray(bytes, Int::toByte)
+      assertThat(fileContext.size)
+        .isEqualTo(bytes.toLong())
+        .isEqualTo(fileContext.content.size.toLong())
     }
 
     @Test internal fun `empty content can be read`() {
@@ -231,9 +223,12 @@ internal class FileContextTest {
     }
   }
 
-  @Nested inner class DirectoryContextTest {
+  @Nested inner class DirectoryContextTest : FileAttributesTests {
 
     private lateinit var directoryContext: FileContext.DirectoryContext
+
+    override val context: FileContext
+      get() = directoryContext
 
     @BeforeEach internal fun setUp(@TempDirectory.TempDir root: Path) {
       directoryContext = FileContext.DirectoryContext(root)
