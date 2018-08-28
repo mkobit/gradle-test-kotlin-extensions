@@ -183,7 +183,7 @@ tasks {
   val gitTag by creating(Exec::class) {
     description = "Tags the local repository with version ${project.version}"
     group = PublishingPlugin.PUBLISH_TASK_GROUP
-    commandLine("git", "tag", "-a", project.version, "-m", "Gradle created tag for ${project.version}")
+    commandLine("git", "tag", "--sign", "-a", project.version, "-m", "Gradle created tag for ${project.version}")
   }
 
   val pushGitTag by creating(Exec::class) {
