@@ -94,6 +94,20 @@ internal class FileContextTest {
       assertThat(context.isHidden)
         .isFalse()
     }
+
+    @Disabled("make a cross-platform test here to make sure true and false can both be tested")
+    @Test fun `can set hidden status`() {
+    }
+
+    @Test fun `can get file owner`() {
+      assertThatCode {
+        context.owner
+      }.doesNotThrowAnyException()
+    }
+
+    @Disabled("need to come up with a safe way to test this - see something like https://stackoverflow.com/questions/13241967/change-file-owner-group-under-linux-with-java-nio-files")
+    @Test fun `can set file owner`() {
+    }
   }
 
   @Nested inner class RegularFileContextTest : FileAttributesTests {
