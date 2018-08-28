@@ -117,7 +117,7 @@ internal class FileContextTest {
 
     @Test fun `can set POSIX attributes`() {
       val old = context.posixFilePermissions
-      val new = old + PosixFilePermission.OWNER_EXECUTE - PosixFilePermission.GROUP_READ
+      val new = old + PosixFilePermission.OWNER_EXECUTE - PosixFilePermission.GROUP_READ - PosixFilePermission.OTHERS_READ
       context.posixFilePermissions = new
       assertThat(Files.getPosixFilePermissions(context.path, LinkOption.NOFOLLOW_LINKS))
         .isEqualTo(new)
