@@ -46,4 +46,4 @@ dependencies {
 link:{uri-GradleRunner}[GradleRunner] can be used to execute builds using the link:{uri-testkit}[Gradle TestKit].
 There are a few extensions that make the setup and execution with Kotlin clearer, more concise, and composable.
 
-To see some examples of managing CLI options, running multiple builds, managing the file system content of the project directory, and otheres, see link:src/test/kotlin/com/mkobit/gradle/test/kotlin/examples[the `examples` directory].
+To see some examples of managing CLI options, running multiple builds, managing the file system content of the project directory, and others, see link:src/test/kotlin/com/mkobit/gradle/test/kotlin/examples[the `examples` directory].

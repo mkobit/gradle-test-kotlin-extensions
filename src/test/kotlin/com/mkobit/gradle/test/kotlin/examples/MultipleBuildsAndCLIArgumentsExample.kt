@@ -13,24 +13,15 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInfo
+import org.junit.jupiter.api.extension.ExtendWith
+import org.junitpioneer.jupiter.TempDirectory
 import java.nio.file.Path
 
+@ExtendWith(TempDirectory::class)
 internal class MultipleBuildsAndCLIArgumentsExample {
 
-  private lateinit var directory: Path
-
-  @BeforeEach
-  internal fun setUp(testInfo: TestInfo) {
-    directory = createTempDir(prefix = testInfo.displayName).toPath()
-  }
-
-  @AfterEach
-  internal fun tearDown() {
-    directory.toFile().deleteRecursively()
-  }
-
   @Test
-  internal fun `run multiple builds with different arguments`() {
+  internal fun `run multiple builds with different arguments`(@TempDirectory.TempDir directory: Path) {
     val gradleRunner = GradleRunner.create().apply {
       projectDirPath = directory
       setupProjectDir {

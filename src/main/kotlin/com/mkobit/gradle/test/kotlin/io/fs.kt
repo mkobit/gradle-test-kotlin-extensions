@@ -7,6 +7,7 @@ import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.FileAttribute
 import java.nio.file.attribute.FileTime
+import java.nio.file.attribute.UserPrincipal
 import java.time.Instant
 
 @DslMarker
@@ -58,6 +59,17 @@ public sealed class FileContext(val path: Path) {
    */
   public val isHidden: Boolean
     get() = Files.isHidden(path)
+
+  /**
+   * The owner of a file.
+   * @see Files.getOwner
+   * @see Files.setOwner
+   */
+  public var owner: UserPrincipal
+    get() = Files.getOwner(path)
+    set(value) {
+      Files.setOwner(path, value)
+    }
 
   /**
    * Represents a regular file.
