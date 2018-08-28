@@ -13,7 +13,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInfo
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junitpioneer.jupiter.TempDirectory
+import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.attribute.PosixFilePermission
 
 @ExtendWith(TempDirectory::class)
 internal class FileSystemExample {
@@ -41,6 +43,7 @@ internal class FileSystemExample {
         directory("myFiles") {
           file("file1.txt") {
             content = "some text in here".toByteArray()
+            posixFilePermissions -= setOf(PosixFilePermission.GROUP_READ, PosixFilePermission.OTHERS_READ)
           }
           file("file2.txt") {
             append("some text content")
@@ -87,7 +90,10 @@ internal class FileSystemExample {
         .satisfies {
           assertThat(it.resolve("file1.txt"))
               .isRegularFile()
-              .hasContent("some text in here")
+              .hasContent("some text in here").satisfies { file1 ->
+                  assertThat(Files.getPosixFilePermissions(file1))
+                    .doesNotContain(PosixFilePermission.GROUP_READ)
+              }
           assertThat(it.resolve("file2.txt"))
               .isRegularFile()
               .hasContent("""
