@@ -3,10 +3,12 @@ package com.mkobit.gradle.test.kotlin.io
 import java.io.File
 import java.nio.charset.Charset
 import java.nio.file.Files
+import java.nio.file.LinkOption
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.FileAttribute
 import java.nio.file.attribute.FileTime
+import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.attribute.UserPrincipal
 import java.time.Instant
 
@@ -69,6 +71,18 @@ public sealed class FileContext(val path: Path) {
     get() = Files.getOwner(path)
     set(value) {
       Files.setOwner(path, value)
+    }
+
+  /**
+   * The file's POSIX attributes.
+   * @see Files.getPosixFilePermissions
+   * @see Files.setPosixFilePermissions
+   * @see PosixFilePermission
+   */
+  public var posixFilePermissions: Set<PosixFilePermission>
+    get() = Files.getPosixFilePermissions(path, LinkOption.NOFOLLOW_LINKS)
+    set(value) {
+      Files.setPosixFilePermissions(path, value)
     }
 
   /**

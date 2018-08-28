@@ -21,6 +21,7 @@ import testsupport.fileNameString
 import testsupport.newDirectory
 import testsupport.newFile
 import java.nio.file.Files
+import java.nio.file.LinkOption
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.attribute.PosixFilePermission
@@ -107,6 +108,19 @@ internal class FileContextTest {
 
     @Disabled("need to come up with a safe way to test this - see something like https://stackoverflow.com/questions/13241967/change-file-owner-group-under-linux-with-java-nio-files")
     @Test fun `can set file owner`() {
+    }
+
+    @Test fun `can read POSIX attributes`() {
+      assertThat(context.posixFilePermissions)
+        .isNotEmpty
+    }
+
+    @Test fun `can set POSIX attributes`() {
+      val old = context.posixFilePermissions
+      val new = old + PosixFilePermission.OWNER_EXECUTE - PosixFilePermission.GROUP_READ
+      context.posixFilePermissions = new
+      assertThat(Files.getPosixFilePermissions(context.path, LinkOption.NOFOLLOW_LINKS))
+        .isEqualTo(new)
     }
   }
 
@@ -680,39 +694,46 @@ internal class FileContextTest {
     }
   }
 
-  @TestFactory internal fun `FileRequest types`(): Stream<DynamicNode> {
-    val posixFilePermissions = PosixFilePermissions.asFileAttribute(
-        setOf(
-            PosixFilePermission.GROUP_EXECUTE,
-            PosixFilePermission.GROUP_READ
-        )
+  @Nested inner class FileRequest {
+    private val posixFilePermissions = PosixFilePermissions.asFileAttribute(
+      setOf(
+        PosixFilePermission.GROUP_EXECUTE,
+        PosixFilePermission.GROUP_READ
+      )
     )
 
-    return Stream.of(
-        dynamicTest("Get type is an object") {
-          assertThat(FileAction.Get::class.objectInstance)
-              .withFailMessage("${FileAction.Get::class} must be an object instance")
-              .isNotNull()
-        },
-        dynamicTest("MaybeCreate is a constant") {
-          assertThat(FileAction.MaybeCreate)
-              .isInstanceOf(FileAction.MaybeCreate::class.java)
-        },
-        dynamicTest("MaybeCreate instance with attributes") {
-          val request = FileAction.MaybeCreate(listOf(posixFilePermissions))
-          assertThat(request.fileAttributes)
-              .containsExactly(posixFilePermissions)
-        },
-        dynamicTest("Create is a constant") {
-          assertThat(FileAction.Create)
-              .isInstanceOf(FileAction.Create::class.java)
-        },
-        dynamicTest("Create instance with attributes") {
-          val request = FileAction.Create(listOf(posixFilePermissions))
-          assertThat(request.fileAttributes)
-              .containsExactly(posixFilePermissions)
-        }
-    )
+    @Test
+    internal fun `Get type is an object`() {
+      assertThat(FileAction.Get::class.objectInstance)
+        .withFailMessage("${FileAction.Get::class} must be an object instance")
+        .isNotNull
+    }
+
+    @Test
+    internal fun `MaybeCreate is a constant`() {
+      assertThat(FileAction.MaybeCreate)
+        .isInstanceOf(FileAction.MaybeCreate::class.java)
+    }
+
+    @Test
+    internal fun `MaybeCreate instance with attributes`() {
+      val request = FileAction.MaybeCreate(listOf(posixFilePermissions))
+      assertThat(request.fileAttributes)
+        .containsExactly(posixFilePermissions)
+    }
+
+    @Test
+    internal fun `Create is a constant`() {
+      assertThat(FileAction.Create)
+        .isInstanceOf(FileAction.Create::class.java)
+    }
+
+    @Test
+    internal fun `Create instance with attributes`() {
+      val request = FileAction.Create(listOf(posixFilePermissions))
+      assertThat(request.fileAttributes)
+        .containsExactly(posixFilePermissions)
+    }
   }
 }
 
