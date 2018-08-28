@@ -22,7 +22,12 @@ For each release, a subsection should be added for each of the following if they
 * `Removed` for now removed features.
 * `Security` in case of vulnerabilities.
 
-== UNRELEASED
+== 0.6.0 (2018/08/28)
+
+=== Added
+
+* Support for reading and writing the `owner` of a `FileContext`
+* Support for reading/
 
 === Changed
 
