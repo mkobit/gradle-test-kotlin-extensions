@@ -2,19 +2,20 @@ version: 2.1
 
 executors:
   java-8:
+    working_directory: ~/build-working-directory
     docker:
-    - image: circleci/openjdk:8-jdk
-      environment:
-        JAVA_OPTS: -XX:+UseG1GC
-        # Disable Kotlin compiler daemon - https://discuss.kotlinlang.org/t/solved-disable-kotlin-compiler-process-keepalive/2622
-        GRADLE_OPTS: -Dkotlin.compiler.execution.strategy="in-process"
+      - image: circleci/openjdk:8-jdk
+        environment:
+          JAVA_OPTS: -XX:+UseG1GC
+          # Disable Kotlin compiler daemon - https://discuss.kotlinlang.org/t/solved-disable-kotlin-compiler-process-keepalive/2622
+          GRADLE_OPTS: -Dkotlin.compiler.execution.strategy="in-process"
   java-11:
     working_directory: ~/build-working-directory
     docker:
-    - image: circleci/openjdk:11-jdk
-      environment:
-        # Disable Kotlin compiler daemon - https://discuss.kotlinlang.org/t/solved-disable-kotlin-compiler-process-keepalive/2622
-        GRADLE_OPTS: -Dkotlin.compiler.execution.strategy="in-process"
+      - image: circleci/openjdk:11-jdk
+        environment:
+          # Disable Kotlin compiler daemon - https://discuss.kotlinlang.org/t/solved-disable-kotlin-compiler-process-keepalive/2622
+          GRADLE_OPTS: -Dkotlin.compiler.execution.strategy="in-process"
 
 shared-steps:
   generate-cache-key: &generate-cache-key
@@ -50,8 +51,7 @@ shared-steps:
 
 jobs:
   test-java-8:
-    executor:
-      name: java-8
+    executor: java-8
     steps:
       - checkout
       - *show-java-info
@@ -61,8 +61,7 @@ jobs:
       - *junit-platform-test-results
       - *save-home-cache
   test-java-11:
-    executor:
-      name: java-11
+    executor: java-11
     steps:
       - checkout
       - *show-java-info
