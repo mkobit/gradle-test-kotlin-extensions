@@ -1,4 +1,4 @@
-version: 2
+version: 2.1
 java-8-defaults: &java-8-defaults
   working_directory: ~/build-working-directory
   docker:
@@ -7,10 +7,10 @@ java-8-defaults: &java-8-defaults
         JAVA_OPTS: -XX:+UseG1GC
         # Disable Kotlin compiler daemon - https://discuss.kotlinlang.org/t/solved-disable-kotlin-compiler-process-keepalive/2622
         GRADLE_OPTS: -Dkotlin.compiler.execution.strategy="in-process"
-java-9-defaults: &java-9-defaults
+java-11-defaults: &java-11-defaults
   working_directory: ~/build-working-directory
   docker:
-    - image: circleci/openjdk:9-jdk
+    - image: circleci/openjdk:11-jdk
       environment:
         # Disable Kotlin compiler daemon - https://discuss.kotlinlang.org/t/solved-disable-kotlin-compiler-process-keepalive/2622
         GRADLE_OPTS: -Dkotlin.compiler.execution.strategy="in-process"
@@ -37,7 +37,6 @@ shared-steps:
     run:
       command: |
         java -XshowSettings:vm -XX:+PrintCommandLineFlags -version
-        java -XshowSettings:vm -XX:+PrintCommandLineFlags -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -version
         javac -version
       name: Show Java Version
   run-gradle-build: &run-gradle-build
@@ -59,8 +58,8 @@ jobs:
       - *run-gradle-build
       - *junit-platform-test-results
       - *save-home-cache
-  test-java-9:
-    <<: *java-9-defaults
+  test-java-11:
+    <<: *java-11-defaults
     steps:
       - checkout
       - *show-java-info
@@ -74,4 +73,4 @@ workflows:
   build:
     jobs:
       - test-java-8
-      - test-java-9
+      - test-java-11
