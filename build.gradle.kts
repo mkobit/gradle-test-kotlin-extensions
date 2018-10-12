@@ -90,16 +90,16 @@ java {
   targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-val main = java.sourceSets["main"]!!
+val main = sourceSets["main"]!!
 // No Java in main source set
 main.java.setSrcDirs(emptyList<Any>())
 
 tasks {
-  val wrapper by getting(Wrapper::class) {
-    gradleVersion = "4.9"
+  val wrapper by creating(Wrapper::class) {
+    gradleVersion = "4.10.2"
   }
 
-  withType<Jar> {
+  withType<Jar>().configureEach {
     from(project.projectDir) {
       include("LICENSE.txt")
       into("META-INF")
@@ -114,14 +114,14 @@ tasks {
     }
   }
 
-  withType<Javadoc> {
+  withType<Javadoc>().configureEach {
     options {
       header = project.name
       encoding = "UTF-8"
     }
   }
 
-  withType<KotlinCompile> {
+  withType<KotlinCompile>().configureEach {
     kotlinOptions.jvmTarget = "1.8"
   }
 
@@ -197,7 +197,7 @@ tasks {
     dependsOn(gitDirtyCheck, gitTag)
   }
 
-  "release" {
+  register("release") {
     group = PublishingPlugin.PUBLISH_TASK_GROUP
     description = "Publishes the library and pushes up a Git tag for the current commit"
     dependsOn(bintrayUpload, pushGitTag)
@@ -209,20 +209,18 @@ publishing {
   publications.invoke {
     val sourcesJar by tasks.getting
     val javadocJar by tasks.getting
-    publicationName(MavenPublication::class) {
+    register(publicationName, MavenPublication::class) {
       from(components["java"])
       artifact(sourcesJar)
       artifact(javadocJar)
-      pom.withXml {
-        asNode().apply {
-          appendNode("description", project.description)
-          appendNode("url", ProjectInfo.projectUrl)
-          appendNode("licenses").apply {
-            appendNode("license").apply {
-              appendNode("name", "The MIT License")
-              appendNode("url", "https://opensource.org/licenses/MIT")
-              appendNode("distribution", "repo")
-            }
+      pom {
+        description.set(project.description)
+        url.set(ProjectInfo.projectUrl)
+        licenses {
+          license {
+            name.set("The MIT License")
+            url.set("https://opensource.org/licenses/MIT")
+            distribution.set("repo")
           }
         }
       }
