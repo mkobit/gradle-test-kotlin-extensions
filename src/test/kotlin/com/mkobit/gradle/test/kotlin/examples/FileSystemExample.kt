@@ -87,37 +87,37 @@ internal class FileSystemExample {
 
     assertThat(buildResult.projectDir.resolve("build").resolve("synced"))
         .isDirectory()
-        .satisfies {
-          assertThat(it.resolve("file1.txt"))
+        .satisfies { synced ->
+          assertThat(synced.resolve("file1.txt"))
               .isRegularFile()
               .hasContent("some text in here").satisfies { file1 ->
                   assertThat(Files.getPosixFilePermissions(file1))
                     .doesNotContain(PosixFilePermission.GROUP_READ)
               }
-          assertThat(it.resolve("file2.txt"))
+          assertThat(synced.resolve("file2.txt"))
               .isRegularFile()
               .hasContent("""
                 some text content
                 some text content with specified encoding
                 some byte array content
               """.trimIndent())
-          assertThat(it.resolve("dir1"))
+          assertThat(synced.resolve("dir1"))
               .isDirectory()
-              .satisfies {
-                assertThat(it.resolve("file1.txt"))
+              .satisfies { dir1 ->
+                assertThat(dir1.resolve("file1.txt"))
                     .hasContent("""
                       changed content
                       additional content
                     """.trimIndent())
-                assertThat(it.resolve("dir2"))
+                assertThat(dir1.resolve("dir2"))
                     .isDirectory()
-                    .satisfies {
-                      assertThat(it.resolve("file1.txt"))
+                    .satisfies { dir2 ->
+                      assertThat(dir2.resolve("file1.txt"))
                           .isRegularFile()
                           .hasContent("dir2 content")
-                      assertThat(it.resolve("dir3"))
-                          .isDirectory().satisfies {
-                            assertThat(it.resolve("file1.txt"))
+                      assertThat(dir2.resolve("dir3"))
+                          .isDirectory().satisfies { dir3 ->
+                          assertThat(dir3.resolve("file1.txt"))
                                 .isRegularFile()
                                 .hasContent("nested dir content")
                           }
