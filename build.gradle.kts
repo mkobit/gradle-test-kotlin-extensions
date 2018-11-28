@@ -12,10 +12,10 @@ import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
 plugins {
-  id("com.gradle.build-scan") version "1.16"
+  id("com.gradle.build-scan") version "2.0.2"
   `java-library`
   `maven-publish`
-  kotlin("jvm") version "1.2.61"
+  kotlin("jvm") version "1.3.10"
   id("com.github.ben-manes.versions") version "0.20.0"
   id("com.jfrog.bintray") version "1.8.4"
   id("org.jetbrains.dokka") version "0.9.17"
@@ -41,8 +41,8 @@ val SourceSet.kotlin: SourceDirectorySet
 buildScan {
   fun env(key: String): String? = System.getenv(key)
 
-  setTermsOfServiceAgree("yes")
-  setTermsOfServiceUrl("https://gradle.com/terms-of-service")
+  termsOfServiceAgree = "yes"
+  termsOfServiceUrl = "https://gradle.com/terms-of-service"
 
   // Env variables from https://circleci.com/docs/2.0/env-vars/
   if (env("CI") != null) {
@@ -95,8 +95,8 @@ val main = sourceSets["main"]!!
 main.java.setSrcDirs(emptyList<Any>())
 
 tasks {
-  val wrapper by creating(Wrapper::class) {
-    gradleVersion = "4.10.2"
+  wrapper  {
+    gradleVersion = "5.0"
   }
 
   withType<Jar>().configureEach {
@@ -125,7 +125,7 @@ tasks {
     kotlinOptions.jvmTarget = "1.8"
   }
 
-  "test"(Test::class) {
+  test {
     useJUnitPlatform()
     systemProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager")
     testLogging {
@@ -146,7 +146,7 @@ tasks {
     outputDirectory = "$buildDir/javadoc"
     // See https://github.com/Kotlin/dokka/issues/196
     externalDocumentationLink(delegateClosureOf<DokkaConfiguration.ExternalDocumentationLink.Builder> {
-      url = URL("https://docs.gradle.org/${wrapper.gradleVersion}/javadoc/")
+      url = URL("https://docs.gradle.org/${wrapper.map { it.gradleVersion }.get() }/javadoc/")
     })
     externalDocumentationLink(delegateClosureOf<DokkaConfiguration.ExternalDocumentationLink.Builder> {
       url = URL("https://docs.oracle.com/javase/8/docs/api/")

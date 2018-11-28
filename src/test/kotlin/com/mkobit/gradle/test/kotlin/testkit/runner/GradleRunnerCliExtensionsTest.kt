@@ -7,9 +7,9 @@ import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.TestFactory
 import testsupport.dynamicGradleRunnerTest
-import java.nio.file.Paths.get as Path
 import java.util.stream.Stream
 import kotlin.reflect.KMutableProperty1
+import java.nio.file.Paths.get as Path
 
 internal class GradleRunnerCliExtensionsTest {
 
