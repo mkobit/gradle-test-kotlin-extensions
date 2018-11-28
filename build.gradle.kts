@@ -15,7 +15,7 @@ plugins {
   id("com.gradle.build-scan") version "2.0.2"
   `java-library`
   `maven-publish`
-  kotlin("jvm") version "1.2.61"
+  kotlin("jvm") version "1.3.10"
   id("com.github.ben-manes.versions") version "0.20.0"
   id("com.jfrog.bintray") version "1.8.4"
   id("org.jetbrains.dokka") version "0.9.17"
@@ -125,7 +125,7 @@ tasks {
     kotlinOptions.jvmTarget = "1.8"
   }
 
-  "test"(Test::class) {
+  test {
     useJUnitPlatform()
     systemProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager")
     testLogging {
