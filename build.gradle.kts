@@ -131,14 +131,18 @@ tasks {
     }
   }
 
-  val sourcesJar by creating(Jar::class) {
+  jar {
+    enabled = false
+  }
+
+  val sourcesJar by registering(Jar::class) {
     classifier = "sources"
     from(main.allSource)
     description = "Assembles a JAR of the source code"
     group = JavaBasePlugin.DOCUMENTATION_GROUP
   }
 
-  val dokka by getting(DokkaTask::class) {
+  dokka {
     dependsOn(main.classesTaskName)
     outputFormat = "html"
     outputDirectory = "$buildDir/javadoc"
@@ -151,19 +155,19 @@ tasks {
     }
   }
 
-  val javadocJar by creating(Jar::class) {
+  val javadocJar by registering(Jar::class) {
     dependsOn(dokka)
-    from(dokka.outputDirectory)
+    from(dokka.map { it.outputDirectory })
     classifier = "javadoc"
     description = "Assembles a JAR of the generated Javadoc"
     group = JavaBasePlugin.DOCUMENTATION_GROUP
   }
 
-  "assemble" {
+  assemble {
     dependsOn(sourcesJar, javadocJar)
   }
 
-  val gitDirtyCheck by creating {
+  val gitDirtyCheck by registering {
     doFirst {
       val output = ByteArrayOutputStream().use {
         exec {
@@ -178,20 +182,20 @@ tasks {
     }
   }
 
-  val gitTag by creating(Exec::class) {
+  val gitTag by registering(Exec::class) {
     description = "Tags the local repository with version ${project.version}"
     group = PublishingPlugin.PUBLISH_TASK_GROUP
     commandLine("git", "tag", "--sign", "-a", project.version, "-m", "Gradle created tag for ${project.version}")
   }
 
-  val pushGitTag by creating(Exec::class) {
+  val pushGitTag by registering(Exec::class) {
     description = "Pushes Git tag ${project.version} to origin"
     group = PublishingPlugin.PUBLISH_TASK_GROUP
     dependsOn(gitTag)
     commandLine("git", "push", "origin", "refs/tags/${project.version}")
   }
 
-  val bintrayUpload by getting {
+  bintrayUpload {
     dependsOn(gitDirtyCheck, gitTag)
   }
 
@@ -204,7 +208,7 @@ tasks {
 
 val publicationName = "gradleTestKotlinExtensions"
 publishing {
-  publications.invoke {
+  publications {
     val sourcesJar by tasks.getting
     val javadocJar by tasks.getting
     register(publicationName, MavenPublication::class) {
@@ -237,7 +241,6 @@ bintray {
     repo = "gradle"
     name = project.name
     userOrg = "mkobit"
-
     setLabels("gradle", "test", "plugins", "kotlin")
     setLicenses("MIT")
     desc = project.description
