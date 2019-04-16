@@ -9,14 +9,13 @@ import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.junitpioneer.jupiter.TempDirectory
+import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 
-@ExtendWith(TempDirectory::class)
 internal class FileSystemDSLExample {
 
   @Test
-  internal fun `file system manipulation using DSL`(@TempDirectory.TempDir directory: Path) {
+  internal fun `file system manipulation using DSL`(@TempDir directory: Path) {
     val gradleRunner = GradleRunner.create().apply {
       projectDirPath = directory
       setupProjectDir {

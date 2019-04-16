@@ -13,8 +13,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.TestInfo
-import org.junit.jupiter.api.extension.ExtendWith
-import org.junitpioneer.jupiter.TempDirectory
+import org.junit.jupiter.api.io.TempDir
 import testsupport.assertThatFileAlreadyExistsException
 import testsupport.assertThatNoSuchFileException
 import testsupport.fileNameString
@@ -34,7 +33,6 @@ import java.time.ZoneId
 import java.util.UUID
 import java.util.stream.Stream
 
-@ExtendWith(TempDirectory::class)
 internal class FileContextTest {
 
   @Nested inner class OriginalTest {
@@ -130,12 +128,12 @@ internal class FileContextTest {
     override val context: FileContext
       get() = fileContext
 
-    @BeforeEach internal fun setUp(@TempDirectory.TempDir root: Path, testInfo: TestInfo) {
+    @BeforeEach internal fun setUp(@TempDir root: Path, testInfo: TestInfo) {
       fileContext = FileContext.RegularFileContext(Files.createFile(root.resolve(testInfo.displayName)))
     }
 
     @TestFactory internal fun `constructor validation`(
-      @TempDirectory.TempDir tempDir: Path
+      @TempDir tempDir: Path
     ): Stream<DynamicNode> {
       val directory: Path = Files.createDirectory(tempDir.resolve("tempDir"))
       val regularFile: Path = Files.createFile(tempDir.resolve("tempFile"))
@@ -249,12 +247,12 @@ internal class FileContextTest {
     override val context: FileContext
       get() = directoryContext
 
-    @BeforeEach internal fun setUp(@TempDirectory.TempDir directory: Path) {
+    @BeforeEach internal fun setUp(@TempDir directory: Path) {
       directoryContext = FileContext.DirectoryContext(directory)
     }
 
     @TestFactory internal fun `constructor validation`(
-      @TempDirectory.TempDir tempDir: Path
+      @TempDir tempDir: Path
     ): Stream<DynamicNode> {
       val directory: Path = Files.createDirectory(tempDir.resolve("tempDir"))
       val regularFile: Path = Files.createFile(tempDir.resolve("tempFile"))
@@ -626,7 +624,7 @@ internal class FileContextTest {
             .isThrownBy { directoryContext.directory("pre/existing/nested/dir", requestType) }
       }
 
-      @Test internal fun `when a directory is requested and file already exists then a FileAlreadyExistsException is thrown`(@TempDirectory.TempDir directory: Path) {
+      @Test internal fun `when a directory is requested and file already exists then a FileAlreadyExistsException is thrown`(@TempDir directory: Path) {
         directoryContext.path.newFile("preExistingFile")
         assertThatFileAlreadyExistsException()
             .isThrownBy { directoryContext.directory("preExistingFile", requestType) }

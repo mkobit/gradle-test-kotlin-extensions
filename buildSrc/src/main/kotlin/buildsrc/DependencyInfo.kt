@@ -7,16 +7,15 @@ object DependencyInfo {
   private const val kotlinLoggingVersion = "1.6.26"
 
   const val assertJCore = "org.assertj:assertj-core:3.12.2"
-  const val junitPioneer = "org.junit-pioneer:junit-pioneer:0.3.0"
   const val mockito = "org.mockito:mockito-core:2.27.0"
   const val mockitoKotlin = "com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0"
-  val junitPlatformRunner = junitPlatform("runner")
-  val junitJupiterApi = junitJupiter("api")
-  val junitJupiterEngine = junitJupiter("engine")
-  val junitJupiterParams = junitJupiter("params")
+  private val junitPlatformRunner = junitPlatform("runner")
+  private val junitJupiterApi = junitJupiter("api")
+  private val junitJupiterEngine = junitJupiter("engine")
+  private val junitJupiterParams = junitJupiter("params")
   const val kotlinLogging = "io.github.microutils:kotlin-logging:$kotlinLoggingVersion"
-  val log4jCore = log4j("core")
-  val log4jJul = log4j("jul")
+  private val log4jCore = log4j("core")
+  private val log4jJul = log4j("jul")
 
   val junitTestImplementationArtifacts = listOf(
       junitPlatformRunner,

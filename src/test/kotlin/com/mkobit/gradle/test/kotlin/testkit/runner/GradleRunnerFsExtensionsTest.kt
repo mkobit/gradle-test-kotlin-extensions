@@ -6,15 +6,13 @@ import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.extension.ExtendWith
-import org.junitpioneer.jupiter.TempDirectory
+import org.junit.jupiter.api.io.TempDir
 import testsupport.assertSoftly
 import testsupport.dynamicGradleRunnerTest
 import java.io.File
 import java.nio.file.Path
 import java.util.stream.Stream
 
-@ExtendWith(TempDirectory::class)
 internal class GradleRunnerFsExtensionsTest {
 
   @TestFactory
@@ -41,7 +39,7 @@ internal class GradleRunnerFsExtensionsTest {
   }
 
   @Test
-  internal fun `set up a Gradle project using full methods DSL`(@TempDirectory.TempDir root: Path) {
+  internal fun `set up a Gradle project using full methods DSL`(@TempDir root: Path) {
     GradleRunner.create().withProjectDir(root.toFile()).setupProjectDir {
       file("settings.gradle") { content = "// settings.gradle".toByteArray()}
       file("build.gradle") { content = "// build.gradle".toByteArray() }

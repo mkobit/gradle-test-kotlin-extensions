@@ -7,21 +7,16 @@ import com.mkobit.gradle.test.kotlin.testkit.runner.projectDirPath
 import com.mkobit.gradle.test.kotlin.testkit.runner.setupProjectDir
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInfo
-import org.junit.jupiter.api.extension.ExtendWith
-import org.junitpioneer.jupiter.TempDirectory
+import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermission
 
-@ExtendWith(TempDirectory::class)
 internal class FileSystemExample {
 
   @Test
-  internal fun `file system manipulation`(@TempDirectory.TempDir directory: Path) {
+  internal fun `file system manipulation`(@TempDir directory: Path) {
     val gradleRunner = GradleRunner.create().apply {
       projectDirPath = directory
       setupProjectDir {
