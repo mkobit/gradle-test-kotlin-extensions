@@ -24,6 +24,11 @@ For each release, a subsection should be added for each of the following if they
 
 == UNRELEASED
 
+=== Deprecated
+
+* `GradleRunner.resolveFromProjectDir` extension method.
+  It is generally superfluous and decreases readability, and will be removed in a future release.
+
 === Fixed
 
 * `RegularFileContext` and `DirectoryContext` no longer follows.
