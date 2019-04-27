@@ -142,7 +142,7 @@ tasks {
   }
 
   val sourcesJar by registering(Jar::class) {
-    classifier = "sources"
+    archiveClassifier.set("sources")
     from(main.allSource)
     description = "Assembles a JAR of the source code"
     group = JavaBasePlugin.DOCUMENTATION_GROUP
@@ -164,6 +164,7 @@ tasks {
   val javadocJar by registering(Jar::class) {
     dependsOn(dokka)
     from(dokka.map { it.outputDirectory })
+    archiveClassifier.set("javadoc")
     classifier = "javadoc"
     description = "Assembles a JAR of the generated Javadoc"
     group = JavaBasePlugin.DOCUMENTATION_GROUP
