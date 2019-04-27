@@ -13,13 +13,13 @@ plugins {
   `java-library`
   `maven-publish`
   kotlin("jvm") version "1.3.31"
+  id("nebula.release") version "10.1.1"
   id("com.github.ben-manes.versions") version "0.21.0"
   id("com.jfrog.bintray") version "1.8.4"
   id("org.jetbrains.dokka") version "0.9.18"
   id("org.jlleitschuh.gradle.ktlint") version "7.4.0"
 }
 
-version = "0.6.0"
 group = "com.mkobit.gradle.test"
 description = "Kotlin library to aid in writing tests for Gradle"
 
@@ -173,42 +173,8 @@ tasks {
     dependsOn(sourcesJar, javadocJar)
   }
 
-  val gitDirtyCheck by registering {
-    doFirst {
-      val output = ByteArrayOutputStream().use {
-        exec {
-          commandLine("git", "status", "--porcelain")
-          standardOutput = it
-        }
-        it.toString(Charsets.UTF_8.name()).trim()
-      }
-      if (output.isNotBlank()) {
-        throw GradleException("Workspace is dirty:\n$output")
-      }
-    }
-  }
-
-  val gitTag by registering(Exec::class) {
-    description = "Tags the local repository with version ${project.version}"
-    group = PublishingPlugin.PUBLISH_TASK_GROUP
-    commandLine("git", "tag", "--sign", "-a", project.version, "-m", "Gradle created tag for ${project.version}")
-  }
-
-  val pushGitTag by registering(Exec::class) {
-    description = "Pushes Git tag ${project.version} to origin"
-    group = PublishingPlugin.PUBLISH_TASK_GROUP
-    dependsOn(gitTag)
-    commandLine("git", "push", "origin", "refs/tags/${project.version}")
-  }
-
-  bintrayUpload {
-    dependsOn(gitDirtyCheck, gitTag)
-  }
-
-  register("release") {
-    group = PublishingPlugin.PUBLISH_TASK_GROUP
-    description = "Publishes the library and pushes up a Git tag for the current commit"
-    dependsOn(bintrayUpload, pushGitTag)
+  (release) {
+    dependsOn(bintrayUpload)
   }
 }
 
@@ -237,10 +203,8 @@ publishing {
 }
 
 bintray {
-  val bintrayUser = project.findProperty("bintrayUser") as String?
-  val bintrayApiKey = project.findProperty("bintrayApiKey") as String?
-  user = bintrayUser
-  key = bintrayApiKey
+  user = System.getenv("BINTRAY_USER")
+  key = System.getenv("BINTRAY_KEY")
   publish = true
   setPublications(publicationName)
   pkg(delegateClosureOf<BintrayExtension.PackageConfig> {

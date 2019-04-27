@@ -18,12 +18,19 @@ executors:
           GRADLE_OPTS: -Dkotlin.compiler.execution.strategy="in-process"
 
 commands:
-  gradle-build:
-    description: Runs './gradlew build' testing against the provided version
+  gradle:
+    description: Runs './gradlew' command with the provided cmmand
+    parameters:
+      command:
+        type: string
+        default: build
+      submit-build-scan:
+        type: boolean
+        default: false
     steps:
       - run:
-          name: Run Gradle Build
-          command: ./gradlew build --scan
+          name: Run Gradle Command
+          command: ./gradlew << parameters.command >><<# parameters.submit-build-scan >> --scan<</ parameters.submit-build-scan >> --stacktrace
       - store_test_results:
           path: ~/build-working-directory/build/test-results/
   restore-home-cache:
@@ -52,52 +59,41 @@ commands:
           key: v2-home-cache-{{ checksum "build/circle-ci-key.txt" }}
           when: always
 
-#shared-steps:
-#  generate-cache-key: &generate-cache-key
-#    run:
-#      command: |
-#        mkdir -p build
-#        find settings.gradle.kts build.gradle.kts gradle buildSrc/src buildSrc/build.gradle.kts -type f -exec sha256sum '{}' \; | tee build/circle-ci-key.txt
-#      name: Generate cache key
-#  restore-home-cache: &restore-home-cache
-#    restore_cache:
-#      keys:
-#        - v2-home-cache-{{ checksum "build/circle-ci-key.txt" }}
-#        - v2-home-cache-
-#  save-home-cache: &save-home-cache
-#    save_cache:
-#      paths:
-#        - ~/.gradle
-#      key: v2-home-cache-{{ checksum "build/circle-ci-key.txt" }}
-#      when: always
-#  show-java-info: &show-java-info
-#    run:
-#      command: |
-#        java -XshowSettings:vm -XX:+PrintCommandLineFlags -version
-#        javac -version
-#      name: Show Java Version
-#  run-gradle-build: &run-gradle-build
-#    run:
-#      command: ./gradlew build --scan --stacktrace
-#      name: Run Gradle Build
-#  junit-platform-test-results: &junit-platform-test-results
-#    store_test_results:
-#      path: ~/build-working-directory/build/test-results/
-
 jobs:
   test-java-8:
     executor: java-8
     steps:
       - checkout
       - restore-home-cache
-      - gradle-build
+      - gradle:
+          submit-build-scan: true
       - save-home-cache
+      - persist_to_workspace:
+          root: ~/build-working-directory
+          paths:
+            - .gradle/*
+            - build/*
+            - buildSrc/.gradle/*
+            - buildSrc/build/*
   test-java-11:
     executor: java-11
     steps:
       - checkout
       - restore-home-cache
-      - gradle-build
+      - attach_workspace:
+          at: ~/build-working-directory
+      - gradle:
+          submit-build-scan: true
+  publish:
+    executor: java-8
+    steps:
+      - checkout
+      - restore-home-cache
+      - attach_workspace:
+          at: ~/build-working-directory
+      - gradle:
+          command: final -P release.useLastTag=true --exclude-task prepare --exclude-task test
+      - save-home-cache
 
 workflows:
   version: 2
@@ -107,3 +103,11 @@ workflows:
       - test-java-11:
           requires:
             - test-java-8
+      - publish:
+          requires:
+            - test-java-8
+            - test-java-11
+          filters:
+            tags:
+              only: /^\d+\.\d+\.\d+/
+          context: BintrayPublish
