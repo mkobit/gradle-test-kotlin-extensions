@@ -12,7 +12,7 @@ plugins {
   id("com.gradle.build-scan") version "2.2.1"
   `java-library`
   `maven-publish`
-  kotlin("jvm") version "1.3.10"
+  kotlin("jvm") version "1.3.31"
   id("com.github.ben-manes.versions") version "0.21.0"
   id("com.jfrog.bintray") version "1.8.4"
   id("org.jetbrains.dokka") version "0.9.18"
