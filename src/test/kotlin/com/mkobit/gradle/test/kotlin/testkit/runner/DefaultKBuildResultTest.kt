@@ -1,11 +1,12 @@
 package com.mkobit.gradle.test.kotlin.testkit.runner
 
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.verify
-import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
-import com.nhaarman.mockitokotlin2.whenever
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
+import io.mockk.verifyAll
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.BuildTask
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -20,64 +21,64 @@ internal class DefaultKBuildResultTest {
 
   @BeforeEach
   internal fun setUp() {
-    mockBuildResult = mock()
-    mockProjectDir = mock()
-    mockKBuildTask = mock()
+    mockBuildResult = mockk()
+    mockProjectDir = mockk()
+    mockKBuildTask = mockk()
     defaultKBuildResult = DefaultKBuildResult(mockProjectDir, mockBuildResult)
   }
 
   @Test
   internal fun `returns delegate's task at task path`() {
     val taskPath = ":myPath"
+    every { defaultKBuildResult.task(taskPath) }.returns(null)
+
     assertThat(defaultKBuildResult.task(taskPath))
       .isNull()
-
-    verify(mockBuildResult).task(taskPath)
-    verifyNoMoreInteractions(mockBuildResult, mockProjectDir)
+    verifyAll { mockBuildResult.task(taskPath) }
   }
 
   @Test
   internal fun `returns delegate's tasks for outcome`() {
     val outcome = TaskOutcome.SUCCESS
+    every { mockBuildResult.tasks(outcome) }.returns(emptyList())
 
     assertThat(defaultKBuildResult.tasks(outcome)).isEmpty()
-    verify(mockBuildResult).tasks(outcome)
-    verifyNoMoreInteractions(mockBuildResult, mockProjectDir)
+    verifyAll { mockBuildResult.tasks(outcome) }
   }
 
   @Test
   internal fun `returns delegate's tasks`() {
+    every { mockBuildResult.tasks }.returns(emptyList())
+
     assertThat(defaultKBuildResult.tasks).isEmpty()
 
-    verify(mockBuildResult).tasks
-    verifyNoMoreInteractions(mockBuildResult, mockProjectDir)
+    verify { mockBuildResult.tasks }
   }
 
   @Test
   internal fun `returns delegate's task paths for outcome`() {
     val taskPaths = listOf(":hello")
     val outcome = TaskOutcome.SUCCESS
-    whenever(mockBuildResult.taskPaths(outcome)).thenReturn(taskPaths)
+    every { mockBuildResult.taskPaths(outcome) }.returns(taskPaths)
 
     assertThat(defaultKBuildResult.taskPaths(outcome)).isSameAs(taskPaths)
-    verify(mockBuildResult).taskPaths(outcome)
-    verifyNoMoreInteractions(mockBuildResult, mockProjectDir)
+    verify { mockBuildResult.taskPaths(outcome) }
   }
 
   @Test
   internal fun `returns delegate's output`() {
     val output = "build output"
-    whenever(mockBuildResult.output).thenReturn(output)
+    every { mockBuildResult.output }.returns(output)
 
     assertThat(defaultKBuildResult.output).isSameAs(output)
-    verify(mockBuildResult).output
-    verifyNoMoreInteractions(mockBuildResult, mockProjectDir)
+    verify { mockBuildResult.output }
   }
 
   @Test
   internal fun `user friendly toString() method`() {
     val pathToStringPlaceholder = "PLACEHOLDER"
-    whenever(mockProjectDir.toString()).thenReturn(pathToStringPlaceholder)
+    every { mockProjectDir.toString() }.returns(pathToStringPlaceholder)
+    every { mockBuildResult.tasks }.returns(emptyList())
 
     assertThat(defaultKBuildResult.toString())
       .isEqualTo("DefaultKBuildResult(projectDir=$pathToStringPlaceholder, tasks=[])")

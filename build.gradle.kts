@@ -71,8 +71,7 @@ dependencies {
   api(kotlin("stdlib-jdk8"))
   testImplementation(kotlin("reflect"))
   testImplementation(DependencyInfo.assertJCore)
-  testImplementation(DependencyInfo.mockito)
-  testImplementation(DependencyInfo.mockitoKotlin)
+  testImplementation(DependencyInfo.mockk)
   DependencyInfo.junitTestImplementationArtifacts.forEach {
     testImplementation(it)
   }

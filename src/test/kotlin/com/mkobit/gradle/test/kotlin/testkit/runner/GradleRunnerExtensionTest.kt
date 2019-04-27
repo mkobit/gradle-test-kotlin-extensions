@@ -1,8 +1,7 @@
 package com.mkobit.gradle.test.kotlin.testkit.runner
 
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.whenever
+import io.mockk.every
+import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatIllegalStateException
 import org.gradle.testkit.runner.BuildResult
@@ -18,16 +17,16 @@ internal class GradleRunnerExtensionTest {
 
   @BeforeEach
   internal fun setUp() {
-    mockBuildResult = mock()
-    mockGradleRunner = mock {
-      on { build() } doReturn mockBuildResult
-      on { buildAndFail() } doReturn mockBuildResult
+    mockBuildResult = mockk()
+    mockGradleRunner = mockk {
+      every { build() }.returns(mockBuildResult)
+      every { buildAndFail() }.returns(mockBuildResult)
     }
   }
 
   @Test
   internal fun `resolve path from projectDir when projectDir unset`() {
-    whenever(mockGradleRunner.projectDir).thenReturn(null)
+    every { mockGradleRunner.projectDir }.returns(null)
 
     assertThatIllegalStateException().isThrownBy { mockGradleRunner.resolveFromProjectDir(Paths.get("a")) }
   }
@@ -35,7 +34,7 @@ internal class GradleRunnerExtensionTest {
   @Test
   internal fun `resolve path from projectDir`() {
     val projectDirPath = Paths.get("a")
-    whenever(mockGradleRunner.projectDir).thenReturn(projectDirPath.toFile())
+    every { mockGradleRunner.projectDir }.returns(projectDirPath.toFile())
 
     val resolvePath = Paths.get("b")
     val actual = mockGradleRunner.resolveFromProjectDir(resolvePath)
@@ -47,14 +46,14 @@ internal class GradleRunnerExtensionTest {
   @Test
   internal fun `project directory as path`() {
     val projectDir = Paths.get("a")
-    whenever(mockGradleRunner.projectDir).thenReturn(null, projectDir.toFile())
+    every { mockGradleRunner.projectDir }.returnsMany(null, projectDir.toFile())
     assertThat(mockGradleRunner.projectDirPath).isNull()
     assertThat(mockGradleRunner.projectDirPath).isEqualTo(projectDir)
   }
 
   @Test
   internal fun `cannot resolve path when projectDir not set`() {
-    whenever(mockGradleRunner.projectDir).thenReturn(null)
+    every { mockGradleRunner.projectDir }.returns(null)
 
     assertThatIllegalStateException().isThrownBy { mockGradleRunner.resolveFromProjectDir(Paths.get("a")) }
   }

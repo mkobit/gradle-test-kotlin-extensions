@@ -12,7 +12,6 @@ internal class BuildTaskExtensionsTest {
 
   @TestFactory
   internal fun `outcome extension properties`() = testFactory<Unit> {
-
     val allExtensionValuesToOutcome = mapOf(
       BuildTask::success to TaskOutcome.SUCCESS,
       BuildTask::upToDate to TaskOutcome.UP_TO_DATE,

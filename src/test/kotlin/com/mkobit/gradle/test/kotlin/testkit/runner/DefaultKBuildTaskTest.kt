@@ -1,9 +1,8 @@
 package com.mkobit.gradle.test.kotlin.testkit.runner
 
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.verify
-import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
-import com.nhaarman.mockitokotlin2.whenever
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verifyAll
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.BuildTask
 import org.gradle.testkit.runner.TaskOutcome
@@ -17,24 +16,23 @@ internal class DefaultKBuildTaskTest {
 
   @BeforeEach
   internal fun setUp() {
-    mockBuildTask = mock()
+    mockBuildTask = mockk()
     defaultKBuildTask = DefaultKBuildTask(mockBuildTask)
   }
 
   @Test
   internal fun `returns delegate's build outcome`() {
     val expectedOutcome = TaskOutcome.SUCCESS
-    whenever(mockBuildTask.outcome).thenReturn(expectedOutcome)
+    every { mockBuildTask.outcome }.returns(expectedOutcome)
     assertThat(defaultKBuildTask.outcome).isEqualTo(expectedOutcome)
 
-    verify(mockBuildTask).outcome
-    verifyNoMoreInteractions(mockBuildTask)
+    verifyAll { mockBuildTask.outcome }
   }
 
   @Test
   internal fun `returns delegate's task path`() {
     val expectedPath = ":taskPath"
-    whenever(mockBuildTask.path).thenReturn(expectedPath)
+    every { mockBuildTask.path }.returns(expectedPath)
     assertThat(defaultKBuildTask.path).isEqualTo(expectedPath)
   }
 
@@ -42,8 +40,8 @@ internal class DefaultKBuildTaskTest {
   internal fun `user friendly toString() method`() {
     val expectedOutcome = TaskOutcome.SUCCESS
     val expectedPath = ":taskPath"
-    whenever(mockBuildTask.outcome).thenReturn(expectedOutcome)
-    whenever(mockBuildTask.path).thenReturn(expectedPath)
+    every { mockBuildTask.outcome }.returns(expectedOutcome)
+    every { mockBuildTask.path }.returns(expectedPath)
     assertThat(defaultKBuildTask.toString()).isEqualTo("DefaultKBuildTask(path=$expectedPath, outcome=$expectedOutcome)")
   }
 }
