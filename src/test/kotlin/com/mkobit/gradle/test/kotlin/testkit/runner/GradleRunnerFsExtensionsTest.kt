@@ -6,7 +6,15 @@ import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.io.TempDir
-import testsupport.assertj.assertSoftly
+import strikt.api.expect
+import strikt.assertions.allLines
+import strikt.assertions.containsExactly
+import strikt.assertions.isDirectory
+import strikt.assertions.isEqualTo
+import strikt.assertions.isRegularFile
+import strikt.assertions.resolve
+import strikt.assertions.text
+import strikt.assertions.toFile
 import testsupport.minutest.testFactory
 import java.io.File
 import java.nio.file.Path
@@ -57,27 +65,37 @@ internal class GradleRunnerFsExtensionsTest {
       }
     }
 
-    assertSoftly {
-      assertThat(root.resolve("settings.gradle"))
-        .isRegularFile
-        .hasContent("// settings.gradle")
-      assertThat(root.resolve("build.gradle"))
-        .isRegularFile
-        .hasContent("// build.gradle")
-      assertThat(root.resolve("src/main/java"))
-        .isDirectory
-      assertThat(root.resolve("src/main/java/MainClass.java"))
-        .isRegularFile
-        .hasContent("public class Hello {}")
-      assertThat(root.resolve("src/main/java/com/mkobit"))
-        .isDirectory
-      assertThat(root.resolve("src/main/java/com/mkobit/NestedDude.java"))
-        .isRegularFile
-        .hasContent("""
-            package com.mkobit;
-            public class NestedDude {}
-            // Additional appended content
-            """.trimIndent())
+    expect {
+      that(root) {
+        resolve("settings.gradle")
+          .isRegularFile()
+          .toFile()
+          .text()
+          .isEqualTo("// settings.gradle")
+        resolve("build.gradle")
+          .isRegularFile()
+          .toFile()
+          .text()
+          .isEqualTo("// build.gradle")
+        resolve("src/main/java")
+          .isDirectory()
+        resolve("src/main/java/MainClass.java")
+          .isRegularFile()
+          .toFile()
+          .text()
+          .isEqualTo("public class Hello {}")
+        resolve("src/main/java/com/mkobit")
+          .isDirectory()
+        resolve("src/main/java/com/mkobit/NestedDude.java")
+          .isRegularFile()
+          .allLines()
+          .containsExactly(
+            "package com.mkobit;",
+            "public class NestedDude {}",
+            "// Additional appended content"
+          )
+      }
     }
+
   }
 }

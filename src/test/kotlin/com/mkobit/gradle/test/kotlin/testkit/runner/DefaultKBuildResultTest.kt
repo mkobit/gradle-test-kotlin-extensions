@@ -4,12 +4,15 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifyAll
-import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.BuildResult
-import org.gradle.testkit.runner.BuildTask
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import strikt.api.expectThat
+import strikt.assertions.isEmpty
+import strikt.assertions.isEqualTo
+import strikt.assertions.isNull
+import strikt.assertions.isSameInstanceAs
 import java.nio.file.Path
 
 internal class DefaultKBuildResultTest {
@@ -32,7 +35,7 @@ internal class DefaultKBuildResultTest {
     val taskPath = ":myPath"
     every { defaultKBuildResult.task(taskPath) }.returns(null)
 
-    assertThat(defaultKBuildResult.task(taskPath))
+    expectThat(defaultKBuildResult.task(taskPath))
       .isNull()
     verifyAll { mockBuildResult.task(taskPath) }
   }
@@ -42,7 +45,7 @@ internal class DefaultKBuildResultTest {
     val outcome = TaskOutcome.SUCCESS
     every { mockBuildResult.tasks(outcome) }.returns(emptyList())
 
-    assertThat(defaultKBuildResult.tasks(outcome)).isEmpty()
+    expectThat(defaultKBuildResult.tasks(outcome)).isEmpty()
     verifyAll { mockBuildResult.tasks(outcome) }
   }
 
@@ -50,7 +53,7 @@ internal class DefaultKBuildResultTest {
   internal fun `returns delegate's tasks`() {
     every { mockBuildResult.tasks }.returns(emptyList())
 
-    assertThat(defaultKBuildResult.tasks).isEmpty()
+    expectThat(defaultKBuildResult.tasks).isEmpty()
 
     verify { mockBuildResult.tasks }
   }
@@ -61,7 +64,7 @@ internal class DefaultKBuildResultTest {
     val outcome = TaskOutcome.SUCCESS
     every { mockBuildResult.taskPaths(outcome) }.returns(taskPaths)
 
-    assertThat(defaultKBuildResult.taskPaths(outcome)).isSameAs(taskPaths)
+    expectThat(defaultKBuildResult.taskPaths(outcome)).isSameInstanceAs(taskPaths)
     verify { mockBuildResult.taskPaths(outcome) }
   }
 
@@ -70,7 +73,7 @@ internal class DefaultKBuildResultTest {
     val output = "build output"
     every { mockBuildResult.output }.returns(output)
 
-    assertThat(defaultKBuildResult.output).isSameAs(output)
+    expectThat(defaultKBuildResult.output).isSameInstanceAs(output)
     verify { mockBuildResult.output }
   }
 
@@ -80,7 +83,7 @@ internal class DefaultKBuildResultTest {
     every { mockProjectDir.toString() }.returns(pathToStringPlaceholder)
     every { mockBuildResult.tasks }.returns(emptyList())
 
-    assertThat(defaultKBuildResult.toString())
+    expectThat(defaultKBuildResult.toString())
       .isEqualTo("DefaultKBuildResult(projectDir=$pathToStringPlaceholder, tasks=[])")
   }
 }

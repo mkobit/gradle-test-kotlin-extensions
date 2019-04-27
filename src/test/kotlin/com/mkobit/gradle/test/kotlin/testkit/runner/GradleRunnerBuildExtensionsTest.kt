@@ -3,7 +3,6 @@ package com.mkobit.gradle.test.kotlin.testkit.runner
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import io.mockk.verifyAll
 import io.mockk.verifyOrder
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
@@ -11,6 +10,8 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import strikt.api.expectThat
+import strikt.assertions.isEqualTo
 import java.io.File
 import java.nio.file.Path
 
@@ -45,7 +46,7 @@ internal class GradleRunnerBuildExtensionsTest {
       mockGradleRunner.withArguments(listOf("task1", "task2"))
       mockGradleRunner.build()
     }
-    assertThat(result.projectDir)
+    expectThat(result.projectDir)
         .isEqualTo(mockProjectDirectory)
   }
 
@@ -154,7 +155,7 @@ internal class GradleRunnerBuildExtensionsTest {
       mockGradleRunner.buildAndFail()
 
     }
-    assertThat(result.projectDir)
+    expectThat(result.projectDir)
         .isEqualTo(mockProjectDirectory)
   }
 }

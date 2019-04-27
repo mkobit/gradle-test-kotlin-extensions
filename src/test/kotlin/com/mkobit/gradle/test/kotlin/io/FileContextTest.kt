@@ -9,9 +9,8 @@ import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.io.TempDir
+import strikt.api.expectThrows
 import testsupport.assertj.assertNoExceptionThrownBy
-import testsupport.assertj.assertThatFileAlreadyExistsExceptionThrownBy
-import testsupport.assertj.assertThatNoSuchFileExceptionThrownBy
 import testsupport.jdk.fileNameString
 import testsupport.minutest.createDirectoriesFor
 import testsupport.minutest.createFileFor
@@ -318,11 +317,11 @@ internal class FileContextTest {
 
           test("when a file is requested and directory exists then a FileAlreadyExistsException is thrown") {
             fileContext.path.newDirectory("directory")
-            assertThatFileAlreadyExistsExceptionThrownBy { fileContext.file("directory", action) }
+            expectThrows<FileAlreadyExistsException> { fileContext.file("directory", action) }
           }
 
           test("when a nested file is requested and the parent directory doesn't exist then a NoSuchFileExceptiis thrown") {
-            assertThatNoSuchFileExceptionThrownBy { fileContext.file("directory/fileName", action) }
+            expectThrows<NoSuchFileException> { fileContext.file("directory/fileName", action) }
           }
 
           test("when a directory is requested and the directory does not exist then it is created") {
@@ -353,7 +352,7 @@ internal class FileContextTest {
 
           test("when a directory is requested and file exists at the path then FileAlreadyExistsException is thrown") {
             fileContext.path.newFile("regularFile")
-            assertThatFileAlreadyExistsExceptionThrownBy {
+            expectThrows<FileAlreadyExistsException> {
               fileContext.directory("regularFile",
                 action)
             }
@@ -361,7 +360,7 @@ internal class FileContextTest {
 
           test("when a nested directory is requested and file exists at the path then FileAlreadyExistsException is thrown") {
             fileContext.path.newDirectory("path/dir/path").newFile("actuallyAFile")
-            assertThatFileAlreadyExistsExceptionThrownBy {
+            expectThrows<FileAlreadyExistsException> {
               fileContext.directory("path/dir/path/actuallyAFile",
                 action)
             }
@@ -395,14 +394,14 @@ internal class FileContextTest {
               }
 
               test("then a FileAlreadyExistsException is thrown by explicitly passing in the action") {
-                assertThatFileAlreadyExistsExceptionThrownBy {
+                expectThrows<FileAlreadyExistsException> {
                   fileContext.run {
                     fileNameString(action) {}
                   }
                 }
               }
               test("then a FileAlreadyExistsException is thrown using default action") {
-                assertThatFileAlreadyExistsExceptionThrownBy {
+                expectThrows<FileAlreadyExistsException> {
                   fileContext.run {
                     fileNameString {}
                   }
@@ -454,7 +453,7 @@ internal class FileContextTest {
               test("by explicitly passing in the action") {
                 val filename = it.name
                 fileContext.path.newDirectory(filename)
-                assertThatFileAlreadyExistsExceptionThrownBy {
+                expectThrows<FileAlreadyExistsException> {
                   fileContext.run {
                     filename(action, content = content)
                   }
@@ -463,7 +462,7 @@ internal class FileContextTest {
               test("using default action") {
                 val filename = it.name
                 fileContext.path.newDirectory(filename)
-                assertThatFileAlreadyExistsExceptionThrownBy {
+                expectThrows<FileAlreadyExistsException> {
                   fileContext.run {
                     filename(content = content)
                   }
@@ -483,7 +482,7 @@ internal class FileContextTest {
             }
             test("and the file exists then a FileAlreadyExistsException is thrown") {
               fileContext.path.newFile("preExistingFile")
-              assertThatFileAlreadyExistsExceptionThrownBy {
+              expectThrows<FileAlreadyExistsException> {
                 fileContext.file("preExistingFile",
                   action)
               }
@@ -492,7 +491,7 @@ internal class FileContextTest {
 
           context("when a nested file is requested") {
             test("and the parent directory doesn't exist then a NoSuchFileException is thrown") {
-              assertThatNoSuchFileExceptionThrownBy {
+              expectThrows<NoSuchFileException> {
                 fileContext.file("path/to/nonExistentDir/file",
                   action)
               }
@@ -507,7 +506,7 @@ internal class FileContextTest {
             }
             test("and the file already exists then a FileAlreadyExistsException is thrown") {
               val file = fileContext.path.newDirectory("path/to/dir").newFile("preExistingFile")
-              assertThatFileAlreadyExistsExceptionThrownBy {
+              expectThrows<FileAlreadyExistsException> {
                 fileContext.file("path/to/dir/${file.fileNameString}",
                   action)
               }
@@ -515,7 +514,7 @@ internal class FileContextTest {
 
             test("and a directory already exists then a FileAlreadyExistsException is thrown") {
               fileContext.path.newDirectory("path/to/dir")
-              assertThatFileAlreadyExistsExceptionThrownBy {
+              expectThrows<FileAlreadyExistsException> {
                 fileContext.file("path/to/dir",
                   action)
               }
@@ -531,14 +530,14 @@ internal class FileContextTest {
             }
             test("and the directory exists then a FileAlreadyExistsException is thrown") {
               fileContext.path.newDirectory("preExistingDirectory")
-              assertThatFileAlreadyExistsExceptionThrownBy {
+              expectThrows<FileAlreadyExistsException> {
                 fileContext.directory("preExistingDirectory",
                   action)
               }
             }
             test("and file already exists then a FileAlreadyExistsException is thrown") {
               fileContext.path.newFile("preExistingFile")
-              assertThatFileAlreadyExistsExceptionThrownBy {
+              expectThrows<FileAlreadyExistsException> {
                 fileContext.directory("preExistingFile",
                   action)
               }
@@ -562,7 +561,7 @@ internal class FileContextTest {
             }
             test("and the nested directory exists then a FileAlreadyExistsException thrown") {
               fileContext.path.newDirectory("pre/existing/nested/dir")
-              assertThatFileAlreadyExistsExceptionThrownBy {
+              expectThrows<FileAlreadyExistsException> {
                 fileContext.directory("pre/existing/nested/dir",
                   action)
               }
@@ -574,7 +573,7 @@ internal class FileContextTest {
           deriveFixture { FileActionFixture(parentFixture, FileAction.Get) }
 
           test("when a file does not exist then a NoSuchFileException is thrown") {
-            assertThatNoSuchFileExceptionThrownBy { fileContext.file("nonExistentFile", action) }
+            expectThrows<NoSuchFileException> { fileContext.file("nonExistentFile", action) }
           }
 
           test("when a file is requested and the file exists then the context is retrieved") {
@@ -598,11 +597,11 @@ internal class FileContextTest {
 
           test("when a file is requested and the file is a directory then a NoSuchFileException is thrown") {
             fileContext.path.newDirectory("preExistingDir")
-            assertThatNoSuchFileExceptionThrownBy { fileContext.file("preExistingDir", action) }
+            expectThrows<NoSuchFileException> { fileContext.file("preExistingDir", action) }
           }
 
           test("when a directory is requested and the directory does not exist then a NoSuchFileException is thrown") {
-            assertThatNoSuchFileExceptionThrownBy {
+            expectThrows<NoSuchFileException> {
               fileContext.directory("nonExistentDirectory",
                 action)
             }
@@ -626,7 +625,7 @@ internal class FileContextTest {
 
           test("when directory is requested and file exists then a NoSuchFileException is thrown") {
             fileContext.path.newFile("preExistingFile")
-            assertThatNoSuchFileExceptionThrownBy {
+            expectThrows<NoSuchFileException> {
               fileContext.directory("preExistingFile",
                 action)
             }
@@ -652,7 +651,7 @@ internal class FileContextTest {
 
           test("and file exists at the location then a FileAlreadyExistsException is thrown") {
             val file = fixture.path.newFile("preExistingFile")
-            assertThatFileAlreadyExistsExceptionThrownBy {
+            expectThrows<FileAlreadyExistsException> {
               fixture / file.fileNameString
             }
           }
@@ -684,10 +683,8 @@ internal class FileContextTest {
           test("with path and lambda then the lambda is applied to the receiver that is at the path") {
             val parentPathName = "child-dir"
             var invoked = false
-            println("fixture pat1h: ${fixture.path}")
             var thisFromLambdaBodyOfDivInvoke: FileContext.DirectoryContext? = null
             val result: FileContext.DirectoryContext = fixture / parentPathName / {
-              println("fixture path2: ${fixture.path}")
               invoked = true
               assertThat(this).isInstanceOf(FileContext.DirectoryContext::class.java)
               assertThat(path)

@@ -2,12 +2,17 @@ package com.mkobit.gradle.test.kotlin.testkit.runner
 
 import io.mockk.every
 import io.mockk.mockk
-import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatIllegalStateException
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import strikt.api.expect
+import strikt.api.expectThat
+import strikt.api.expectThrows
+import strikt.assertions.endsWith
+import strikt.assertions.isEqualTo
+import strikt.assertions.isNull
+import strikt.assertions.startsWith
 import java.nio.file.Paths
 
 internal class GradleRunnerExtensionTest {
@@ -27,8 +32,9 @@ internal class GradleRunnerExtensionTest {
   @Test
   internal fun `resolve path from projectDir when projectDir unset`() {
     every { mockGradleRunner.projectDir }.returns(null)
-
-    assertThatIllegalStateException().isThrownBy { mockGradleRunner.resolveFromProjectDir(Paths.get("a")) }
+    expectThrows<IllegalStateException> {
+      mockGradleRunner.resolveFromProjectDir(Paths.get("a"))
+    }
   }
 
   @Test
@@ -38,23 +44,25 @@ internal class GradleRunnerExtensionTest {
 
     val resolvePath = Paths.get("b")
     val actual = mockGradleRunner.resolveFromProjectDir(resolvePath)
-    assertThat(actual)
-        .startsWithRaw(projectDirPath)
-        .endsWithRaw(resolvePath)
+    expectThat(actual)
+        .startsWith(projectDirPath)
+        .endsWith(resolvePath)
   }
 
   @Test
   internal fun `project directory as path`() {
     val projectDir = Paths.get("a")
     every { mockGradleRunner.projectDir }.returnsMany(null, projectDir.toFile())
-    assertThat(mockGradleRunner.projectDirPath).isNull()
-    assertThat(mockGradleRunner.projectDirPath).isEqualTo(projectDir)
+    expect {
+      that(mockGradleRunner.projectDirPath).isNull()
+      that(mockGradleRunner.projectDirPath).isEqualTo(projectDir)
+    }
   }
 
   @Test
   internal fun `cannot resolve path when projectDir not set`() {
     every { mockGradleRunner.projectDir }.returns(null)
 
-    assertThatIllegalStateException().isThrownBy { mockGradleRunner.resolveFromProjectDir(Paths.get("a")) }
+    expectThrows<IllegalStateException> { mockGradleRunner.resolveFromProjectDir(Paths.get("a")) }
   }
 }

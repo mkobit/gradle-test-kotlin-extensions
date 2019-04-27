@@ -11,6 +11,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import strikt.api.expectThat
+import strikt.assertions.contains
+import strikt.gradle.testkit.output
 import java.nio.file.Path
 
 internal class MultipleBuildsAndCLIArgumentsExample {
@@ -52,11 +55,10 @@ internal class MultipleBuildsAndCLIArgumentsExample {
       projectProperties -= setOf("prop2")
     }
     // arguments passed to 'build' are not persisted in the GradleRunner between builds
-    gradleRunner.build("showProp").let { buildResult ->
-      assertThat(buildResult.output)
-          .doesNotContain("Look at this info log")
-          .contains("Prop1 value: myValue")
-          .contains("Prop2 present: false")
-    }
+    expectThat(gradleRunner.build("showProp"))
+      .output
+      .not { contains("Look at this info log") }
+      .contains("Prop1 value: myValue")
+      .contains("Prop2 present: false")
   }
 }

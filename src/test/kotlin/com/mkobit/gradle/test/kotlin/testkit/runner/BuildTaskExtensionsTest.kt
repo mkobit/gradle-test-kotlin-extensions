@@ -2,10 +2,12 @@ package com.mkobit.gradle.test.kotlin.testkit.runner
 
 import io.mockk.every
 import io.mockk.mockk
-import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.BuildTask
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.TestFactory
+import strikt.api.expectThat
+import strikt.assertions.isFalse
+import strikt.assertions.isTrue
 import testsupport.minutest.testFactory
 
 internal class BuildTaskExtensionsTest {
@@ -33,14 +35,14 @@ internal class BuildTaskExtensionsTest {
       derivedContext<Fixture>("when task outcome is $matchedOutcome") {
         fixture { Fixture(matchedOutcome) }
         test("then extension property $matchingExtensionProperty returns true") {
-          assertThat(matchingExtensionProperty.get(buildTask))
+          expectThat(matchingExtensionProperty.get(buildTask))
             .isTrue()
         }
 
         // for all other property accessors
         (allExtensionValuesToOutcome.keys - matchingExtensionProperty).forEach { nonMatchingExtensionProperty ->
           test("then extension property $nonMatchingExtensionProperty returns false") {
-            assertThat(nonMatchingExtensionProperty.get(buildTask))
+            expectThat(nonMatchingExtensionProperty.get(buildTask))
               .isFalse()
           }
         }

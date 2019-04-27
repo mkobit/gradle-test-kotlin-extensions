@@ -9,6 +9,9 @@ import org.gradle.testkit.runner.BuildTask
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import strikt.api.expectThat
+import strikt.assertions.containsExactly
+import strikt.assertions.isSameInstanceAs
 
 internal class BuildResultExtensionsTest {
 
@@ -43,8 +46,8 @@ internal class BuildResultExtensionsTest {
     every { mockBuildResult.task(thirdPath) }.returns(null)
 
     val result = mockBuildResult[firstPath, secondPath, thirdPath]
-    assertThat(result)
-        .containsExactly(firstBuildTask, secondBuildTask, null)
+    expectThat(result)
+      .containsExactly(firstBuildTask, secondBuildTask, null)
   }
 
   @Test
@@ -54,8 +57,8 @@ internal class BuildResultExtensionsTest {
     every { mockBuildResult.tasks(outcome) }.returns(tasksWithOutcome)
 
     val result = mockBuildResult[outcome]
-    assertThat(result)
-        .isSameAs(tasksWithOutcome)
+    expectThat(result)
+      .isSameInstanceAs(tasksWithOutcome)
     verify { mockBuildResult.tasks(outcome) }
   }
 }

@@ -3,11 +3,12 @@ package com.mkobit.gradle.test.kotlin.testkit.runner
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verifyAll
-import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.BuildTask
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import strikt.api.expectThat
+import strikt.assertions.isEqualTo
 
 internal class DefaultKBuildTaskTest {
 
@@ -24,7 +25,7 @@ internal class DefaultKBuildTaskTest {
   internal fun `returns delegate's build outcome`() {
     val expectedOutcome = TaskOutcome.SUCCESS
     every { mockBuildTask.outcome }.returns(expectedOutcome)
-    assertThat(defaultKBuildTask.outcome).isEqualTo(expectedOutcome)
+    expectThat(defaultKBuildTask.outcome).isEqualTo(expectedOutcome)
 
     verifyAll { mockBuildTask.outcome }
   }
@@ -33,7 +34,7 @@ internal class DefaultKBuildTaskTest {
   internal fun `returns delegate's task path`() {
     val expectedPath = ":taskPath"
     every { mockBuildTask.path }.returns(expectedPath)
-    assertThat(defaultKBuildTask.path).isEqualTo(expectedPath)
+    expectThat(defaultKBuildTask.path).isEqualTo(expectedPath)
   }
 
   @Test
@@ -42,6 +43,7 @@ internal class DefaultKBuildTaskTest {
     val expectedPath = ":taskPath"
     every { mockBuildTask.outcome }.returns(expectedOutcome)
     every { mockBuildTask.path }.returns(expectedPath)
-    assertThat(defaultKBuildTask.toString()).isEqualTo("DefaultKBuildTask(path=$expectedPath, outcome=$expectedOutcome)")
+    expectThat(defaultKBuildTask.toString())
+      .isEqualTo("DefaultKBuildTask(path=$expectedPath, outcome=$expectedOutcome)")
   }
 }
