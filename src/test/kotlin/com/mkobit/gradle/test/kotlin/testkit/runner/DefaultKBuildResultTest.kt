@@ -1,14 +1,18 @@
 package com.mkobit.gradle.test.kotlin.testkit.runner
 
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.verify
-import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
-import com.nhaarman.mockitokotlin2.whenever
-import org.assertj.core.api.Assertions.assertThat
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
+import io.mockk.verifyAll
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import strikt.api.expectThat
+import strikt.assertions.isEmpty
+import strikt.assertions.isEqualTo
+import strikt.assertions.isNull
+import strikt.assertions.isSameInstanceAs
 import java.nio.file.Path
 
 internal class DefaultKBuildResultTest {
@@ -20,66 +24,66 @@ internal class DefaultKBuildResultTest {
 
   @BeforeEach
   internal fun setUp() {
-    mockBuildResult = mock()
-    mockProjectDir = mock()
-    mockKBuildTask = mock()
+    mockBuildResult = mockk()
+    mockProjectDir = mockk()
+    mockKBuildTask = mockk()
     defaultKBuildResult = DefaultKBuildResult(mockProjectDir, mockBuildResult)
   }
 
   @Test
   internal fun `returns delegate's task at task path`() {
     val taskPath = ":myPath"
-    assertThat(defaultKBuildResult.task(taskPath))
-      .isNull()
+    every { defaultKBuildResult.task(taskPath) }.returns(null)
 
-    verify(mockBuildResult).task(taskPath)
-    verifyNoMoreInteractions(mockBuildResult, mockProjectDir)
+    expectThat(defaultKBuildResult.task(taskPath))
+      .isNull()
+    verifyAll { mockBuildResult.task(taskPath) }
   }
 
   @Test
   internal fun `returns delegate's tasks for outcome`() {
     val outcome = TaskOutcome.SUCCESS
+    every { mockBuildResult.tasks(outcome) }.returns(emptyList())
 
-    assertThat(defaultKBuildResult.tasks(outcome)).isEmpty()
-    verify(mockBuildResult).tasks(outcome)
-    verifyNoMoreInteractions(mockBuildResult, mockProjectDir)
+    expectThat(defaultKBuildResult.tasks(outcome)).isEmpty()
+    verifyAll { mockBuildResult.tasks(outcome) }
   }
 
   @Test
   internal fun `returns delegate's tasks`() {
-    assertThat(defaultKBuildResult.tasks).isEmpty()
+    every { mockBuildResult.tasks }.returns(emptyList())
 
-    verify(mockBuildResult).tasks
-    verifyNoMoreInteractions(mockBuildResult, mockProjectDir)
+    expectThat(defaultKBuildResult.tasks).isEmpty()
+
+    verify { mockBuildResult.tasks }
   }
 
   @Test
   internal fun `returns delegate's task paths for outcome`() {
     val taskPaths = listOf(":hello")
     val outcome = TaskOutcome.SUCCESS
-    whenever(mockBuildResult.taskPaths(outcome)).thenReturn(taskPaths)
+    every { mockBuildResult.taskPaths(outcome) }.returns(taskPaths)
 
-    assertThat(defaultKBuildResult.taskPaths(outcome)).isSameAs(taskPaths)
-    verify(mockBuildResult).taskPaths(outcome)
-    verifyNoMoreInteractions(mockBuildResult, mockProjectDir)
+    expectThat(defaultKBuildResult.taskPaths(outcome)).isSameInstanceAs(taskPaths)
+    verify { mockBuildResult.taskPaths(outcome) }
   }
 
   @Test
   internal fun `returns delegate's output`() {
     val output = "build output"
-    whenever(mockBuildResult.output).thenReturn(output)
+    every { mockBuildResult.output }.returns(output)
 
-    assertThat(defaultKBuildResult.output).isSameAs(output)
-    verify(mockBuildResult).output
-    verifyNoMoreInteractions(mockBuildResult, mockProjectDir)
+    expectThat(defaultKBuildResult.output).isSameInstanceAs(output)
+    verify { mockBuildResult.output }
   }
 
   @Test
   internal fun `user friendly toString() method`() {
     val pathToStringPlaceholder = "PLACEHOLDER"
-    whenever(mockProjectDir.toString()).thenReturn(pathToStringPlaceholder)
+    every { mockProjectDir.toString() }.returns(pathToStringPlaceholder)
+    every { mockBuildResult.tasks }.returns(emptyList())
 
-    assertThat(defaultKBuildResult.toString())
+    expectThat(defaultKBuildResult.toString())
       .isEqualTo("DefaultKBuildResult(projectDir=$pathToStringPlaceholder, tasks=[])")
   }
 }

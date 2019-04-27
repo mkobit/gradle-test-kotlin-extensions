@@ -1,27 +1,25 @@
 import buildsrc.DependencyInfo
 import buildsrc.ProjectInfo
 import com.jfrog.bintray.gradle.BintrayExtension
-import groovy.lang.Closure
 import java.io.ByteArrayOutputStream
 import java.net.URL
-import org.gradle.api.internal.HasConvention
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.gradle.jvm.tasks.Jar
-import org.jetbrains.dokka.DokkaConfiguration
-import org.jetbrains.dokka.gradle.DokkaTask
+import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
 plugins {
-  id("com.gradle.build-scan") version "2.0.2"
+  id("com.gradle.build-scan") version "2.2.1"
   `java-library`
   `maven-publish`
-  kotlin("jvm") version "1.3.10"
-  id("com.github.ben-manes.versions") version "0.20.0"
+  kotlin("jvm") version "1.3.31"
+  id("nebula.release") version "10.1.1"
+  id("com.github.ben-manes.versions") version "0.21.0"
   id("com.jfrog.bintray") version "1.8.4"
-  id("org.jetbrains.dokka") version "0.9.17"
+  id("org.jetbrains.dokka") version "0.9.18"
+  id("org.jlleitschuh.gradle.ktlint") version "7.4.0"
 }
 
-version = "0.6.0"
 group = "com.mkobit.gradle.test"
 description = "Kotlin library to aid in writing tests for Gradle"
 
@@ -33,6 +31,10 @@ val gitCommitSha: String by lazy {
     }
     it.toString(Charsets.UTF_8.name()).trim()
   }
+}
+
+ktlint {
+  version.set("0.32.0")
 }
 
 val SourceSet.kotlin: SourceDirectorySet
@@ -74,12 +76,14 @@ dependencies {
   api(kotlin("stdlib-jdk8"))
   testImplementation(kotlin("reflect"))
   testImplementation(DependencyInfo.assertJCore)
-  testImplementation(DependencyInfo.junitPioneer)
-  testImplementation(DependencyInfo.mockito)
-  testImplementation(DependencyInfo.mockitoKotlin)
+  testImplementation(DependencyInfo.mockk)
   DependencyInfo.junitTestImplementationArtifacts.forEach {
     testImplementation(it)
   }
+  testImplementation(DependencyInfo.minutest)
+  testImplementation(DependencyInfo.strikt("core"))
+  testImplementation(DependencyInfo.strikt("gradle"))
+
   DependencyInfo.junitTestRuntimeOnlyArtifacts.forEach {
     testRuntimeOnly(it)
   }
@@ -95,8 +99,8 @@ val main = sourceSets["main"]!!
 main.java.setSrcDirs(emptyList<Any>())
 
 tasks {
-  wrapper  {
-    gradleVersion = "5.0"
+  wrapper {
+    gradleVersion = "5.4.1"
   }
 
   withType<Jar>().configureEach {
@@ -133,80 +137,50 @@ tasks {
     }
   }
 
-  val sourcesJar by creating(Jar::class) {
+  jar {
+    enabled = false
+  }
+
+  val sourcesJar by registering(Jar::class) {
     classifier = "sources"
     from(main.allSource)
     description = "Assembles a JAR of the source code"
     group = JavaBasePlugin.DOCUMENTATION_GROUP
   }
 
-  val dokka by getting(DokkaTask::class) {
+  dokka {
     dependsOn(main.classesTaskName)
     outputFormat = "html"
     outputDirectory = "$buildDir/javadoc"
     // See https://github.com/Kotlin/dokka/issues/196
-    externalDocumentationLink(delegateClosureOf<DokkaConfiguration.ExternalDocumentationLink.Builder> {
-      url = URL("https://docs.gradle.org/${wrapper.map { it.gradleVersion }.get() }/javadoc/")
-    })
-    externalDocumentationLink(delegateClosureOf<DokkaConfiguration.ExternalDocumentationLink.Builder> {
+    externalDocumentationLink {
+      url = URL("https://docs.gradle.org/${GradleVersion.current().version}/javadoc/")
+    }
+    externalDocumentationLink {
       url = URL("https://docs.oracle.com/javase/8/docs/api/")
-    })
+    }
   }
 
-  val javadocJar by creating(Jar::class) {
+  val javadocJar by registering(Jar::class) {
     dependsOn(dokka)
-    from(dokka.outputDirectory)
+    from(dokka.map { it.outputDirectory })
     classifier = "javadoc"
     description = "Assembles a JAR of the generated Javadoc"
     group = JavaBasePlugin.DOCUMENTATION_GROUP
   }
 
-  "assemble" {
+  assemble {
     dependsOn(sourcesJar, javadocJar)
   }
 
-  val gitDirtyCheck by creating {
-    doFirst {
-      val output = ByteArrayOutputStream().use {
-        exec {
-          commandLine("git", "status", "--porcelain")
-          standardOutput = it
-        }
-        it.toString(Charsets.UTF_8.name()).trim()
-      }
-      if (output.isNotBlank()) {
-        throw GradleException("Workspace is dirty:\n$output")
-      }
-    }
-  }
-
-  val gitTag by creating(Exec::class) {
-    description = "Tags the local repository with version ${project.version}"
-    group = PublishingPlugin.PUBLISH_TASK_GROUP
-    commandLine("git", "tag", "--sign", "-a", project.version, "-m", "Gradle created tag for ${project.version}")
-  }
-
-  val pushGitTag by creating(Exec::class) {
-    description = "Pushes Git tag ${project.version} to origin"
-    group = PublishingPlugin.PUBLISH_TASK_GROUP
-    dependsOn(gitTag)
-    commandLine("git", "push", "origin", "refs/tags/${project.version}")
-  }
-
-  val bintrayUpload by getting {
-    dependsOn(gitDirtyCheck, gitTag)
-  }
-
-  register("release") {
-    group = PublishingPlugin.PUBLISH_TASK_GROUP
-    description = "Publishes the library and pushes up a Git tag for the current commit"
-    dependsOn(bintrayUpload, pushGitTag)
+  (release) {
+    dependsOn(bintrayUpload)
   }
 }
 
 val publicationName = "gradleTestKotlinExtensions"
 publishing {
-  publications.invoke {
+  publications {
     val sourcesJar by tasks.getting
     val javadocJar by tasks.getting
     register(publicationName, MavenPublication::class) {
@@ -229,17 +203,14 @@ publishing {
 }
 
 bintray {
-  val bintrayUser = project.findProperty("bintrayUser") as String?
-  val bintrayApiKey = project.findProperty("bintrayApiKey") as String?
-  user = bintrayUser
-  key = bintrayApiKey
+  user = System.getenv("BINTRAY_USER")
+  key = System.getenv("BINTRAY_KEY")
   publish = true
   setPublications(publicationName)
   pkg(delegateClosureOf<BintrayExtension.PackageConfig> {
     repo = "gradle"
     name = project.name
     userOrg = "mkobit"
-
     setLabels("gradle", "test", "plugins", "kotlin")
     setLicenses("MIT")
     desc = project.description

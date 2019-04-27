@@ -1,14 +1,17 @@
 package com.mkobit.gradle.test.kotlin.testkit.runner
 
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.verify
-import com.nhaarman.mockitokotlin2.whenever
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.BuildTask
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import strikt.api.expectThat
+import strikt.assertions.containsExactly
+import strikt.assertions.isSameInstanceAs
 
 internal class BuildResultExtensionsTest {
 
@@ -16,19 +19,19 @@ internal class BuildResultExtensionsTest {
 
   @BeforeEach
   internal fun setUp() {
-    mockBuildResult = mock()
+    mockBuildResult = mockk()
   }
 
   @Test
   internal fun `can get a task by path using indexed access`() {
     val path = ":somepath"
-    val buildTask: BuildTask = mock()
-    whenever(mockBuildResult.task(path)).thenReturn(buildTask)
+    val buildTask: BuildTask = mockk()
+    every { mockBuildResult.task(path) }.returns(buildTask)
 
     val result = mockBuildResult[path]
     assertThat(result)
         .isSameAs(buildTask)
-    verify(mockBuildResult).task(path)
+    verify { mockBuildResult.task(path) }
   }
 
   @Test
@@ -36,26 +39,26 @@ internal class BuildResultExtensionsTest {
     val firstPath = ":first"
     val secondPath = ":second"
     val thirdPath = ":third"
-    val firstBuildTask: BuildTask = mock()
-    val secondBuildTask: BuildTask = mock()
-    whenever(mockBuildResult.task(firstPath)).thenReturn(firstBuildTask)
-    whenever(mockBuildResult.task(secondPath)).thenReturn(secondBuildTask)
-    whenever(mockBuildResult.task(thirdPath)).thenReturn(null)
+    val firstBuildTask: BuildTask = mockk()
+    val secondBuildTask: BuildTask = mockk()
+    every { mockBuildResult.task(firstPath) }.returns(firstBuildTask)
+    every { mockBuildResult.task(secondPath) }.returns(secondBuildTask)
+    every { mockBuildResult.task(thirdPath) }.returns(null)
 
     val result = mockBuildResult[firstPath, secondPath, thirdPath]
-    assertThat(result)
-        .containsExactly(firstBuildTask, secondBuildTask, null)
+    expectThat(result)
+      .containsExactly(firstBuildTask, secondBuildTask, null)
   }
 
   @Test
   internal fun `can get the tasks by outcome using indexed access`() {
     val outcome = TaskOutcome.SUCCESS
     val tasksWithOutcome: List<BuildTask> = emptyList()
-    whenever(mockBuildResult.tasks(outcome)).thenReturn(tasksWithOutcome)
+    every { mockBuildResult.tasks(outcome) }.returns(tasksWithOutcome)
 
     val result = mockBuildResult[outcome]
-    assertThat(result)
-        .isSameAs(tasksWithOutcome)
-    verify(mockBuildResult).tasks(outcome)
+    expectThat(result)
+      .isSameInstanceAs(tasksWithOutcome)
+    verify { mockBuildResult.tasks(outcome) }
   }
 }

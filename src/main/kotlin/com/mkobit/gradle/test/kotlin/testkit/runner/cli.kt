@@ -174,7 +174,6 @@ public var GradleRunner.includedBuilds: List<Path>
     ensureRepeatableOptionHasValues("--include-build", value)
   }
 
-
 /**
  * The `--exclude-task` options.
  */
@@ -382,7 +381,7 @@ private fun GradleRunner.findOptionValue(option: String): String? {
  * then the output will be `["val1"]`.
  */
 private fun GradleRunner.findRepeatableOptionValues(
-    argumentPredicate: (key: String) -> Boolean
+  argumentPredicate: (key: String) -> Boolean
 ): List<String> {
   var lastArgumentTest = false
   return arguments.filter {
@@ -402,7 +401,7 @@ private fun GradleRunner.findRepeatableOptionValues(
  * then the output will be `["--help"]`.
  */
 private fun GradleRunner.filterKeyValueArgumentsFilteringOutOption(
-    argumentPredicate: (key: String) -> Boolean
+  argumentPredicate: (key: String) -> Boolean
 ): List<String> {
   var lastArgumentTest = false
   return arguments.filterNot {

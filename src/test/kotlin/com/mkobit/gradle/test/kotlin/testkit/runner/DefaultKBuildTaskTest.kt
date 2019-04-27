@@ -1,14 +1,14 @@
 package com.mkobit.gradle.test.kotlin.testkit.runner
 
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.verify
-import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
-import com.nhaarman.mockitokotlin2.whenever
-import org.assertj.core.api.Assertions.assertThat
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verifyAll
 import org.gradle.testkit.runner.BuildTask
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import strikt.api.expectThat
+import strikt.assertions.isEqualTo
 
 internal class DefaultKBuildTaskTest {
 
@@ -17,33 +17,33 @@ internal class DefaultKBuildTaskTest {
 
   @BeforeEach
   internal fun setUp() {
-    mockBuildTask = mock()
+    mockBuildTask = mockk()
     defaultKBuildTask = DefaultKBuildTask(mockBuildTask)
   }
 
   @Test
   internal fun `returns delegate's build outcome`() {
     val expectedOutcome = TaskOutcome.SUCCESS
-    whenever(mockBuildTask.outcome).thenReturn(expectedOutcome)
-    assertThat(defaultKBuildTask.outcome).isEqualTo(expectedOutcome)
+    every { mockBuildTask.outcome }.returns(expectedOutcome)
+    expectThat(defaultKBuildTask.outcome).isEqualTo(expectedOutcome)
 
-    verify(mockBuildTask).outcome
-    verifyNoMoreInteractions(mockBuildTask)
+    verifyAll { mockBuildTask.outcome }
   }
 
   @Test
   internal fun `returns delegate's task path`() {
     val expectedPath = ":taskPath"
-    whenever(mockBuildTask.path).thenReturn(expectedPath)
-    assertThat(defaultKBuildTask.path).isEqualTo(expectedPath)
+    every { mockBuildTask.path }.returns(expectedPath)
+    expectThat(defaultKBuildTask.path).isEqualTo(expectedPath)
   }
 
   @Test
   internal fun `user friendly toString() method`() {
     val expectedOutcome = TaskOutcome.SUCCESS
     val expectedPath = ":taskPath"
-    whenever(mockBuildTask.outcome).thenReturn(expectedOutcome)
-    whenever(mockBuildTask.path).thenReturn(expectedPath)
-    assertThat(defaultKBuildTask.toString()).isEqualTo("DefaultKBuildTask(path=$expectedPath, outcome=$expectedOutcome)")
+    every { mockBuildTask.outcome }.returns(expectedOutcome)
+    every { mockBuildTask.path }.returns(expectedPath)
+    expectThat(defaultKBuildTask.toString())
+      .isEqualTo("DefaultKBuildTask(path=$expectedPath, outcome=$expectedOutcome)")
   }
 }

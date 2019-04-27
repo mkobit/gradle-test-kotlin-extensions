@@ -1,10 +1,10 @@
 package buildsrc
 
 object ProjectInfo {
-  val projectUrl = "https://github.com/mkobit/gradle-test-kotlin-extensions"
-  val issuesUrl = "https://github.com/mkobit/gradle-test-kotlin-extensions/issues"
-  val scmUrl = "https://github.com/mkobit/gradle-test-kotlin-extensions.git"
+  const val projectUrl = "https://github.com/mkobit/gradle-test-kotlin-extensions"
+  const val issuesUrl = "https://github.com/mkobit/gradle-test-kotlin-extensions/issues"
+  const val scmUrl = "https://github.com/mkobit/gradle-test-kotlin-extensions.git"
 
   // TODO: this should probably be a part of some buildSrc plugin that automatically configures the correct things
-  val automaticModuleName = "com.mkobit.gradle.test.kotlin"
+  const val automaticModuleName = "com.mkobit.gradle.test.kotlin"
 }
