@@ -3,32 +3,34 @@ package com.mkobit.gradle.test.kotlin.testkit.runner
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.gradle.testkit.runner.GradleRunner
-import org.junit.jupiter.api.DynamicNode
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.io.TempDir
-import testsupport.assertSoftly
-import testsupport.dynamicGradleRunnerTest
+import testsupport.assertj.assertSoftly
+import testsupport.minutest.testFactory
 import java.io.File
 import java.nio.file.Path
-import java.util.stream.Stream
 
 internal class GradleRunnerFsExtensionsTest {
 
   @TestFactory
-  internal fun `projectDirPath extension`(): Stream<DynamicNode> {
-    return Stream.of(
-        dynamicGradleRunnerTest("projectDir is null") {
-          assertThat(projectDirPath)
-              .isNull()
-        },
-        dynamicGradleRunnerTest("projectDir.toPath() is equal to the projectDirPath") {
-          val file = File("/tmp")
-          withProjectDir(file)
-          assertThat(projectDirPath)
-              .isEqualTo(file.toPath())
-        }
-    )
+  internal fun `projectDirPath extension`() = testFactory<GradleRunner> {
+    fixture { GradleRunner.create() }
+    context("project directory is unset") {
+      test("then projectDir extension value is null") {
+        assertThat(projectDirPath)
+          .isNull()
+      }
+    }
+    context("project directory is set") {
+      test("then projectDir extension value is equal to the set value") {
+        val file = File("/tmp")
+        withProjectDir(file)
+        assertThat(projectDirPath)
+          .isEqualTo(file.toPath())
+
+      }
+    }
   }
 
   @Test
@@ -57,21 +59,21 @@ internal class GradleRunnerFsExtensionsTest {
 
     assertSoftly {
       assertThat(root.resolve("settings.gradle"))
-          .isRegularFile
-          .hasContent("// settings.gradle")
+        .isRegularFile
+        .hasContent("// settings.gradle")
       assertThat(root.resolve("build.gradle"))
-          .isRegularFile
-          .hasContent("// build.gradle")
+        .isRegularFile
+        .hasContent("// build.gradle")
       assertThat(root.resolve("src/main/java"))
-          .isDirectory
+        .isDirectory
       assertThat(root.resolve("src/main/java/MainClass.java"))
-          .isRegularFile
-          .hasContent("public class Hello {}")
+        .isRegularFile
+        .hasContent("public class Hello {}")
       assertThat(root.resolve("src/main/java/com/mkobit"))
-          .isDirectory
+        .isDirectory
       assertThat(root.resolve("src/main/java/com/mkobit/NestedDude.java"))
-          .isRegularFile
-          .hasContent("""
+        .isRegularFile
+        .hasContent("""
             package com.mkobit;
             public class NestedDude {}
             // Additional appended content

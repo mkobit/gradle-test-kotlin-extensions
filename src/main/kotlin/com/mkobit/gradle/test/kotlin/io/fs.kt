@@ -91,7 +91,7 @@ public sealed class FileContext(val path: Path) {
    */
   public class RegularFileContext(path: Path) : FileContext(path) {
     init {
-      require(Files.isRegularFile(path)) { "Path $path must be a regular file" }
+      require(Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)) { "Path $path must be a regular file" }
     }
 
     /**
@@ -163,7 +163,7 @@ public sealed class FileContext(val path: Path) {
    */
   public class DirectoryContext(path: Path) : FileContext(path) {
     init {
-      require(Files.isDirectory(path)) { "Path $path is not a directory" }
+      require(Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) { "Path $path is not a directory" }
     }
 
     /**

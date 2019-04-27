@@ -77,6 +77,11 @@ dependencies {
   DependencyInfo.junitTestImplementationArtifacts.forEach {
     testImplementation(it)
   }
+  testImplementation(DependencyInfo.minutest)
+  testImplementation(DependencyInfo.mockk)
+  testImplementation(DependencyInfo.strikt("core"))
+  //testImplementation(DependencyInfo.strikt("gradle"))
+
   DependencyInfo.junitTestRuntimeOnlyArtifacts.forEach {
     testRuntimeOnly(it)
   }

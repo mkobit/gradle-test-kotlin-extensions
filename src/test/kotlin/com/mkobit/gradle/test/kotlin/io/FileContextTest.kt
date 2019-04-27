@@ -1,24 +1,23 @@
 package com.mkobit.gradle.test.kotlin.io
 
+import dev.minutest.ContextBuilder
+import dev.minutest.experimental.SKIP
+import dev.minutest.experimental.minus
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatCode
 import org.assertj.core.api.Assertions.assertThatExceptionOfType
 import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.DynamicNode
-import org.junit.jupiter.api.DynamicTest.dynamicTest
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
+import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.TestFactory
-import org.junit.jupiter.api.TestInfo
 import org.junit.jupiter.api.io.TempDir
-import testsupport.assertThatFileAlreadyExistsException
-import testsupport.assertThatNoSuchFileException
-import testsupport.fileNameString
-import testsupport.newDirectory
-import testsupport.newFile
+import testsupport.assertj.assertNoExceptionThrownBy
+import testsupport.assertj.assertThatFileAlreadyExistsExceptionThrownBy
+import testsupport.assertj.assertThatNoSuchFileExceptionThrownBy
+import testsupport.jdk.fileNameString
+import testsupport.minutest.createDirectoriesFor
+import testsupport.minutest.createFileFor
+import testsupport.minutest.testFactory
+import testsupport.jdk.newDirectory
+import testsupport.jdk.newFile
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.Path
@@ -30,39 +29,87 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.Month
 import java.time.ZoneId
-import java.util.UUID
-import java.util.stream.Stream
 
 internal class FileContextTest {
 
-  @Nested inner class OriginalTest {
-    @Test internal fun `Original is a singleton object`() {
-      assertThat(Original::class.objectInstance)
-          .describedAs("Is object instance")
+  private fun illegalArgumentExceptionIsThrownBy(body: () -> Unit) =
+    assertThatIllegalArgumentException().isThrownBy(body)
+
+  private fun ContextBuilder<out FileContext>.fileAttributesTests() {
+    // TODO: better context groupings
+    // needed for https://github.com/dmcg/minutest/issues/28
+    derivedContext<FileContext>("casted to FileContext (see https://github.com/dmcg/minutest/issues/28)") {
+      deriveFixture { this }
+      test("can get and set last modified time") {
+        val instant = Instant.from(
+          LocalDateTime.of(2011, Month.NOVEMBER, 26, 7, 2)
+            .atZone(ZoneId.systemDefault())
+        )
+        val clock = Clock.fixed(instant, ZoneId.systemDefault())
+
+        assertThat(fixture.lastModifiedTime)
           .isNotNull()
+        fixture.lastModifiedTime = clock.instant()
+        assertThat(fixture.lastModifiedTime)
+          .isEqualTo(instant)
+      }
+
+
+      test("can get hidden status") {
+        // TODO: make a cross-platform test here to make sure true and false can both be tested
+        assertThat(fixture.isHidden).isFalse()
+      }
+
+      SKIP - test("can set hidden status") {
+        fail("make a cross-platform test here to make sure true and false can both be tested")
+      }
+
+      test("can get file owner") {
+        assertNoExceptionThrownBy { fixture.owner }
+      }
+
+      SKIP - test("can set file owner") {
+        fail("need to come up with a safe way to test this - see something like https://stackoverflow.com/questions/13241967/change-file-owner-group-under-linux-with-java-nio-files")
+      }
+
+      test("can read POSIX attributes") {
+        assertThat(fixture.posixFilePermissions)
+          .isNotEmpty
+      }
+
+      test("can set POSIX attributes") {
+        val old = fixture.posixFilePermissions
+        val new = old + PosixFilePermission.OWNER_EXECUTE - PosixFilePermission.GROUP_READ - PosixFilePermission.OTHERS_READ
+        fixture.posixFilePermissions = new
+        assertThat(Files.getPosixFilePermissions(fixture.path, LinkOption.NOFOLLOW_LINKS))
+          .isEqualTo(new)
+      }
+    }
+  }
+
+  @TestFactory
+  internal fun original() = testFactory<Unit> {
+    test("Original is a singleton object") {
+      assertThat(Original::class.objectInstance)
+        .describedAs("Is object instance")
+        .isNotNull()
     }
 
-    @DisplayName("CharSequence.length throws UnsupportedOperationException")
-    @Test
-    internal fun `CharSequence_length throws UnsupportedOperationException`() {
+    test("CharSequence_length throws UnsupportedOperationException") {
       assertThatExceptionOfType(UnsupportedOperationException::class.java)
         .isThrownBy {
           Original.length
         }.withMessageContaining("Cannot access length from com.mkobit.gradle.test.kotlin.io.Original")
     }
 
-    @DisplayName("CharSequence.get(index) throws UnsupportedOperationException")
-    @Test
-    internal fun `CharSequence_get throws UnsupportedOperationException`() {
+    test("CharSequence_get throws UnsupportedOperationException") {
       assertThatExceptionOfType(UnsupportedOperationException::class.java)
         .isThrownBy {
           Original[0]
         }.withMessageContaining("Cannot call get from com.mkobit.gradle.test.kotlin.io.Original")
     }
 
-    @DisplayName("CharSequence.subSequence(startIndex, endIndex) throws UnsupportedOperationException")
-    @Test
-    internal fun `CharSequence_subSequence throws UnsupportedOperationException`() {
+    test("CharSequence_subSequence throws UnsupportedOperationException") {
       assertThatExceptionOfType(UnsupportedOperationException::class.java)
         .isThrownBy {
           Original.subSequence(0, 0)
@@ -70,669 +117,630 @@ internal class FileContextTest {
     }
   }
 
-  @Suppress("UNUSED")
-  private interface FileAttributesTests {
-    val context: FileContext
+  @TestFactory
+  internal fun `regular file context`(@TempDir directory: Path) = testFactory<Unit> {
+    derivedContext<Path>("when constructed with") {
+      fixture { directory.createDirectoriesFor(it) }
 
-    @Test fun `can get and set last modified time`() {
-      val instant = Instant.from(
-        LocalDateTime.of(2011, Month.NOVEMBER, 26, 7, 2)
-          .atZone(ZoneId.systemDefault())
-      )
-      val clock = Clock.fixed(instant, ZoneId.systemDefault())
-
-      assertThat(context.lastModifiedTime)
-        .isNotNull()
-      context.lastModifiedTime = clock.instant()
-      assertThat(context.lastModifiedTime)
-        .isEqualTo(instant)
+      context("a regular file") {
+        deriveFixture { Files.createFile(fixture.resolve("regular-file")) }
+        test("then no exception is thrown") {
+          assertNoExceptionThrownBy { FileContext.RegularFileContext(fixture) }
+        }
+      }
+      context("a nonexistent file") {
+        deriveFixture { fixture.resolve("nonexistent") }
+        test("then an illegal argument exception is thrown") {
+          illegalArgumentExceptionIsThrownBy { FileContext.RegularFileContext(fixture) }
+        }
+      }
+      context("when constructed with a directory") {
+        deriveFixture { Files.createDirectory(fixture.resolve("directory")) }
+        test("then an illegal argument exception is thrown") {
+          illegalArgumentExceptionIsThrownBy { FileContext.RegularFileContext(fixture) }
+        }
+      }
+      context("a symlink") {
+        deriveFixture {
+          Files.createSymbolicLink(
+            fixture.resolve("newlink"),
+            Files.createFile(fixture.resolve("link-target"))
+          )
+        }
+        test("then an illegal argument exception is thrown") {
+          illegalArgumentExceptionIsThrownBy { FileContext.RegularFileContext(fixture) }
+        }
+      }
     }
 
-    @Test fun `can get hidden status`() {
-      // TODO: make a cross-platform test here to make sure true and false can both be tested
-      assertThat(context.isHidden)
-        .isFalse()
-    }
+    derivedContext<FileContext.RegularFileContext>("a FileContext.RegularFileContext") {
+      fixture { FileContext.RegularFileContext(directory.createFileFor(it)) }
 
-    @Disabled("make a cross-platform test here to make sure true and false can both be tested")
-    @Test fun `can set hidden status`() {
-    }
+      fileAttributesTests()
 
-    @Test fun `can get file owner`() {
-      assertThatCode {
-        context.owner
-      }.doesNotThrowAnyException()
-    }
+      test("can get the file size in bytes") {
+        val bytes = 10
+        fixture.content = ByteArray(bytes, Int::toByte)
+        assertThat(fixture.size)
+          .isEqualTo(bytes.toLong())
+          .isEqualTo(fixture.content.size.toLong())
+      }
 
-    @Disabled("need to come up with a safe way to test this - see something like https://stackoverflow.com/questions/13241967/change-file-owner-group-under-linux-with-java-nio-files")
-    @Test fun `can set file owner`() {
-    }
-
-    @Test fun `can read POSIX attributes`() {
-      assertThat(context.posixFilePermissions)
-        .isNotEmpty
-    }
-
-    @Test fun `can set POSIX attributes`() {
-      val old = context.posixFilePermissions
-      val new = old + PosixFilePermission.OWNER_EXECUTE - PosixFilePermission.GROUP_READ - PosixFilePermission.OTHERS_READ
-      context.posixFilePermissions = new
-      assertThat(Files.getPosixFilePermissions(context.path, LinkOption.NOFOLLOW_LINKS))
-        .isEqualTo(new)
-    }
-  }
-
-  @Nested inner class RegularFileContextTest : FileAttributesTests {
-    private lateinit var fileContext: FileContext.RegularFileContext
-
-    override val context: FileContext
-      get() = fileContext
-
-    @BeforeEach internal fun setUp(@TempDir root: Path, testInfo: TestInfo) {
-      fileContext = FileContext.RegularFileContext(Files.createFile(root.resolve(testInfo.displayName)))
-    }
-
-    @TestFactory internal fun `constructor validation`(
-      @TempDir tempDir: Path
-    ): Stream<DynamicNode> {
-      val directory: Path = Files.createDirectory(tempDir.resolve("tempDir"))
-      val regularFile: Path = Files.createFile(tempDir.resolve("tempFile"))
-      val doesntExist = directory.resolve("dontexist")
-
-      return Stream.of(
-          dynamicTest("constructed with nonexistent file throws an IllegalArgumentException") {
-            assertThatIllegalArgumentException().isThrownBy { FileContext.RegularFileContext(doesntExist) }
-          },
-          dynamicTest("constructed with directory throws an IllegalArgumentException") {
-            assertThatIllegalArgumentException().isThrownBy {
-              FileContext.RegularFileContext(directory)
-            }
-          },
-          dynamicTest("constructed with an existing file does not throw any exception") {
-            assertThatCode {
-              FileContext.RegularFileContext(regularFile)
-            }.doesNotThrowAnyException()
-          }
-      )
-    }
-
-    @Test internal fun `can get the file size in bytes`() {
-      val bytes = 10
-      fileContext.content = ByteArray(bytes, Int::toByte)
-      assertThat(fileContext.size)
-        .isEqualTo(bytes.toLong())
-        .isEqualTo(fileContext.content.size.toLong())
-    }
-
-    @Test internal fun `empty content can be read`() {
-      assertThat(fileContext.content)
+      test("empty content can be read") {
+        assertThat(fixture.content)
           .isEmpty()
-    }
+      }
 
-    @Test internal fun `ByteArray content can be written and read`() {
-      val content = "here is some file content".toByteArray()
-      Files.write(fileContext.path, content)
-      assertThat(fileContext.content)
+      test("ByteArray content can be written and read") {
+        val content = "here is some file content".toByteArray()
+        Files.write(fixture.path, content)
+        assertThat(fixture.content)
           .isEqualTo(content)
-    }
+      }
 
-    @Test internal fun `empty ByteArray content can be written and read`() {
-      fileContext.content = ByteArray(0)
-      assertThat(fileContext.content)
+      test("empty ByteArray content can be written and read") {
+        fixture.content = ByteArray(0)
+        assertThat(fixture.content)
           .isEmpty()
-    }
+      }
 
-    @Test internal fun `append ByteArray content to existing file`() {
-      val originalContent = "this is the the original content"
-      val appendedContent = "this is the appended content"
-      fileContext.content = originalContent.toByteArray()
-      fileContext.append(appendedContent.toByteArray())
-      assertThat(fileContext.content)
+      test("append ByteArray content to existing file") {
+        val originalContent = "this is the the original content"
+        val appendedContent = "this is the appended content"
+        fixture.content = originalContent.toByteArray()
+        fixture.append(appendedContent.toByteArray())
+        assertThat(fixture.content)
           .startsWith(*originalContent.toByteArray())
           .endsWith(*appendedContent.toByteArray())
-      assertThat(fileContext.path)
+        assertThat(fixture.path)
           .hasContent(originalContent + appendedContent)
-    }
+      }
 
-    @Test internal fun `append CharSequence content to existing file`() {
-      val originalContent = "this is the the original content"
-      val appendedContent = "this is the appended content"
-      fileContext.content = originalContent.toByteArray()
-      fileContext.append(appendedContent)
-      assertThat(fileContext.content)
+      test("append CharSequence content to existing file") {
+        val originalContent = "this is the the original content"
+        val appendedContent = "this is the appended content"
+        fixture.content = originalContent.toByteArray()
+        fixture.append(appendedContent)
+        assertThat(fixture.content)
           .startsWith(*originalContent.toByteArray())
           .endsWith(*appendedContent.toByteArray())
-      assertThat(fileContext.path)
+        assertThat(fixture.path)
           .hasContent(originalContent + appendedContent)
-    }
+      }
 
-    @Test internal fun `append newline to existing file`() {
-      val originalContent = "this is the the original content"
-      fileContext.content = originalContent.toByteArray()
-      fileContext.appendNewline()
-      assertThat(fileContext.content)
+      test("append newline to existing file") {
+        val originalContent = "this is the the original content"
+        fixture.content = originalContent.toByteArray()
+        fixture.appendNewline()
+        assertThat(fixture.content)
           .startsWith(*originalContent.toByteArray())
           .endsWith(*System.lineSeparator().toByteArray())
-      assertThat(fileContext.path)
+        assertThat(fixture.path)
           .hasContent(originalContent + System.lineSeparator())
-    }
+      }
 
-    @Test internal fun `replace lines in file`() {
-      val originalContent = """
+      test("replace lines in file") {
+        val originalContent = """
         line 1
         line 2
         line 3
         """.trimIndent()
-      fileContext.content = originalContent.toByteArray()
-      fileContext.replaceEachLine { lineNumber, text ->
-        when {
-          text == "line 2" -> "LINE 2"
-          lineNumber == 1 -> "First Line"
-          else -> Original
+        fixture.content = originalContent.toByteArray()
+        fixture.replaceEachLine { lineNumber, text ->
+          when {
+            text == "line 2" -> "LINE 2"
+            lineNumber == 1 -> "First Line"
+            else -> Original
+          }
         }
-      }
-      assertThat(fileContext.path)
+        assertThat(fixture.path)
           .hasContent("""
             First Line
             LINE 2
             line 3
           """.trimIndent())
+      }
     }
   }
 
-  @Nested inner class DirectoryContextTest : FileAttributesTests {
+  @TestFactory
+  internal fun `directory context`(@TempDir directory: Path) = testFactory<Unit> {
+    derivedContext<Path>("when constructed with") {
+      fixture { directory.createDirectoriesFor(it) }
 
-    private lateinit var directoryContext: FileContext.DirectoryContext
-
-    override val context: FileContext
-      get() = directoryContext
-
-    @BeforeEach internal fun setUp(@TempDir directory: Path) {
-      directoryContext = FileContext.DirectoryContext(directory)
+      context("a regular file") {
+        deriveFixture { Files.createFile(fixture.resolve("regular-file")) }
+        test("then an illegal argument exception is thrown") {
+          illegalArgumentExceptionIsThrownBy { FileContext.DirectoryContext(fixture) }
+        }
+      }
+      context("a nonexistent file") {
+        deriveFixture { fixture.resolve("nonexistent") }
+        test("then an illegal argument exception is thrown") {
+          illegalArgumentExceptionIsThrownBy { FileContext.DirectoryContext(fixture) }
+        }
+      }
+      context("a directory") {
+        deriveFixture { Files.createDirectory(fixture.resolve("directory")) }
+        test("then no exception is thrown") {
+          assertNoExceptionThrownBy { FileContext.DirectoryContext(fixture) }
+        }
+      }
+      context("a symlink") {
+        deriveFixture {
+          Files.createSymbolicLink(
+            fixture.resolve("newlink"),
+            Files.createDirectory(fixture.resolve("link-target"))
+          )
+        }
+        test("then an illegal argument exception is thrown") {
+          illegalArgumentExceptionIsThrownBy { FileContext.DirectoryContext(fixture) }
+        }
+      }
     }
 
-    @TestFactory internal fun `constructor validation`(
-      @TempDir tempDir: Path
-    ): Stream<DynamicNode> {
-      val directory: Path = Files.createDirectory(tempDir.resolve("tempDir"))
-      val regularFile: Path = Files.createFile(tempDir.resolve("tempFile"))
-      val doesntExist = directory.resolve("dontexist")
-      val symlink = Files.createSymbolicLink(directory.resolve("newlink"),
-          Files.createFile(directory.resolve("linkTarget")))
-      return Stream.of(
-          dynamicTest("constructed with nonexistent file throws IllegalArgumentException") {
-            assertThatIllegalArgumentException()
-                .isThrownBy { FileContext.DirectoryContext(doesntExist) }
-          },
-          dynamicTest("constructed with regular file throws IllegalArgumentException") {
-            assertThatIllegalArgumentException()
-                .isThrownBy { FileContext.DirectoryContext(regularFile) }
-          },
-          dynamicTest("constructed with symlink throws IllegalArgumentException") {
-            assertThatIllegalArgumentException()
-                .isThrownBy { FileContext.DirectoryContext(symlink) }
-          },
-          dynamicTest("constructed with existing directory does not throw an exception") {
-            assertThatCode { FileContext.DirectoryContext(directory) }
-                .doesNotThrowAnyException()
+    derivedContext<FileContext.DirectoryContext>("a FileContext.DirectoryContext") {
+      fixture { FileContext.DirectoryContext(directory.createDirectoriesFor(it)) }
+      fileAttributesTests()
+      context("execute file action") {
+        class FileActionFixture(val fileContext: FileContext.DirectoryContext, val action: FileAction)
+        derivedContext<FileActionFixture>("is MaybeCreate") {
+          deriveFixture { FileActionFixture(parentFixture, FileAction.MaybeCreate) }
+          test("when a file is requested and file does not exist then it is created") {
+            val filename = "new-file-name"
+            val fileContext = fileContext.file(filename, action)
+            assertThat(fileContext.path)
+              .hasParent(this.fileContext.path)
+              .isRegularFile()
+              .hasFileName(filename)
           }
-      )
-    }
 
-    @Nested inner class FileActionMaybeCreate {
-      private val requestType = FileAction.MaybeCreate
+          test("when a file is requested and file exists then it is retrieved") {
+            val filename = "fileAlreadyExists"
+            val filePath = fileContext.path.newFile(filename)
+            val fileContext = fileContext.file(filename, action)
+            assertThat(fileContext.path)
+              .isRegularFile()
+              .hasParent(this.fileContext.path)
+              .isEqualTo(filePath)
+          }
 
-      @Test internal fun `when a file is requested and file does not exist then it is created`() {
-        val filename = "newFileName"
-        val fileContext = directoryContext.file(filename, requestType)
-        assertThat(fileContext.path)
-            .hasParent(directoryContext.path)
-            .isRegularFile()
-            .hasFileName(filename)
-      }
+          test("when a nonexistent file in an existing nested directory requested then it is created") {
+            val nestedDirectory = "some/nested/dir"
+            val filename = "nonExistentFile"
+            val dirPath = fileContext.path.newDirectory(nestedDirectory)
+            val fileContext: FileContext.RegularFileContext = fileContext.file("$nestedDirectory/$filename", action)
+            assertThat(fileContext.path)
+              .isRegularFile()
+              .hasParent(dirPath)
+              .hasFileName(filename)
+          }
 
-      @Test internal fun `when a file is requested and file exists then it is retrieved`() {
-        val filename = "fileAlreadyExists"
-        val filePath = directoryContext.path.newFile(filename)
-        val fileContext = directoryContext.file(filename, requestType)
-        assertThat(fileContext.path)
-            .isRegularFile()
-            .hasParent(directoryContext.path)
-            .isEqualTo(filePath)
-      }
+          test("when a file is requested and directory exists then a FileAlreadyExistsException is thrown") {
+            fileContext.path.newDirectory("directory")
+            assertThatFileAlreadyExistsExceptionThrownBy { fileContext.file("directory", action) }
+          }
 
-      @Test internal fun `when a nonexistent file in an existing nested directory requested then it is created`() {
-        val directory = "some/nested/dir"
-        val filename = "nonExistentFile"
-        val dirPath = directoryContext.path.newDirectory(directory)
-        val fileContext: FileContext.RegularFileContext = directoryContext.file("$directory/$filename", requestType)
-        assertThat(fileContext.path)
-            .isRegularFile()
-            .hasParent(dirPath)
-            .hasFileName(filename)
-      }
+          test("when a nested file is requested and the parent directory doesn't exist then a NoSuchFileExceptiis thrown") {
+            assertThatNoSuchFileExceptionThrownBy { fileContext.file("directory/fileName", action) }
+          }
 
-      @Test internal fun `when a file is requested and directory exists then a FileAlreadyExistsException is thrown`() {
-        directoryContext.path.newDirectory("directory")
-        assertThatFileAlreadyExistsException()
-            .isThrownBy { directoryContext.file("directory", requestType) }
-      }
+          test("when a directory is requested and the directory does not exist then it is created") {
+            val directoryName = "non-existent-directory"
+            val context: FileContext.DirectoryContext = fileContext.directory(directoryName, action)
+            assertThat(context.path)
+              .isDirectory()
+              .hasParent(fileContext.path)
+              .hasFileName(directoryName)
+          }
 
-      @Test internal fun `when a nested file is requested and the parent directory doesn't exist then a NoSuchFileException is thrown`() {
-        assertThatNoSuchFileException()
-            .isThrownBy { directoryContext.file("directory/fileName", requestType) }
-      }
+          test("when a nested directory is requested and a portion of the path exists then the rest of the path is created") {
+            val context: FileContext.DirectoryContext = fileContext.directory("path/to/nonexistent/dir", action)
+            assertThat(context.path)
+              .isDirectory()
+              .startsWith(fileContext.path)
+              .endsWith(Paths.get("path/to/nonexistent/dir"))
+          }
 
-      @Test internal fun `when a directory is requested and the directory does not exist then it is created`() {
-        val directoryName = "nonExistentDirectory"
-        val context: FileContext.DirectoryContext = directoryContext.directory(directoryName, requestType)
-        assertThat(context.path)
-            .isDirectory()
-            .hasParent(directoryContext.path)
-            .hasFileName(directoryName)
-      }
+          test("when a nested directory is requested and some of the parent path does not exist then the rest is created") {
+            fileContext.path.newDirectory("path/to")
+            val context: FileContext.DirectoryContext = fileContext.directory("path/to/nonexistent/dir", action)
+            assertThat(context.path)
+              .isDirectory()
+              .startsWith(fileContext.path)
+              .endsWith(Paths.get("path/to/nonexistent/dir"))
+          }
 
-      @Test internal fun `when a nested directory is requested and a portion of the path exists then the rest of the path is created`() {
-        val context: FileContext.DirectoryContext = directoryContext.directory("path/to/nonexistent/dir", requestType)
-        assertThat(context.path)
-            .isDirectory()
-            .startsWith(directoryContext.path)
-            .endsWith(Paths.get("path/to/nonexistent/dir"))
-      }
-
-      @Test internal fun `when a nested directory is requested and some of the parent path does not exist then the rest is created`() {
-        directoryContext.path.newDirectory("path/to")
-        val context: FileContext.DirectoryContext = directoryContext.directory("path/to/nonexistent/dir", requestType)
-        assertThat(context.path)
-            .isDirectory()
-            .startsWith(directoryContext.path)
-            .endsWith(Paths.get("path/to/nonexistent/dir"))
-      }
-
-      @Test internal fun `when a directory is requested and file exists at the path then FileAlreadyExistsException is thrown`() {
-        directoryContext.path.newFile("regularFile")
-        assertThatFileAlreadyExistsException()
-            .isThrownBy { directoryContext.directory("regularFile", requestType) }
-      }
-
-      @Test internal fun `when a nested directory is requested and file exists at the path then FileAlreadyExistsException is thrown`() {
-        directoryContext.path.newDirectory("path/dir/path").newFile("actuallyAFile")
-        assertThatFileAlreadyExistsException()
-            .isThrownBy { directoryContext.directory("path/dir/path/actuallyAFile", requestType) }
-      }
-
-      @TestFactory internal fun `when string invocation is called and directory does not exist then the file is created`(): Stream<DynamicNode> {
-        return Stream.of(
-            dynamicTest("by explicitly passing in a ${FileAction::class.simpleName} of ${requestType::class.simpleName}") {
-              val filename = randomString()
-              val context: FileContext.RegularFileContext = directoryContext.run {
-                filename(requestType) {}
-              }
-              assertThat(context.path)
-                  .isRegularFile()
-                  .hasParent(directoryContext.path)
-                  .hasFileName(filename)
-            },
-            dynamicTest("using default parameter value of ${FileAction::class.simpleName}") {
-              val filename = randomString()
-              val context: FileContext.RegularFileContext = directoryContext.run {
-                filename {}
-              }
-              assertThat(context.path)
-                  .isRegularFile()
-                  .hasParent(directoryContext.path)
-                  .hasFileName(filename)
+          test("when a directory is requested and file exists at the path then FileAlreadyExistsException is thrown") {
+            fileContext.path.newFile("regularFile")
+            assertThatFileAlreadyExistsExceptionThrownBy {
+              fileContext.directory("regularFile",
+                action)
             }
-        )
-      }
+          }
 
-      @TestFactory internal fun `when string invocation is called and directory exists then FileAlreadyExistsException is thrown`(): Stream<DynamicNode> {
-        val directory = directoryContext.path.newDirectory("preExistingDir")
-        return Stream.of(
-            dynamicTest("by explicitly passing in a ${FileAction::class.simpleName} of ${requestType::class.simpleName}") {
-              assertThatFileAlreadyExistsException()
-                  .isThrownBy {
-                    directoryContext.run {
-                      directory.fileNameString(requestType) {}
-                    }
-                  }
-            },
-            dynamicTest("using default parameter value of ${FileAction::class.simpleName}") {
-              assertThatFileAlreadyExistsException()
-                  .isThrownBy {
-                    directoryContext.run {
-                      directory.fileNameString {}
-                    }
-                  }
+          test("when a nested directory is requested and file exists at the path then FileAlreadyExistsException is thrown") {
+            fileContext.path.newDirectory("path/dir/path").newFile("actuallyAFile")
+            assertThatFileAlreadyExistsExceptionThrownBy {
+              fileContext.directory("path/dir/path/actuallyAFile",
+                action)
             }
-        )
-      }
+          }
+          context("when string invocation is used") {
+            context("and a directory does not exist at the path") {
+              val filename = "new-file-to-create"
+              test("then the file is created by explicitly passing in the action") {
+                val context: FileContext.RegularFileContext = fileContext.run {
+                  filename(action) {}
+                }
+                assertThat(context.path)
+                  .isRegularFile()
+                  .hasParent(fileContext.path)
+                  .hasFileName(filename)
+              }
+              test("then the file is created by the using the default action") {
+                val context: FileContext.RegularFileContext = fileContext.run {
+                  filename {}
+                }
+                assertThat(context.path)
+                  .isRegularFile()
+                  .hasParent(fileContext.path)
+                  .hasFileName(filename)
+              }
+            }
+            context("and a directory exists at the path") {
+              val fileNameString = "pre-existing-directory"
+              modifyFixture {
+                fileContext.path.newDirectory(fileNameString)
+              }
 
-      @TestFactory internal fun `when string invocation is called, file already exists, and the provided content is Original, then the file is retrieved with its original content`(): Stream<DynamicNode> {
-        val originalContent = "this is the original file content"
-        return Stream.of(
-            dynamicTest("by explicitly passing in a ${FileAction::class.simpleName} of ${requestType::class.simpleName}") {
-              val filename = randomString()
-              directoryContext.path.newFile(filename, originalContent.toByteArray())
-              val context = directoryContext.run {
-                filename(requestType, content = Original)
-              }
-              assertThat(context.path)
-                  .hasContent(originalContent)
-                  .hasFileName(filename)
-                  .hasParent(directoryContext.path)
-            },
-            dynamicTest("using default parameter value of ${FileAction::class.simpleName}") {
-              val filename = randomString()
-              directoryContext.path.newFile(filename, originalContent.toByteArray())
-              val context = directoryContext.run {
-                filename(content = Original)
-              }
-              assertThat(context.path)
-                  .hasContent(originalContent)
-                  .hasFileName(filename)
-                  .hasParent(directoryContext.path)
-            },
-            dynamicTest("using default parameter value of ${FileAction::class.simpleName} and using default content parameter of Original") {
-              val filename = randomString()
-              directoryContext.path.newFile(filename, originalContent.toByteArray())
-              val context = directoryContext.run {
-                filename {
+              test("then a FileAlreadyExistsException is thrown by explicitly passing in the action") {
+                assertThatFileAlreadyExistsExceptionThrownBy {
+                  fileContext.run {
+                    fileNameString(action) {}
+                  }
                 }
               }
-              assertThat(context).isInstanceOf(FileContext.RegularFileContext::class.java)
-              assertThat(context.path)
+              test("then a FileAlreadyExistsException is thrown using default action") {
+                assertThatFileAlreadyExistsExceptionThrownBy {
+                  fileContext.run {
+                    fileNameString {}
+                  }
+                }
+              }
+            }
+            context("and file already exists, and the provided content is $Original") {
+              val originalContent = "this is the original file content"
+              test("then the file is retrieved with its original content by explicitly passing in the action") {
+                val filename = it.name
+                fileContext.path.newFile(filename, originalContent.toByteArray())
+                val context = fileContext.run {
+                  filename(action, content = Original)
+                }
+                assertThat(context.path)
                   .hasContent(originalContent)
                   .hasFileName(filename)
-                  .hasParent(directoryContext.path)
-            }
-        )
-      }
-
-      @TestFactory internal fun `when string invocation is called with content and directory exists at path then FileAlreadyExistsException is thrown`(): Stream<DynamicNode> {
-        val content = "this is file content"
-        return Stream.of(
-            dynamicTest("by explicitly passing in a ${FileAction::class.simpleName} of ${requestType::class.simpleName}") {
-              val filename = randomString()
-              directoryContext.path.newDirectory(filename)
-              directoryContext.run {
-                assertThatFileAlreadyExistsException()
-                    .isThrownBy {
-                      filename(requestType, content = content)
-                    }
+                  .hasParent(fileContext.path)
               }
-            },
-            dynamicTest("using default parameter value of ${FileAction::class.simpleName}") {
-              val filename = randomString()
-              directoryContext.path.newDirectory(filename)
-              directoryContext.run {
-                assertThatFileAlreadyExistsException()
-                    .isThrownBy {
-                      filename(content = content)
-                    }
+              test("using default parameter action") {
+                val filename = it.name
+                fileContext.path.newFile(filename, originalContent.toByteArray())
+                val context = fileContext.run {
+                  filename(content = Original)
+                }
+                assertThat(context.path)
+                  .hasContent(originalContent)
+                  .hasFileName(filename)
+                  .hasParent(fileContext.path)
+              }
+              test("using default parameter action and using default content parameter of $Original") {
+                val filename = it.name
+                fileContext.path.newFile(filename, originalContent.toByteArray())
+                val context = fileContext.run {
+                  filename {
+                  }
+                }
+                assertThat(context).isInstanceOf(FileContext.RegularFileContext::class.java)
+                assertThat(context.path)
+                  .hasContent(originalContent)
+                  .hasFileName(filename)
+                  .hasParent(fileContext.path)
               }
             }
-        )
-      }
 
-      @Test internal fun `when div invocation is called and directory does not exist then it is created`() {
-        val subdirContext: FileContext.DirectoryContext = directoryContext / "nonExistentSubDirectory"
-        assertThat(subdirContext.path)
-            .isDirectory()
-            .hasFileName("nonExistentSubDirectory")
-            .hasParent(directoryContext.path)
-      }
-
-      @Test internal fun `when div invocation is called and directory does exist then it is retrieved`() {
-        val subDirectory = directoryContext.path.newDirectory("preExistingSubDirectory")
-        val subdirContext: FileContext.DirectoryContext = directoryContext / subDirectory.fileNameString
-        assertThat(subdirContext.path)
-            .isDirectory()
-            .endsWith(subDirectory)
-            .hasParent(directoryContext.path)
-      }
-
-      @Test internal fun `when div invocation is called and file exists at the location then a FileAlreadyExistsException is thrown`() {
-        val file = directoryContext.path.newFile("preExistingFile")
-        assertThatFileAlreadyExistsException().isThrownBy {
-          directoryContext / file.fileNameString
+            context("with text content but a directory exists at path then FileAlreadyExistsException is thrown") {
+              before { fileContext.path.newDirectory(it.name) }
+              val content = "this is file content"
+              test("by explicitly passing in the action") {
+                val filename = it.name
+                fileContext.path.newDirectory(filename)
+                assertThatFileAlreadyExistsExceptionThrownBy {
+                  fileContext.run {
+                    filename(action, content = content)
+                  }
+                }
+              }
+              test("using default action") {
+                val filename = it.name
+                fileContext.path.newDirectory(filename)
+                assertThatFileAlreadyExistsExceptionThrownBy {
+                  fileContext.run {
+                    filename(content = content)
+                  }
+                }
+              }
+            }
+          }
         }
-      }
+        derivedContext<FileActionFixture>("is Create") {
+          deriveFixture { FileActionFixture(parentFixture, FileAction.Create) }
+          context("when a file is requested") {
+            test("and the file does not exist then it is created") {
+              val fileContext: FileContext.RegularFileContext = fileContext.file("non-existent-file", action)
+              assertThat(fileContext.path)
+                .isRegularFile()
+                .hasParent(this.fileContext.path)
+            }
+            test("and the file exists then a FileAlreadyExistsException is thrown") {
+              fileContext.path.newFile("preExistingFile")
+              assertThatFileAlreadyExistsExceptionThrownBy {
+                fileContext.file("preExistingFile",
+                  action)
+              }
+            }
+          }
 
-      @Test internal fun `when div invocation is successively called with multiple paths then the entire directory path is created`() {
-        val childContext: FileContext.DirectoryContext = directoryContext / "first" / "second" / "third"
+          context("when a nested file is requested") {
+            test("and the parent directory doesn't exist then a NoSuchFileException is thrown") {
+              assertThatNoSuchFileExceptionThrownBy {
+                fileContext.file("path/to/nonExistentDir/file",
+                  action)
+              }
+            }
+            test("and the the parent directory exists then the file is created") {
+              val dirPath = fileContext.path.newDirectory("path/to/dir")
+              val context: FileContext.RegularFileContext = fileContext.file("path/to/dir/newFile", action)
+              assertThat(context.path)
+                .hasParent(dirPath)
+                .isRegularFile()
+                .endsWith(Paths.get("newFile"))
+            }
+            test("and the file already exists then a FileAlreadyExistsException is thrown") {
+              val file = fileContext.path.newDirectory("path/to/dir").newFile("preExistingFile")
+              assertThatFileAlreadyExistsExceptionThrownBy {
+                fileContext.file("path/to/dir/${file.fileNameString}",
+                  action)
+              }
+            }
 
-        assertThat(childContext.path)
-            .isDirectory()
-            .startsWith(directoryContext.path)
-            .endsWith(Paths.get("first", "second", "third"))
-      }
+            test("and a directory already exists then a FileAlreadyExistsException is thrown") {
+              fileContext.path.newDirectory("path/to/dir")
+              assertThatFileAlreadyExistsExceptionThrownBy {
+                fileContext.file("path/to/dir",
+                  action)
+              }
+            }
+          }
 
-      @Test internal fun `when div invocation is called with lambda then the lambda is called with the same instance as the receiver`() {
-        var invoked = false
-        val result: FileContext.DirectoryContext = directoryContext / {
-          invoked = true
-          assertThat(this)
-              .isSameAs(directoryContext)
+          context("when a directory is requested") {
+            test("and the directory doesn't exist then then it is created") {
+              assertThat(fileContext.directory("nonExistentDir", action).path)
+                .isDirectory()
+                .hasParent(fileContext.path)
+                .hasFileName("nonExistentDir")
+            }
+            test("and the directory exists then a FileAlreadyExistsException is thrown") {
+              fileContext.path.newDirectory("preExistingDirectory")
+              assertThatFileAlreadyExistsExceptionThrownBy {
+                fileContext.directory("preExistingDirectory",
+                  action)
+              }
+            }
+            test("and file already exists then a FileAlreadyExistsException is thrown") {
+              fileContext.path.newFile("preExistingFile")
+              assertThatFileAlreadyExistsExceptionThrownBy {
+                fileContext.directory("preExistingFile",
+                  action)
+              }
+            }
+          }
+
+          context("when a nested directory is requested") {
+            test("and the nested directory doesn't exist then the nested path is created") {
+              assertThat(fileContext.directory("nested/dir/path", action).path)
+                .isDirectory()
+                .startsWith(fileContext.path)
+                .endsWith(Paths.get("nested/dir/path"))
+            }
+            test("and a portion of the path exists then the rest of the path is created") {
+              val nestedDir = fileContext.path.newDirectory("nested/dir")
+              assertThat(fileContext.directory("nested/dir/farther/nesting", action).path)
+                .isDirectory()
+                .startsWith(fileContext.path)
+                .startsWith(nestedDir)
+                .endsWith(Paths.get("farther", "nesting"))
+            }
+            test("and the nested directory exists then a FileAlreadyExistsException thrown") {
+              fileContext.path.newDirectory("pre/existing/nested/dir")
+              assertThatFileAlreadyExistsExceptionThrownBy {
+                fileContext.directory("pre/existing/nested/dir",
+                  action)
+              }
+            }
+          }
         }
-        assertThat(invoked)
-            .withFailMessage("Lambda body was not invoked")
-            .isTrue()
-        assertThat(result)
-            .describedAs("Operator invocation returns same instance that is receiver of div div operation")
-            .isSameAs(directoryContext)
-      }
 
-      @Test internal fun `when div invocation is called with path and lambda then the lambda is applied to the receiver that is at the path`() {
-        var invoked = false
-        var thisFromLambdaBodyOfDivInvoke: FileContext.DirectoryContext? = null
-        val result: FileContext.DirectoryContext = directoryContext / "childDir" / {
-          invoked = true
-          assertThat(this).isInstanceOf(FileContext.DirectoryContext::class.java)
-          assertThat(path)
-              .hasFileName("childDir")
+        derivedContext<FileActionFixture>("is Get") {
+          deriveFixture { FileActionFixture(parentFixture, FileAction.Get) }
+
+          test("when a file does not exist then a NoSuchFileException is thrown") {
+            assertThatNoSuchFileExceptionThrownBy { fileContext.file("nonExistentFile", action) }
+          }
+
+          test("when a file is requested and the file exists then the context is retrieved") {
+            val file = fileContext.path.newFile("preExistingFile")
+            val fileContext: FileContext.RegularFileContext = fileContext.file(file.fileNameString, action)
+            assertThat(fileContext.path)
+              .hasParent(this.fileContext.path)
+              .isRegularFile()
+              .isEqualTo(file)
+          }
+
+          test("when a nested file is requested and the file exists then the context is retrieved") {
+            val file = fileContext.path.newDirectory("path/to/dir").newFile("preExistingFile")
+            val fileContext: FileContext.RegularFileContext = fileContext.file("path/to/dir/preExistingFile",
+              action)
+            assertThat(fileContext.path)
+              .isRegularFile()
+              .startsWith(this.fileContext.path)
+              .endsWith(file)
+          }
+
+          test("when a file is requested and the file is a directory then a NoSuchFileException is thrown") {
+            fileContext.path.newDirectory("preExistingDir")
+            assertThatNoSuchFileExceptionThrownBy { fileContext.file("preExistingDir", action) }
+          }
+
+          test("when a directory is requested and the directory does not exist then a NoSuchFileException is thrown") {
+            assertThatNoSuchFileExceptionThrownBy {
+              fileContext.directory("nonExistentDirectory",
+                action)
+            }
+          }
+
+          test("when directory is requested and the directory exists then the context is retrieved") {
+            val nestedDirectory = fileContext.path.newDirectory("preExistingDirectory")
+            val context: FileContext.DirectoryContext = fileContext.directory("preExistingDirectory", action)
+            assertThat(context.path)
               .isDirectory()
-              .hasParent(directoryContext.path)
-          thisFromLambdaBodyOfDivInvoke = this
+              .isEqualTo(nestedDirectory)
+          }
+
+          test("when nested directory is requested and the directory exists then the context is retrieved") {
+            val nestedDirectory = fileContext.path.newDirectory("nested/pre/existing/dir")
+            val context: FileContext.DirectoryContext = fileContext.directory("nested/pre/existing/dir", action)
+            assertThat(context.path)
+              .isDirectory()
+              .isEqualTo(nestedDirectory)
+          }
+
+          test("when directory is requested and file exists then a NoSuchFileException is thrown") {
+            fileContext.path.newFile("preExistingFile")
+            assertThatNoSuchFileExceptionThrownBy {
+              fileContext.directory("preExistingFile",
+                action)
+            }
+          }
         }
-        assertThat(invoked)
-            .withFailMessage("Lambda body was not invoked")
-            .isTrue()
-        assertThat(result)
-            .describedAs("Operator invocation returns same instance that is receiver of div div operation")
-            .isSameAs(thisFromLambdaBodyOfDivInvoke)
-      }
-    }
+        context("when div invocation is used") {
+          test("and directory does not exist then it is created") {
+            val subdirContext: FileContext.DirectoryContext = fixture / "nonExistentSubDirectory"
+            assertThat(subdirContext.path)
+              .isDirectory()
+              .hasFileName("nonExistentSubDirectory")
+              .hasParent(fixture.path)
+          }
 
-    @Nested inner class FileActionCreate {
-      private val requestType = FileAction.Create
+          test("and directory does exist then it is retrieved") {
+            val subDirectory = fixture.path.newDirectory("preExistingSubDirectory")
+            val subdirContext: FileContext.DirectoryContext = fixture / subDirectory.fileNameString
+            assertThat(subdirContext.path)
+              .isDirectory()
+              .endsWith(subDirectory)
+              .hasParent(fixture.path)
+          }
 
-      @Test internal fun `when a file is requested and the file does not exist then it is created`() {
-        val fileContext: FileContext.RegularFileContext = directoryContext.file("nonExistentFile", requestType)
-        assertThat(fileContext.path)
-            .isRegularFile()
-            .hasParent(directoryContext.path)
-      }
+          test("and file exists at the location then a FileAlreadyExistsException is thrown") {
+            val file = fixture.path.newFile("preExistingFile")
+            assertThatFileAlreadyExistsExceptionThrownBy {
+              fixture / file.fileNameString
+            }
+          }
 
-      @Test internal fun `when a nested file is requested and the parent directory doesn't exist then a NoSuchFileException is thrown`() {
-        assertThatNoSuchFileException()
-            .isThrownBy { directoryContext.file("path/to/nonExistentDir/file", requestType) }
-      }
+          test("with multiple paths then the entire directory path is created") {
+            val childContext: FileContext.DirectoryContext = fixture / "first" / "second" / "third"
 
-      @Test internal fun `when a nested file is requested and the the parent directory exists then the file is created`() {
-        val dirPath = directoryContext.path.newDirectory("path/to/dir")
-        val context: FileContext.RegularFileContext = directoryContext.file("path/to/dir/newFile", requestType)
-        assertThat(context.path)
-            .hasParent(dirPath)
-            .isRegularFile()
-            .endsWith(Paths.get("newFile"))
-      }
+            assertThat(childContext.path)
+              .isDirectory()
+              .startsWith(fixture.path)
+              .endsWith(Paths.get("first", "second", "third"))
+          }
 
-      @Test fun `when a file is requested and the file exists then a FileAlreadyExistsException is thrown`() {
-        directoryContext.path.newFile("preExistingFile")
-        assertThatFileAlreadyExistsException()
-            .isThrownBy { directoryContext.file("preExistingFile", requestType) }
-      }
+          test("with lambda then the lambda is called with the same instance as the receiver") {
+            var invoked = false
+            val result: FileContext.DirectoryContext = fixture / {
+              invoked = true
+              assertThat(this)
+                .isSameAs(fixture)
+            }
+            assertThat(invoked)
+              .describedAs("Lambda body was invoked")
+              .isTrue()
+            assertThat(result)
+              .describedAs("Operator invocation returns same instance that is receiver of div div operation")
+              .isSameAs(fixture)
+          }
 
-      @Test internal fun `when a nested file is requested and a file already exists then a FileAlreadyExistsException is thrown`() {
-        val file = directoryContext.path.newDirectory("path/to/dir").newFile("preExistingFile")
-        assertThatFileAlreadyExistsException()
-            .isThrownBy { directoryContext.file("path/to/dir/${file.fileNameString}", requestType) }
-      }
-
-      @Test internal fun `when a nested file is requested and a directory already exists then a FileAlreadyExistsException is thrown`() {
-        directoryContext.path.newDirectory("path/to/dir")
-        assertThatFileAlreadyExistsException()
-            .isThrownBy { directoryContext.file("path/to/dir", requestType) }
-      }
-
-      @Test internal fun `when a directory is requested and the directory doesn't exist then then it is created`() {
-        val context: FileContext.DirectoryContext = directoryContext.directory("nonExistentDir", requestType)
-        assertThat(context.path)
-            .isDirectory()
-            .hasParent(directoryContext.path)
-            .hasFileName("nonExistentDir")
-      }
-
-      @Test internal fun `when a nested directory is requested and the nested directory doesn't exist then the nested path is created`() {
-        val context: FileContext.DirectoryContext = directoryContext.directory("nested/dir/path", requestType)
-        assertThat(context.path)
-            .isDirectory()
-            .startsWith(directoryContext.path)
-            .endsWith(Paths.get("nested/dir/path"))
-      }
-
-      @Test internal fun `when a nested directory is requested and a portion of the path exists then the rest of the path is created`() {
-        val directory = directoryContext.path.newDirectory("nested/dir")
-        val context: FileContext.DirectoryContext = directoryContext.directory("nested/dir/farther/nesting", requestType)
-        assertThat(context.path)
-            .isDirectory()
-            .startsWith(context.path)
-            .startsWith(directory)
-            .endsWith(Paths.get("farther", "nesting"))
-      }
-
-      @Test internal fun `when a directory is requested and the directory exists then a FileAlreadyExistsException is thrown`() {
-        directoryContext.path.newDirectory("preExistingDirectory")
-        assertThatFileAlreadyExistsException()
-            .isThrownBy { directoryContext.directory("preExistingDirectory", requestType) }
-      }
-
-      @Test internal fun `when a nested directory is requested and the nested directory exists then a FileAlreadyExistsException is thrown`() {
-        directoryContext.path.newDirectory("pre/existing/nested/dir")
-        assertThatFileAlreadyExistsException()
-            .isThrownBy { directoryContext.directory("pre/existing/nested/dir", requestType) }
-      }
-
-      @Test internal fun `when a directory is requested and file already exists then a FileAlreadyExistsException is thrown`(@TempDir directory: Path) {
-        directoryContext.path.newFile("preExistingFile")
-        assertThatFileAlreadyExistsException()
-            .isThrownBy { directoryContext.directory("preExistingFile", requestType) }
-      }
-    }
-
-    @Nested inner class FileActionGet {
-      private val requestType = FileAction.Get
-
-      @Test internal fun `when a file does not exist then a NoSuchFileException is thrown`() {
-        assertThatNoSuchFileException()
-            .isThrownBy { directoryContext.file("nonExistentFile", requestType) }
-      }
-
-      @Test internal fun `when a file is requested and the file exists then the context is retrieved`() {
-        val file = directoryContext.path.newFile("preExistingFile")
-        val fileContext: FileContext.RegularFileContext = directoryContext.file(file.fileNameString, requestType)
-        assertThat(fileContext.path)
-            .hasParent(directoryContext.path)
-            .isRegularFile()
-            .isEqualTo(file)
-      }
-
-      @Test internal fun `when a nested file is requested and the file exists then the context is retrieved`() {
-        val file = directoryContext.path.newDirectory("path/to/dir").newFile("preExistingFile")
-        val fileContext: FileContext.RegularFileContext = directoryContext.file("path/to/dir/preExistingFile", requestType)
-        assertThat(fileContext.path)
-            .isRegularFile()
-            .startsWith(directoryContext.path)
-            .endsWith(file)
-      }
-
-      @Test internal fun `when a file is requested and the file is a directory then a NoSuchFileException is thrown`() {
-        directoryContext.path.newDirectory("preExistingDir")
-        assertThatNoSuchFileException()
-            .isThrownBy { directoryContext.file("preExistingDir", requestType) }
-      }
-
-      @Test internal fun `when a directory is requested and the directory does not exist then a NoSuchFileException is thrown`() {
-        assertThatNoSuchFileException()
-            .isThrownBy { directoryContext.directory("nonExistentDirectory", requestType) }
-      }
-
-      @Test internal fun `when directory is requested and the directory exists then the context is retrieved`() {
-        val directory = directoryContext.path.newDirectory("preExistingDirectory")
-        val context: FileContext.DirectoryContext = directoryContext.directory("preExistingDirectory", requestType)
-        assertThat(context.path)
-            .isDirectory()
-            .isEqualTo(directory)
-      }
-
-      @Test internal fun `when nested directory is requested and the directory exists then the context is retrieved`() {
-        val directory = directoryContext.path.newDirectory("nested/pre/existing/dir")
-        val context: FileContext.DirectoryContext = directoryContext.directory("nested/pre/existing/dir", requestType)
-        assertThat(context.path)
-            .isDirectory()
-            .isEqualTo(directory)
-      }
-
-      @Test internal fun `when directory is requested and file exists then a NoSuchFileException is thrown`() {
-        val file = directoryContext.path.newFile("preExistingFile")
-        assertThatNoSuchFileException()
-            .isThrownBy { directoryContext.directory("preExistingFile", requestType) }
+          test("with path and lambda then the lambda is applied to the receiver that is at the path") {
+            val parentPathName = "child-dir"
+            var invoked = false
+            println("fixture pat1h: ${fixture.path}")
+            var thisFromLambdaBodyOfDivInvoke: FileContext.DirectoryContext? = null
+            val result: FileContext.DirectoryContext = fixture / parentPathName / {
+              println("fixture path2: ${fixture.path}")
+              invoked = true
+              assertThat(this).isInstanceOf(FileContext.DirectoryContext::class.java)
+              assertThat(path)
+                .hasFileName(parentPathName)
+                .isDirectory()
+                .hasParent(this@test.fixture.path) // TODO: understand why we need to quality the `fixture` with `this`s
+              thisFromLambdaBodyOfDivInvoke = this
+            }
+            assertThat(invoked)
+              .describedAs("Lambda body was invoked")
+              .isTrue()
+            assertThat(result)
+              .describedAs("Operator invocation returns same instance that is receiver of div operation")
+              .isSameAs(thisFromLambdaBodyOfDivInvoke)
+          }
+        }
       }
     }
   }
 
-  @Nested inner class FileRequest {
-    private val posixFilePermissions = PosixFilePermissions.asFileAttribute(
-      setOf(
-        PosixFilePermission.GROUP_EXECUTE,
-        PosixFilePermission.GROUP_READ
+  @TestFactory
+  internal fun `file request`() = testFactory<Unit> {
+    val posixFilePermissions =
+      PosixFilePermissions.asFileAttribute(
+        setOf(PosixFilePermission.GROUP_EXECUTE, PosixFilePermission.GROUP_READ)
       )
-    )
 
-    @Test
-    internal fun `Get type is an object`() {
+    test("Get type is an object") {
       assertThat(FileAction.Get::class.objectInstance)
         .withFailMessage("${FileAction.Get::class} must be an object instance")
         .isNotNull
     }
 
-    @Test
-    internal fun `MaybeCreate is a constant`() {
+    test("MaybeCreate is a constant") {
       assertThat(FileAction.MaybeCreate)
         .isInstanceOf(FileAction.MaybeCreate::class.java)
     }
 
-    @Test
-    internal fun `MaybeCreate instance with attributes`() {
+    test("MaybeCreate instance with attributes") {
       val request = FileAction.MaybeCreate(listOf(posixFilePermissions))
       assertThat(request.fileAttributes)
         .containsExactly(posixFilePermissions)
     }
 
-    @Test
-    internal fun `Create is a constant`() {
+    test("Create is a constant") {
       assertThat(FileAction.Create)
         .isInstanceOf(FileAction.Create::class.java)
     }
 
-    @Test
-    internal fun `Create instance with attributes`() {
+    test("Create instance with attributes") {
       val request = FileAction.Create(listOf(posixFilePermissions))
       assertThat(request.fileAttributes)
         .containsExactly(posixFilePermissions)
     }
   }
 }
-
-private fun randomString(): String = UUID.randomUUID().toString()
