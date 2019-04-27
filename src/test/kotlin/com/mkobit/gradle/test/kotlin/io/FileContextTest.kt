@@ -53,7 +53,6 @@ internal class FileContextTest {
           .isEqualTo(instant)
       }
 
-
       test("can get hidden status") {
         // TODO: make a cross-platform test here to make sure true and false can both be tested
         assertThat(fixture.isHidden).isFalse()

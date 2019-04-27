@@ -142,13 +142,13 @@ public sealed class FileContext(val path: Path) {
      * If the original text should be retained then [Original] should be returned.
      */
     public fun replaceEachLine(
-        charset: Charset = Charsets.UTF_8,
-        replacement: (lineNumber: Int, text: String) -> CharSequence
+      charset: Charset = Charsets.UTF_8,
+      replacement: (lineNumber: Int, text: String) -> CharSequence
     ) {
       val newLines = Files.readAllLines(path, charset)
           .mapIndexed { index, line ->
             val newLine = replacement(index + 1, line)
-            when(newLine) {
+            when (newLine) {
               Original -> line
               else -> newLine
             }
@@ -182,9 +182,9 @@ public sealed class FileContext(val path: Path) {
      */
     @Throws(NoSuchFileException::class, FileAlreadyExistsException::class)
     public fun file(
-        filename: CharSequence,
-        fileAction: FileAction = FileAction.MaybeCreate,
-        action: RegularFileContext.() -> Unit = NoOp
+      filename: CharSequence,
+      fileAction: FileAction = FileAction.MaybeCreate,
+      action: RegularFileContext.() -> Unit = NoOp
     ): RegularFileContext {
       val filePath = path.resolve(filename.toString())
 
@@ -230,9 +230,9 @@ public sealed class FileContext(val path: Path) {
      */
     @Throws(NoSuchFileException::class, FileAlreadyExistsException::class)
     public fun directory(
-        directoryPath: CharSequence,
-        fileAction: FileAction = FileAction.MaybeCreate,
-        action: DirectoryContext.() -> Unit = NoOp
+      directoryPath: CharSequence,
+      fileAction: FileAction = FileAction.MaybeCreate,
+      action: DirectoryContext.() -> Unit = NoOp
     ): DirectoryContext {
       val filePath = path.resolve(directoryPath.toString())
       return translateIoExceptions {
@@ -333,10 +333,10 @@ public sealed class FileContext(val path: Path) {
      */
     @Throws(NoSuchFileException::class, FileAlreadyExistsException::class)
     public operator fun CharSequence.invoke(
-        fileAction: FileAction = FileAction.MaybeCreate,
-        content: CharSequence = Original,
-        encoding: Charset = Charsets.UTF_8,
-        action: RegularFileContext.() -> Unit = NoOp
+      fileAction: FileAction = FileAction.MaybeCreate,
+      content: CharSequence = Original,
+      encoding: Charset = Charsets.UTF_8,
+      action: RegularFileContext.() -> Unit = NoOp
     ): RegularFileContext = file(this, fileAction) {
       if (content !== Original) {
         this.content = content.toString().toByteArray(encoding)

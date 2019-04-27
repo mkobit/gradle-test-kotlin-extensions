@@ -61,7 +61,7 @@ internal class FileSystemExample {
               appendNewline()
               append("additional content")
               replaceEachLine { _, text ->
-                when(text) {
+                when (text) {
                   "assign content" -> "changed content"
                   else -> Original
                 }

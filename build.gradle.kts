@@ -16,6 +16,7 @@ plugins {
   id("com.github.ben-manes.versions") version "0.21.0"
   id("com.jfrog.bintray") version "1.8.4"
   id("org.jetbrains.dokka") version "0.9.18"
+  id("org.jlleitschuh.gradle.ktlint") version "7.4.0"
 }
 
 version = "0.6.0"
@@ -30,6 +31,10 @@ val gitCommitSha: String by lazy {
     }
     it.toString(Charsets.UTF_8.name()).trim()
   }
+}
+
+ktlint {
+  version.set("0.32.0")
 }
 
 val SourceSet.kotlin: SourceDirectorySet
@@ -94,7 +99,7 @@ val main = sourceSets["main"]!!
 main.java.setSrcDirs(emptyList<Any>())
 
 tasks {
-  wrapper  {
+  wrapper {
     gradleVersion = "5.3.1"
   }
 

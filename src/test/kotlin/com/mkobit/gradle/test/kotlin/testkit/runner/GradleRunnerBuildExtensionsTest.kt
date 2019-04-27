@@ -4,7 +4,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import io.mockk.verifyOrder
-import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
@@ -111,7 +110,6 @@ internal class GradleRunnerBuildExtensionsTest {
     }
   }
 
-
   @Test
   internal fun `when 'buildAndFail()' is called then the arguments are reset afterwards`() {
     val original = listOf("some", "args")
@@ -119,7 +117,6 @@ internal class GradleRunnerBuildExtensionsTest {
     every { mockGradleRunner.buildAndFail() }.returns(mockBuildResult)
 
     mockGradleRunner.buildAndFail("task1", "task2")
-
 
     verifyOrder {
       mockGradleRunner.buildAndFail()
@@ -153,7 +150,6 @@ internal class GradleRunnerBuildExtensionsTest {
 
     verify {
       mockGradleRunner.buildAndFail()
-
     }
     expectThat(result.projectDir)
         .isEqualTo(mockProjectDirectory)

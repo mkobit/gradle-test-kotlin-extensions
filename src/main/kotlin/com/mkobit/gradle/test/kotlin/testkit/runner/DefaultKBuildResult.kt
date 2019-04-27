@@ -9,8 +9,8 @@ import java.nio.file.Path
  * @property delegate the actual build result
  */
 internal class DefaultKBuildResult(
-    override val projectDir: Path,
-    private val delegate: BuildResult
+  override val projectDir: Path,
+  private val delegate: BuildResult
 ) : KBuildResult {
   override fun task(taskPath: String): KBuildTask? = delegate.task(taskPath)?.let(::DefaultKBuildTask)
 

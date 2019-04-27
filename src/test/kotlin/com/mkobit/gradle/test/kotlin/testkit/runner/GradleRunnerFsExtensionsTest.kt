@@ -36,7 +36,6 @@ internal class GradleRunnerFsExtensionsTest {
         withProjectDir(file)
         assertThat(projectDirPath)
           .isEqualTo(file.toPath())
-
       }
     }
   }
@@ -44,14 +43,14 @@ internal class GradleRunnerFsExtensionsTest {
   @Test
   internal fun `cannot configure GradleRunner project directory if it is not set`() {
     assertThatThrownBy {
-      GradleRunner.create().setupProjectDir {  }
+      GradleRunner.create().setupProjectDir { }
     }.isInstanceOf(IllegalStateException::class.java)
   }
 
   @Test
   internal fun `set up a Gradle project using full methods DSL`(@TempDir root: Path) {
     GradleRunner.create().withProjectDir(root.toFile()).setupProjectDir {
-      file("settings.gradle") { content = "// settings.gradle".toByteArray()}
+      file("settings.gradle") { content = "// settings.gradle".toByteArray() }
       file("build.gradle") { content = "// build.gradle".toByteArray() }
       directory("src/main/java") {
         file("MainClass.java") { content = "public class Hello {}".toByteArray() }
@@ -96,6 +95,5 @@ internal class GradleRunnerFsExtensionsTest {
           )
       }
     }
-
   }
 }

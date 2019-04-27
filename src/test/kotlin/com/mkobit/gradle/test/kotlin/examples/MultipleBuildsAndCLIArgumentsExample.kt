@@ -48,7 +48,6 @@ internal class MultipleBuildsAndCLIArgumentsExample {
           .contains("Look at this info log")
           .contains("Prop1 value: myValue")
           .contains("Prop2 present: true")
-
     }
     gradleRunner.apply {
       info = false
