@@ -100,7 +100,7 @@ main.java.setSrcDirs(emptyList<Any>())
 
 tasks {
   wrapper {
-    gradleVersion = "5.3.1"
+    gradleVersion = "5.4.1"
   }
 
   withType<Jar>().configureEach {
