@@ -154,10 +154,6 @@ tasks {
     }
   }
 
-  (release) {
-    enabled = false
-  }
-
   jar {
     enabled = false
   }
