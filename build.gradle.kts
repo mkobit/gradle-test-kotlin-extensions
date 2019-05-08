@@ -191,6 +191,8 @@ tasks {
 
   (release) {
     dependsOn(bintrayUpload)
+    // disabled to not push git tag
+    enabled = false
   }
 }
 
