@@ -24,6 +24,10 @@ For each release, a subsection should be added for each of the following if they
 
 == UNRELEASED
 
+=== Added
+
+* `GradleRunner.withProjectDir(projectDir: Path)` overload
+
 === Deprecated
 
 * `GradleRunner.projectDirPath` extension variable.

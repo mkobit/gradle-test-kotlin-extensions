@@ -3,8 +3,8 @@ package com.mkobit.gradle.test.kotlin.examples
 import com.mkobit.gradle.test.kotlin.io.FileAction
 import com.mkobit.gradle.test.kotlin.io.Original
 import com.mkobit.gradle.test.kotlin.testkit.runner.build
-import com.mkobit.gradle.test.kotlin.testkit.runner.projectDirPath
 import com.mkobit.gradle.test.kotlin.testkit.runner.setupProjectDir
+import com.mkobit.gradle.test.kotlin.testkit.runner.withProjectDir
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -21,7 +21,7 @@ internal class FileSystemDSLExample {
   @Test
   internal fun `file system manipulation using DSL`(@TempDir directory: Path) {
     val gradleRunner = GradleRunner.create().apply {
-      projectDirPath = directory
+      withProjectDir(directory)
       setupProjectDir {
         "settings.gradle"(content = "rootProject.name = 'example-dsl-project'")
         "build.gradle" {

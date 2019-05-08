@@ -3,10 +3,10 @@ package com.mkobit.gradle.test.kotlin.examples
 import com.mkobit.gradle.test.kotlin.testkit.runner.build
 import com.mkobit.gradle.test.kotlin.testkit.runner.info
 import com.mkobit.gradle.test.kotlin.testkit.runner.profile
-import com.mkobit.gradle.test.kotlin.testkit.runner.projectDirPath
 import com.mkobit.gradle.test.kotlin.testkit.runner.projectProperties
 import com.mkobit.gradle.test.kotlin.testkit.runner.setupProjectDir
 import com.mkobit.gradle.test.kotlin.testkit.runner.stacktrace
+import com.mkobit.gradle.test.kotlin.testkit.runner.withProjectDir
 import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Test
@@ -21,7 +21,7 @@ internal class MultipleBuildsAndCLIArgumentsExample {
   @Test
   internal fun `run multiple builds with different arguments`(@TempDir directory: Path) {
     val gradleRunner = GradleRunner.create().apply {
-      projectDirPath = directory
+      withProjectDir(directory)
       setupProjectDir {
         "build.gradle" {
           content = """

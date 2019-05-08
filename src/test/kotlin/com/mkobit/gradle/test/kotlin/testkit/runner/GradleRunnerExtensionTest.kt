@@ -2,6 +2,7 @@ package com.mkobit.gradle.test.kotlin.testkit.runner
 
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.BeforeEach
@@ -12,6 +13,7 @@ import strikt.api.expectThrows
 import strikt.assertions.endsWith
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNull
+import strikt.assertions.isSameInstanceAs
 import strikt.assertions.startsWith
 import java.nio.file.Paths
 
@@ -26,6 +28,17 @@ internal class GradleRunnerExtensionTest {
     mockGradleRunner = mockk {
       every { build() }.returns(mockBuildResult)
       every { buildAndFail() }.returns(mockBuildResult)
+    }
+  }
+
+  @Test
+  internal fun `set project dir with a Path`() {
+    val path = Paths.get("/tmp")
+    every { mockGradleRunner.withProjectDir(any()) } returns mockGradleRunner
+    expectThat(mockGradleRunner.withProjectDir(path))
+      .isSameInstanceAs(mockGradleRunner)
+    verify {
+      mockGradleRunner.withProjectDir(path.toFile())
     }
   }
 

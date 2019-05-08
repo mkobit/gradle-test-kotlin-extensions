@@ -71,3 +71,11 @@ fun GradleRunner.resolveFromProjectDir(other: Path): Path {
   val projectDirectory: File = projectDir ?: throw IllegalStateException("projectDir must not be null to resolve path")
   return projectDirectory.toPath().resolve(other)
 }
+
+/**
+ * Sets the directory that the Gradle build will be executed in.
+ * @param projectDir the project directory
+ * @see GradleRunner.withProjectDir
+ */
+public fun GradleRunner.withProjectDir(projectDir: Path): GradleRunner =
+  withProjectDir(projectDir.toFile())
