@@ -31,7 +31,7 @@ For each release, a subsection should be added for each of the following if they
 
 === Fixed
 
-* `RegularFileContext` and `DirectoryContext` no longer follows.
+* `RegularFileContext` and `DirectoryContext` no longer follows symlinks.
   This is the original intended behavior, but may be reevaluated in the future.
 
 == 0.6.0 (2018/08/28)
