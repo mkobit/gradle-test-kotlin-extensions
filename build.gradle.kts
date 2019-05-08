@@ -8,15 +8,17 @@ import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
 plugins {
-  id("com.gradle.build-scan") version "2.2.1"
+  id("com.gradle.build-scan") version "2.3"
   `java-library`
   `maven-publish`
+
   kotlin("jvm") version "1.3.31"
+  id("org.jlleitschuh.gradle.ktlint") version "8.0.0"
+  id("org.jetbrains.dokka") version "0.9.18"
+
   id("nebula.release") version "10.1.1"
   id("com.github.ben-manes.versions") version "0.21.0"
   id("com.jfrog.bintray") version "1.8.4"
-  id("org.jetbrains.dokka") version "0.9.18"
-  id("org.jlleitschuh.gradle.ktlint") version "7.4.0"
 }
 
 group = "com.mkobit.gradle.test"
