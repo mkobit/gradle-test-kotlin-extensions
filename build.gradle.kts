@@ -165,7 +165,6 @@ tasks {
     dependsOn(dokka)
     from(dokka.map { it.outputDirectory })
     archiveClassifier.set("javadoc")
-    classifier = "javadoc"
     description = "Assembles a JAR of the generated Javadoc"
     group = JavaBasePlugin.DOCUMENTATION_GROUP
   }
