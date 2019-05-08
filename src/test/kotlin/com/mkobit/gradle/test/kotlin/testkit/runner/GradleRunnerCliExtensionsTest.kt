@@ -7,8 +7,18 @@ import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
+import strikt.api.expectThat
+import strikt.assertions.containsExactly
+import strikt.assertions.doesNotContain
+import strikt.assertions.exactly
+import strikt.assertions.hasSize
+import strikt.assertions.isEmpty
+import strikt.assertions.isEqualTo
+import strikt.assertions.isFalse
+import strikt.assertions.isTrue
 import testsupport.minutest.testFactory
 import testsupport.stdlib.removeFirstSequnce
+import testsupport.strikt.containsSequence
 import kotlin.reflect.KMutableProperty1
 import java.nio.file.Paths.get as Path
 
@@ -110,9 +120,9 @@ internal class GradleRunnerCliExtensionsTest {
       listOf("--other-arg", "otherArgValue", flag, "--after-arg", "afterArgValue")
     )
 
-    fun GradleRunner.assertProperty() = assertThat(property.get(this))
-    fun GradleRunner.assertPropertyFalse() = assertProperty().isFalse()
-    fun GradleRunner.assertPropertyTrue() = assertProperty().isTrue()
+    fun GradleRunner.expectProperty() = expectThat(property.get(this))
+    fun GradleRunner.expectPropertyFalse() = expectProperty().isFalse()
+    fun GradleRunner.expectPropertyTrue() = expectProperty().isTrue()
 
     context("'$flag' (property '${property.name}')") {
       fixture { GradleRunner.create() }
@@ -121,13 +131,13 @@ internal class GradleRunnerCliExtensionsTest {
           context(args.toString()) {
             modifyFixture { withArguments(args) }
             test("then the property is false") {
-              assertPropertyFalse()
-              assertArguments().doesNotContain(flag)
+              expectPropertyFalse()
+              expectArguments().doesNotContain(flag)
             }
             context("and the property is set to false") {
               before { property.set(this, false) }
               test("then the property is false") {
-                assertPropertyFalse()
+                expectPropertyFalse()
               }
               test("then the argument list does not change") {
                 assertArguments()
@@ -138,16 +148,18 @@ internal class GradleRunnerCliExtensionsTest {
             context("and the property is set to true") {
               before { property.set(this, true) }
               test("then the argument list contains the flag") {
-                assertArguments().containsOnlyOnce(flag)
+                expectArguments().exactly(1) {
+                  isEqualTo(flag)
+                }
               }
               test("then the argument list contains all original elements") {
                 assertArguments().containsAll(args)
               }
               test("then the arguments list size is the original + 1") {
-                assertArguments().hasSize(args.size + 1)
+                expectArguments().hasSize(args.size + 1)
               }
               test("then the property is true") {
-                assertPropertyTrue()
+                expectPropertyTrue()
               }
             }
           }
@@ -157,18 +169,18 @@ internal class GradleRunnerCliExtensionsTest {
           context(args.toString()) {
             modifyFixture { withArguments(args) }
             test("then the property is true") {
-              assertPropertyTrue()
+              expectPropertyTrue()
             }
             context("and the property is disabled") {
               before { property.set(this, false) }
               test("then the argument list does not contain the flag") {
-                assertArguments().doesNotContain(flag)
+                expectArguments().doesNotContain(flag)
               }
               test("then the argument list contains the original arguments minus the flag") {
                 assertArguments().containsOnlyElementsOf(args - flag)
               }
               test("then the property is false") {
-                assertPropertyFalse()
+                expectPropertyFalse()
               }
             }
             context("and the property is enabled") {
@@ -180,7 +192,7 @@ internal class GradleRunnerCliExtensionsTest {
                   .hasSize(args.size)
               }
               test("then the property is true") {
-                assertPropertyTrue()
+                expectPropertyTrue()
               }
             }
           }
@@ -206,11 +218,11 @@ internal class GradleRunnerCliExtensionsTest {
           context("to single map entry with String/String key/value pair") {
             modifyFixture { systemProperties = mapOf("Prop1" to "val1") }
             test("then system property is present in arguments list") {
-              assertThat(arguments)
+              expectThat(arguments)
                 .containsExactly("--system-prop", "Prop1=val1")
             }
             test("then system property is retrieved with getter") {
-              assertThat(systemProperties)
+              expectThat(systemProperties)
                 .isEqualTo(mapOf("Prop1" to "val1"))
             }
           }
@@ -218,11 +230,11 @@ internal class GradleRunnerCliExtensionsTest {
             val stringToNull = mapOf("Prop2" to null)
             modifyFixture { systemProperties = stringToNull }
             test("then system property key is present in arguments list") {
-              assertThat(arguments)
+              expectThat(arguments)
                 .containsExactly("--system-prop", "Prop2")
             }
             test("then system property is retrieved with getter") {
-              assertThat(systemProperties)
+              expectThat(systemProperties)
                 .isEqualTo(stringToNull)
             }
           }
@@ -236,7 +248,7 @@ internal class GradleRunnerCliExtensionsTest {
                 .containsSequence("--system-prop", "Prop2=2")
             }
             test("then both values are retrieved with getter") {
-              assertThat(systemProperties)
+              expectThat(systemProperties)
                 .isEqualTo(mapOf("Prop1" to "val1", "Prop2" to "2"))
             }
           }
@@ -248,7 +260,7 @@ internal class GradleRunnerCliExtensionsTest {
                 .containsSequence("--system-prop", "Prop2=2")
             }
             test("then both values are retrieved with getter") {
-              assertThat(systemProperties)
+              expectThat(systemProperties)
                 .isEqualTo(mapOf("Prop1" to null, "Prop2" to "2"))
             }
           }
@@ -263,15 +275,15 @@ internal class GradleRunnerCliExtensionsTest {
             context("then settings the value to empty") {
               modifyFixture { systemProperties = emptyMap() }
               test("removes the options from arguments list") {
-                assertThat(arguments)
+                expectThat(arguments)
                   .doesNotContain("--system-prop", "Prop1=val1")
               }
               test("makes the property return an empty map") {
-                assertThat(systemProperties)
+                expectThat(systemProperties)
                   .isEmpty()
               }
               test("leaves the boolean option in the arguments list") {
-                assertThat(arguments)
+                expectThat(arguments)
                   .containsExactly("--some-boolean-option")
               }
             }
@@ -285,15 +297,15 @@ internal class GradleRunnerCliExtensionsTest {
             context("then settings the property to empty") {
               modifyFixture { systemProperties = emptyMap() }
               test("removes the option and values from arguments list") {
-                assertThat(arguments)
+                expectThat(arguments)
                   .doesNotContain("--system-prop", "Prop1=val1")
               }
               test("makes the property return an empty map") {
-                assertThat(systemProperties)
+                expectThat(systemProperties)
                   .isEmpty()
               }
               test("leaves the boolean option in the arguments list") {
-                assertThat(arguments)
+                expectThat(arguments)
                   .containsExactly("--some-key-value-option", "some-value=thing")
               }
             }
@@ -303,7 +315,7 @@ internal class GradleRunnerCliExtensionsTest {
         context("a system property key and value") {
           modifyFixture { withArguments(listOf("--system-prop", "Prop1=val1")) }
           test("then the getter returns the system properties") {
-            assertThat(systemProperties)
+            expectThat(systemProperties)
               .isEqualTo(mapOf("Prop1" to "val1"))
           }
         }
@@ -323,11 +335,11 @@ internal class GradleRunnerCliExtensionsTest {
           context("to single map entry with String/String key/value pair") {
             modifyFixture { projectProperties = mapOf("Prop1" to "val1") }
             test("then system property is present in arguments list") {
-              assertThat(arguments)
+              expectThat(arguments)
                 .containsExactly("--project-prop", "Prop1=val1")
             }
             test("then system property is retrieved with getter") {
-              assertThat(projectProperties)
+              expectThat(projectProperties)
                 .isEqualTo(mapOf("Prop1" to "val1"))
             }
           }
@@ -335,11 +347,11 @@ internal class GradleRunnerCliExtensionsTest {
             val stringToNull = mapOf("Prop2" to null)
             modifyFixture { projectProperties = stringToNull }
             test("then system property key is present in arguments list") {
-              assertThat(arguments)
+              expectThat(arguments)
                 .containsExactly("--project-prop", "Prop2")
             }
             test("then system property is retrieved with getter") {
-              assertThat(projectProperties)
+              expectThat(projectProperties)
                 .isEqualTo(stringToNull)
             }
           }
@@ -353,12 +365,12 @@ internal class GradleRunnerCliExtensionsTest {
               )
             }
             test("then both entries system properties are present in arguments list") {
-              assertThat(arguments)
+              expectThat(arguments)
                 .containsSequence("--project-prop", "Prop1=val1")
                 .containsSequence("--project-prop", "Prop2=2")
             }
             test("then both system properties are retrieved with getter") {
-              assertThat(projectProperties)
+              expectThat(projectProperties)
                 .isEqualTo(
                   mapOf(
                     "Prop1" to "val1",
@@ -375,12 +387,12 @@ internal class GradleRunnerCliExtensionsTest {
               )
             }
             test("then both entries system properties are present in arguments list") {
-              assertThat(arguments)
+              expectThat(arguments)
                 .containsSequence("--project-prop", "Prop1")
                 .containsSequence("--project-prop", "Prop2=2")
             }
             test("then both system properties are retrieved with getter") {
-              assertThat(projectProperties)
+              expectThat(projectProperties)
                 .isEqualTo(
                   mapOf(
                     "Prop1" to null,
@@ -400,7 +412,7 @@ internal class GradleRunnerCliExtensionsTest {
             context("then settings the system properties to empty") {
               modifyFixture { projectProperties = emptyMap() }
               test("removes the system properties from arguments list") {
-                assertThat(arguments)
+                expectThat(arguments)
                   .doesNotContain("--project-prop", "Prop1=val1")
               }
               test("makes the system properties getter return an empty map") {
@@ -408,7 +420,7 @@ internal class GradleRunnerCliExtensionsTest {
                   .isEmpty()
               }
               test("leaves the boolean option in the arguments list") {
-                assertThat(arguments)
+                expectThat(arguments)
                   .containsExactly("--some-boolean-option")
               }
             }
@@ -417,30 +429,30 @@ internal class GradleRunnerCliExtensionsTest {
 
         context("another key/value option") {
           modifyFixture { withArguments("--some-key-value-option", "some-value=thing") }
-          context("and a system property key and value") {
+          context("and a project property key and value") {
             modifyFixture { withArguments(arguments + listOf("--project-prop", "Prop1=val1")) }
-            context("then settings the system properties to empty") {
+            context("then settings the project properties to empty") {
               modifyFixture { projectProperties = emptyMap() }
-              test("removes the system properties from arguments list") {
-                assertThat(arguments)
+              test("removes the project properties from arguments list") {
+                expectThat(arguments)
                   .doesNotContain("--project-prop", "Prop1=val1")
               }
-              test("makes the system properties getter return an empty map") {
-                assertThat(projectProperties)
+              test("makes the project properties getter return an empty map") {
+                expectThat(projectProperties)
                   .isEmpty()
               }
               test("leaves the boolean option in the arguments list") {
-                assertThat(arguments)
+                expectThat(arguments)
                   .containsExactly("--some-key-value-option", "some-value=thing")
               }
             }
           }
         }
 
-        context("a system property key and value") {
+        context("a project property key and value") {
           modifyFixture { withArguments(listOf("--project-prop", "Prop1=val1")) }
-          test("then the getter returns the system properties") {
-            assertThat(projectProperties)
+          test("then the getter returns the project properties") {
+            expectThat(projectProperties)
               .isEqualTo(mapOf("Prop1" to "val1"))
           }
         }
@@ -483,7 +495,7 @@ internal class GradleRunnerCliExtensionsTest {
           runner.assertArguments().containsAll(previousArguments) // TODO: consider making containsSequence
         }
         test("then the arguments size is the original + 2") {
-          runner.assertArguments().hasSize(previousArguments.size + 2)
+          runner.expectArguments().hasSize(previousArguments.size + 2)
         }
       }
     }
@@ -522,7 +534,7 @@ internal class GradleRunnerCliExtensionsTest {
                     .containsSequence(option, secondValue.toString())
                 }
                 test("then the arguments size is the original + 4") {
-                  assertArguments().hasSize(args.size + 4)
+                  expectArguments().hasSize(args.size + 4)
                 }
               }
             }
@@ -555,13 +567,13 @@ internal class GradleRunnerCliExtensionsTest {
                       .containsOnlyElementsOf(argsContainingOptionAndValue - listOf(option, firstValue.toString()))
                   }
                   test("has size of the original - 2") {
-                    assertArguments().hasSize(argsContainingOptionAndValue.size - 2)
+                    expectArguments().hasSize(argsContainingOptionAndValue.size - 2)
                   }
                   test("does not contain the option") {
-                    assertArguments().doesNotContain(option)
+                    expectArguments().doesNotContain(option)
                   }
                   test("does not contain the option value") {
-                    assertArguments().doesNotContain(firstValue.toString())
+                    expectArguments().doesNotContain(firstValue.toString())
                   }
                 }
               }
@@ -575,7 +587,7 @@ internal class GradleRunnerCliExtensionsTest {
                         .containsOnlyElementsOf(argsContainingOptionAndValue)
                     }
                     test("has size of the original + 2") {
-                      assertArguments().hasSize(argsContainingOptionAndValue.size + 2)
+                      expectArguments().hasSize(argsContainingOptionAndValue.size + 2)
                     }
                     test("contains both options and values") {
                       assertArguments()
@@ -632,13 +644,13 @@ internal class GradleRunnerCliExtensionsTest {
                       )
                   }
                   test("has size of the original - 4") {
-                    assertArguments().hasSize(argsContainingBothOptionsAndValues.size - 4)
+                    expectArguments().hasSize(argsContainingBothOptionsAndValues.size - 4)
                   }
                   test("does not contain the option") {
-                    assertArguments().doesNotContain(option)
+                    expectArguments().doesNotContain(option)
                   }
                   test("does not contain the option values") {
-                    assertArguments().doesNotContain(firstValue.toString(), secondValue.toString())
+                    expectArguments().doesNotContain(firstValue.toString(), secondValue.toString())
                   }
                 }
               }
@@ -657,7 +669,7 @@ internal class GradleRunnerCliExtensionsTest {
                       )
                   }
                   test("has size of the original - 2") {
-                    assertArguments().hasSize(argsContainingBothOptionsAndValues.size - 2)
+                    expectArguments().hasSize(argsContainingBothOptionsAndValues.size - 2)
                   }
                   test("contains the specified option and value") {
                     assertArguments().containsSequence(option, firstValue.toString())
@@ -666,7 +678,7 @@ internal class GradleRunnerCliExtensionsTest {
                     assertArguments().doesNotContainSequence(option, secondValue.toString())
                   }
                   test("does not contain the removed value") {
-                    assertArguments().doesNotContain(secondValue.toString())
+                    expectArguments().doesNotContain(secondValue.toString())
                   }
                 }
               }
@@ -727,7 +739,7 @@ internal class GradleRunnerCliExtensionsTest {
                 assertArguments().containsAll(args)
               }
               test("then the arguments list size is the original + 2") {
-                assertArguments().hasSize(args.size + 2)
+                expectArguments().hasSize(args.size + 2)
               }
             }
           }
@@ -769,5 +781,6 @@ internal class GradleRunnerCliExtensionsTest {
     }
   }
 
+  private fun GradleRunner.expectArguments() = expectThat(arguments)
   private fun GradleRunner.assertArguments() = assertThat(arguments)
 }
