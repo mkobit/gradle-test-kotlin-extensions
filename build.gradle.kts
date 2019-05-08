@@ -1,4 +1,3 @@
-import buildsrc.DependencyInfo
 import buildsrc.ProjectInfo
 import com.jfrog.bintray.gradle.BintrayExtension
 import java.io.ByteArrayOutputStream
@@ -69,24 +68,37 @@ repositories {
   mavenCentral()
 }
 
+configurations.all {
+  resolutionStrategy.eachDependency {
+    when (requested.group) {
+      "dev.minutest" -> useVersion("1.6.0")
+      "org.junit.jupiter" -> useVersion("5.4.2")
+      "org.junit.platform" -> useVersion("1.4.2")
+      "io.strikt" -> useVersion("0.20.0")
+      "org.apache.logging.log4j" -> useVersion("2.11.2")
+    }
+  }
+}
+
 dependencies {
   api(gradleApi())
   api(gradleTestKit())
-  implementation(DependencyInfo.kotlinLogging)
   api(kotlin("stdlib-jdk8"))
-  testImplementation(kotlin("reflect"))
-  testImplementation(DependencyInfo.assertJCore)
-  testImplementation(DependencyInfo.mockk)
-  DependencyInfo.junitTestImplementationArtifacts.forEach {
-    testImplementation(it)
-  }
-  testImplementation(DependencyInfo.minutest)
-  testImplementation(DependencyInfo.strikt("core"))
-  testImplementation(DependencyInfo.strikt("gradle"))
 
-  DependencyInfo.junitTestRuntimeOnlyArtifacts.forEach {
-    testRuntimeOnly(it)
-  }
+  implementation("io.github.microutils:kotlin-logging:1.6.26")
+
+  testImplementation(kotlin("reflect"))
+  testImplementation("org.assertj:assertj-core:3.12.2")
+  testImplementation("io.mockk:mockk:1.9.3")
+  testImplementation("org.junit.jupiter:junit-jupiter-api")
+  testImplementation("org.junit.jupiter:junit-jupiter-params")
+  testImplementation("dev.minutest:minutest")
+  testImplementation("io.strikt:strikt-core")
+  testImplementation("io.strikt:strikt-gradle")
+
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+  testRuntimeOnly("org.apache.logging.log4j:log4j-core")
+  testRuntimeOnly("org.apache.logging.log4j:log4j-jul")
 }
 
 java {
@@ -137,6 +149,10 @@ tasks {
     }
   }
 
+  (release) {
+    enabled = false
+  }
+
   jar {
     enabled = false
   }
@@ -165,7 +181,6 @@ tasks {
     dependsOn(dokka)
     from(dokka.map { it.outputDirectory })
     archiveClassifier.set("javadoc")
-    classifier = "javadoc"
     description = "Assembles a JAR of the generated Javadoc"
     group = JavaBasePlugin.DOCUMENTATION_GROUP
   }
@@ -176,6 +191,8 @@ tasks {
 
   (release) {
     dependsOn(bintrayUpload)
+    // disabled to not push git tag
+    enabled = false
   }
 }
 
