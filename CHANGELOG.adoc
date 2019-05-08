@@ -39,7 +39,7 @@ For each release, a subsection should be added for each of the following if they
 === Added
 
 * Support for reading and writing the `owner` of a `FileContext`
-* Support for reading/
+* Support for reading POSIX file permissions
 
 === Changed
 
