@@ -26,6 +26,8 @@ For each release, a subsection should be added for each of the following if they
 
 === Deprecated
 
+* `GradleRunner.projectDirPath` extension variable.
+  Use `GradleRunner.projectDir?.toPath()` instead.
 * `GradleRunner.resolveFromProjectDir` extension method.
   It is generally superfluous and decreases readability, and will be removed in a future release.
 
