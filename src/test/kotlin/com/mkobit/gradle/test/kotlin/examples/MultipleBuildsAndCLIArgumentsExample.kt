@@ -7,7 +7,6 @@ import com.mkobit.gradle.test.kotlin.testkit.runner.projectProperties
 import com.mkobit.gradle.test.kotlin.testkit.runner.setupProjectDir
 import com.mkobit.gradle.test.kotlin.testkit.runner.stacktrace
 import com.mkobit.gradle.test.kotlin.testkit.runner.withProjectDir
-import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -44,10 +43,11 @@ internal class MultipleBuildsAndCLIArgumentsExample {
     }
 
     gradleRunner.build("showProp").let { buildResult ->
-      assertThat(buildResult.output)
-          .contains("Look at this info log")
-          .contains("Prop1 value: myValue")
-          .contains("Prop2 present: true")
+      expectThat(buildResult)
+        .output
+        .contains("Look at this info log")
+        .contains("Prop1 value: myValue")
+        .contains("Prop2 present: true")
     }
     gradleRunner.apply {
       info = false

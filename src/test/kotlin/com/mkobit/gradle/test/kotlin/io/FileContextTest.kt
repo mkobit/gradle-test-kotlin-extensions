@@ -4,12 +4,15 @@ import dev.minutest.ContextBuilder
 import dev.minutest.experimental.SKIP
 import dev.minutest.experimental.minus
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatExceptionOfType
-import org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.io.TempDir
+import strikt.api.expectThat
 import strikt.api.expectThrows
+import strikt.assertions.contains
+import strikt.assertions.isEqualTo
+import strikt.assertions.isNotNull
+import strikt.assertions.message
 import testsupport.assertj.assertNoExceptionThrownBy
 import testsupport.jdk.fileNameString
 import testsupport.minutest.createDirectoriesFor
@@ -17,6 +20,7 @@ import testsupport.minutest.createFileFor
 import testsupport.minutest.testFactory
 import testsupport.jdk.newDirectory
 import testsupport.jdk.newFile
+import testsupport.strikt.isEmpty
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.Path
@@ -30,9 +34,6 @@ import java.time.Month
 import java.time.ZoneId
 
 internal class FileContextTest {
-
-  private fun illegalArgumentExceptionIsThrownBy(body: () -> Unit) =
-    assertThatIllegalArgumentException().isThrownBy(body)
 
   private fun ContextBuilder<out FileContext>.fileAttributesTests() {
     // TODO: better context groupings
@@ -88,30 +89,29 @@ internal class FileContextTest {
   @TestFactory
   internal fun original() = testFactory<Unit> {
     test("Original is a singleton object") {
-      assertThat(Original::class.objectInstance)
+      expectThat(Original)
+        .get { this::class }
+        .get { objectInstance }
         .describedAs("Is object instance")
         .isNotNull()
     }
 
     test("CharSequence_length throws UnsupportedOperationException") {
-      assertThatExceptionOfType(UnsupportedOperationException::class.java)
-        .isThrownBy {
+      expectThrows<UnsupportedOperationException> {
           Original.length
-        }.withMessageContaining("Cannot access length from com.mkobit.gradle.test.kotlin.io.Original")
+        }.message.contains("Cannot access length from com.mkobit.gradle.test.kotlin.io.Original")
     }
 
     test("CharSequence_get throws UnsupportedOperationException") {
-      assertThatExceptionOfType(UnsupportedOperationException::class.java)
-        .isThrownBy {
+      expectThrows<UnsupportedOperationException> {
           Original[0]
-        }.withMessageContaining("Cannot call get from com.mkobit.gradle.test.kotlin.io.Original")
+        }.message.contains("Cannot call get from com.mkobit.gradle.test.kotlin.io.Original")
     }
 
     test("CharSequence_subSequence throws UnsupportedOperationException") {
-      assertThatExceptionOfType(UnsupportedOperationException::class.java)
-        .isThrownBy {
+      expectThrows<UnsupportedOperationException> {
           Original.subSequence(0, 0)
-        }.withMessageContaining("Cannot call subSequence from com.mkobit.gradle.test.kotlin.io.Original")
+        }.message.contains("Cannot call subSequence from com.mkobit.gradle.test.kotlin.io.Original")
     }
   }
 
@@ -129,13 +129,13 @@ internal class FileContextTest {
       context("a nonexistent file") {
         deriveFixture { fixture.resolve("nonexistent") }
         test("then an illegal argument exception is thrown") {
-          illegalArgumentExceptionIsThrownBy { FileContext.RegularFileContext(fixture) }
+          expectThrows<IllegalArgumentException> { FileContext.RegularFileContext(fixture) }
         }
       }
       context("when constructed with a directory") {
         deriveFixture { Files.createDirectory(fixture.resolve("directory")) }
         test("then an illegal argument exception is thrown") {
-          illegalArgumentExceptionIsThrownBy { FileContext.RegularFileContext(fixture) }
+          expectThrows<IllegalArgumentException> { FileContext.RegularFileContext(fixture) }
         }
       }
       context("a symlink") {
@@ -146,7 +146,7 @@ internal class FileContextTest {
           )
         }
         test("then an illegal argument exception is thrown") {
-          illegalArgumentExceptionIsThrownBy { FileContext.RegularFileContext(fixture) }
+          expectThrows<IllegalArgumentException> { FileContext.RegularFileContext(fixture) }
         }
       }
     }
@@ -172,13 +172,15 @@ internal class FileContextTest {
       test("ByteArray content can be written and read") {
         val content = "here is some file content".toByteArray()
         Files.write(fixture.path, content)
-        assertThat(fixture.content)
+        expectThat(fixture)
+          .get { content }
           .isEqualTo(content)
       }
 
       test("empty ByteArray content can be written and read") {
         fixture.content = ByteArray(0)
-        assertThat(fixture.content)
+        expectThat(fixture)
+          .get { content }
           .isEmpty()
       }
 
@@ -249,13 +251,13 @@ internal class FileContextTest {
       context("a regular file") {
         deriveFixture { Files.createFile(fixture.resolve("regular-file")) }
         test("then an illegal argument exception is thrown") {
-          illegalArgumentExceptionIsThrownBy { FileContext.DirectoryContext(fixture) }
+          expectThrows<IllegalArgumentException> { FileContext.DirectoryContext(fixture) }
         }
       }
       context("a nonexistent file") {
         deriveFixture { fixture.resolve("nonexistent") }
         test("then an illegal argument exception is thrown") {
-          illegalArgumentExceptionIsThrownBy { FileContext.DirectoryContext(fixture) }
+          expectThrows<IllegalArgumentException> { FileContext.DirectoryContext(fixture) }
         }
       }
       context("a directory") {
@@ -272,7 +274,7 @@ internal class FileContextTest {
           )
         }
         test("then an illegal argument exception is thrown") {
-          illegalArgumentExceptionIsThrownBy { FileContext.DirectoryContext(fixture) }
+          expectThrows<IllegalArgumentException> { FileContext.DirectoryContext(fixture) }
         }
       }
     }
