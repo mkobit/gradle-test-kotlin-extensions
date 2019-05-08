@@ -771,5 +771,3 @@ internal class GradleRunnerCliExtensionsTest {
 
   private fun GradleRunner.assertArguments() = assertThat(arguments)
 }
-
-// 544 lines
