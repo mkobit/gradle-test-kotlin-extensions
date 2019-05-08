@@ -108,9 +108,12 @@ java {
   targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-val main = sourceSets["main"]!!
-// No Java in main source set
-main.java.setSrcDirs(emptyList<Any>())
+sourceSets {
+  main {
+    // No Java in main source set
+    java.setSrcDirs(emptyList<Any>())
+  }
+}
 
 tasks {
   wrapper {
@@ -161,13 +164,19 @@ tasks {
 
   val sourcesJar by registering(Jar::class) {
     archiveClassifier.set("sources")
-    from(main.allSource)
+    from(sourceSets.main.map { it.allSource })
     description = "Assembles a JAR of the source code"
     group = JavaBasePlugin.DOCUMENTATION_GROUP
   }
 
+  // No Java code, so don't need the javadoc task.
+  // Dokka generates our documentation.
+  javadoc {
+    enabled = false
+  }
+
   dokka {
-    dependsOn(main.classesTaskName)
+    dependsOn(sourceSets.main.map { it.classesTaskName })
     outputFormat = "html"
     outputDirectory = "$buildDir/javadoc"
     // See https://github.com/Kotlin/dokka/issues/196
