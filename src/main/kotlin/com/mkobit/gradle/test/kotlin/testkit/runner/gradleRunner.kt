@@ -79,3 +79,17 @@ fun GradleRunner.resolveFromProjectDir(other: Path): Path {
  */
 public fun GradleRunner.withProjectDir(projectDir: Path): GradleRunner =
   withProjectDir(projectDir.toFile())
+
+/**
+ * Sets the runner environment variables to that of the system environment.
+ * @see GradleRunner.withEnvironment
+ */
+public fun GradleRunner.withSystemEnvironment(): GradleRunner =
+  withEnvironment(null)
+
+/**
+ * Sets the environment variables for the runner to the provided [environmentVariables].
+ * @see GradleRunner.withEnvironment
+ */
+public fun GradleRunner.withEnvironment(vararg environmentVariables: Pair<String, String>): GradleRunner =
+  withEnvironment(environmentVariables.toMap())
