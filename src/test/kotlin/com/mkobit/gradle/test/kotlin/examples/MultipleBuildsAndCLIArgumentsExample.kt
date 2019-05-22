@@ -6,7 +6,9 @@ import com.mkobit.gradle.test.kotlin.testkit.runner.profile
 import com.mkobit.gradle.test.kotlin.testkit.runner.projectProperties
 import com.mkobit.gradle.test.kotlin.testkit.runner.setupProjectDir
 import com.mkobit.gradle.test.kotlin.testkit.runner.stacktrace
+import com.mkobit.gradle.test.kotlin.testkit.runner.withEnvironment
 import com.mkobit.gradle.test.kotlin.testkit.runner.withProjectDir
+import com.mkobit.gradle.test.kotlin.testkit.runner.withSystemEnvironment
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -59,5 +61,31 @@ internal class MultipleBuildsAndCLIArgumentsExample {
       .not { contains("Look at this info log") }
       .contains("Prop1 value: myValue")
       .contains("Prop2 present: false")
+  }
+
+  @Test
+  internal fun `run builds by passing environment variables`(@TempDir directory: Path) {
+    val gradleRunner = GradleRunner.create().apply {
+      withProjectDir(directory)
+      setupProjectDir {
+        "build.gradle.kts" {
+          content = """
+            tasks.create("showEnv") {
+              println("Env variable HELLO: ${'$'}{System.getenv("HELLO") ?: "value is null"}")
+            }
+            """.trimIndent().toByteArray()
+        }
+        "settings.gradle.kts"(content = """rootProject.name = "example-env-build"""")
+      }
+      withSystemEnvironment()
+    }
+
+    expectThat(gradleRunner.build("showEnv"))
+      .output
+      .contains("Env variable HELLO: value is null")
+
+    expectThat(gradleRunner.withEnvironment("HELLO" to "world!").build("showEnv"))
+      .output
+      .contains("Env variable HELLO: world!")
   }
 }

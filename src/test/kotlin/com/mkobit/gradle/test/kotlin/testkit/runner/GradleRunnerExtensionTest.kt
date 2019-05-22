@@ -10,6 +10,7 @@ import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import strikt.api.catching
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.api.expectThrows
@@ -228,5 +229,35 @@ internal class GradleRunnerExtensionTest {
 
       expectThrows<IllegalStateException> { mockGradleRunner.resolveFromProjectDir(Paths.get("a")) }
     }
+  }
+
+  @Test
+  internal fun `when withSystemEnvironment is called then the environment is set to null`() {
+    every { mockGradleRunner.withEnvironment(any()) }.returns(mockGradleRunner)
+
+    expectThat(catching { mockGradleRunner.withSystemEnvironment() })
+      .isNull()
+
+    verify { mockGradleRunner.withEnvironment(null) }
+  }
+
+  @Test
+  internal fun `when withEnvironment is called with an empty variadic of pairs, then the environment is set to an empty map`() {
+    every { mockGradleRunner.withEnvironment(any()) }.returns(mockGradleRunner)
+
+    expectThat(catching { mockGradleRunner.withEnvironment() })
+      .isNull()
+
+    verify { mockGradleRunner.withEnvironment(emptyMap()) }
+  }
+
+  @Test
+  internal fun `when withEnvironment is called with pairs, then the environment is set to those values empty map`() {
+    every { mockGradleRunner.withEnvironment(any()) }.returns(mockGradleRunner)
+
+    expectThat(catching { mockGradleRunner.withEnvironment("a" to "b", "c" to "d") })
+      .isNull()
+
+    verify { mockGradleRunner.withEnvironment(mapOf("a" to "b", "c" to "d")) }
   }
 }
