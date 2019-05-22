@@ -89,6 +89,7 @@ public fun GradleRunner.withSystemEnvironment(): GradleRunner =
 
 /**
  * Sets the environment variables for the runner to the provided [environmentVariables].
+ * @param environmentVariables the environment variables to use
  * @see GradleRunner.withEnvironment
  */
 public fun GradleRunner.withEnvironment(vararg environmentVariables: Pair<String, String>): GradleRunner =
