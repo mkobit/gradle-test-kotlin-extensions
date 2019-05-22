@@ -19,7 +19,7 @@ executors:
 
 commands:
   gradle:
-    description: Runs './gradlew' command with the provided cmmand
+    description: Runs './gradlew' command with the provided command
     parameters:
       command:
         type: string
