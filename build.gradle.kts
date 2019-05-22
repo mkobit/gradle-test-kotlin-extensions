@@ -154,10 +154,6 @@ tasks {
     }
   }
 
-  jar {
-    enabled = false
-  }
-
   val sourcesJar by registering(Jar::class) {
     archiveClassifier.set("sources")
     from(sourceSets.main.map { it.allSource })
