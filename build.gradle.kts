@@ -196,6 +196,11 @@ tasks {
     dependsOn(sourcesJar, javadocJar)
   }
 
+  prepare {
+    // disable Git upstream checks
+    enabled = false
+  }
+
   (release) {
     dependsOn(bintrayUpload)
     // disabled to not push git tag
@@ -228,8 +233,8 @@ publishing {
 }
 
 bintray {
-  user = System.getenv("BINTRAY_USER")
-  key = System.getenv("BINTRAY_KEY")
+  user = findProperty("bintray.user") as String?
+  key = findProperty("bintray.key") as String?
   publish = true
   setPublications(publicationName)
   pkg(delegateClosureOf<BintrayExtension.PackageConfig> {
