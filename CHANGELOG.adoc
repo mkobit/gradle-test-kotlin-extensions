@@ -27,6 +27,8 @@ For each release, a subsection should be added for each of the following if they
 === Added
 
 * `GradleRunner.withProjectDir(projectDir: Path)` overload
+* `GradleRunner.withEnvironment(vararg environmentVariables: Pair<String, String>)` overload
+* `GradleRunner.withSystemEnvironment()` to clear environment variables of the `GradleRunner`
 
 === Deprecated
 
