@@ -22,7 +22,9 @@ For each release, a subsection should be added for each of the following if they
 * `Removed` for now removed features.
 * `Security` in case of vulnerabilities.
 
-== UNRELEASED
+== UNRELEASED (YYYY/MM/DD)
+
+== 0.7.0 (2019/05/22)
 
 === Added
 
