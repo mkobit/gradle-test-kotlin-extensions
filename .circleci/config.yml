@@ -92,7 +92,7 @@ jobs:
       - attach_workspace:
           at: ~/build-working-directory
       - gradle:
-          command: final -P release.useLastTag=true --exclude-task prepare --exclude-task test
+          command: final -P "release.version"="${CIRCLE_TAG}" --exclude-task test -P "bintray.user"="${BINTRAY_USER}" -P "bintray.key"="${BINTRAY_KEY}"
       - save-home-cache
 
 workflows:
