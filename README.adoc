@@ -4,14 +4,14 @@
 :uri-GradleRunner: https://docs.gradle.org/current/javadoc/org/gradle/testkit/runner/GradleRunner.html
 :uri-gradle-userguide: https://docs.gradle.org/current/userguide
 :uri-testkit: {uri-gradle-userguide}/test_kit.html
-:uri-build-status-image: https://circleci.com/gh/mkobit/{github-repo-id}/tree/master.svg?style=svg
-:circle-ci-status-badge: image:{uri-build-status-image}["CircleCI", link="https://circleci.com/gh/mkobit/{github-repo-id}/tree/master"]
+:uri-github-actions-status-badge: https://github.com/mkobit/{github-repo-id}/workflows/CI/badge.svg
+:github-actions-status-badge: image:{uri-github-actions-status-badge}["GitHub Actions - CI", link="https://github.com/mkobit/{github-repo-id}/actions?query=workflow%3ACI"]
 :uri-version-badge-image: https://api.bintray.com/packages/mkobit/gradle/{github-repo-id}/images/download.svg
 :uri-bintray-package: https://bintray.com/mkobit/gradle/{github-repo-id}/_latestVersion
 :version-badge: image:{uri-version-badge-image}["Latest Release Version", link="{uri-bintray-package}"]
 
 {version-badge}
-{circle-ci-status-badge}
+{github-actions-status-badge}
 
 Kotlin extensions and utilities for testing Gradle projects.
 
