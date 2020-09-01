@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFailure
 import strikt.assertions.isSameInstanceAs
 import strikt.assertions.isSuccess
 import java.io.File
@@ -104,8 +105,8 @@ internal class GradleRunnerExtensionTest {
       val exception = RuntimeException("test exception")
       every { mockGradleRunner.build() }.throws(exception)
 
-      Assertions.assertThatCode { mockGradleRunner.build("task1", "task2") }
-        .describedAs("Rethrows exception")
+      expectCatching { mockGradleRunner.build("task1", "task2") }
+        .isFailure()
         .isEqualTo(exception)
 
       verifyOrder {

@@ -11,7 +11,7 @@ import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.contains
-import strikt.assertions.isDirectory
+import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isNotNull
@@ -23,7 +23,6 @@ import testsupport.jdk.newFile
 import testsupport.minutest.createDirectoriesFor
 import testsupport.minutest.createFileFor
 import testsupport.minutest.testFactory
-import testsupport.strikt.isEmpty
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.Path
@@ -39,7 +38,6 @@ import java.time.ZoneId
 internal class FileContextTest {
 
   private fun <F : FileContext> ContextBuilder<F>.fileAttributesTests() {
-    // TODO: better context groupings
     test("can get and set last modified time") {
       val instant = Instant.from(
         LocalDateTime.of(2011, Month.NOVEMBER, 26, 7, 2)
@@ -175,7 +173,8 @@ internal class FileContextTest {
       }
 
       test("empty content can be read") {
-        assertThat(fixture.content)
+        expectThat(fixture)
+          .get { content }
           .isEmpty()
       }
 
