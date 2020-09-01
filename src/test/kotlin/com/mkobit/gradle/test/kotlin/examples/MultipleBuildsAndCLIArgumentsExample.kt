@@ -25,7 +25,8 @@ internal class MultipleBuildsAndCLIArgumentsExample {
       withProjectDir(directory)
       setupProjectDir {
         "build.gradle" {
-          content = """
+          content =
+            """
             tasks.create('showProp') {
               logger.info('Look at this info log')
               println("Prop1 value: ${'$'}{project.findProperty('prop1')}")
@@ -39,8 +40,8 @@ internal class MultipleBuildsAndCLIArgumentsExample {
       info = true
       profile = true
       projectProperties = mapOf(
-          "prop1" to "myValue",
-          "prop2" to null
+        "prop1" to "myValue",
+        "prop2" to null
       )
     }
 
@@ -69,13 +70,17 @@ internal class MultipleBuildsAndCLIArgumentsExample {
       withProjectDir(directory)
       setupProjectDir {
         "build.gradle.kts" {
-          content = """
+          content =
+            """
             tasks.create("showEnv") {
               println("Env variable HELLO: ${'$'}{System.getenv("HELLO") ?: "value is null"}")
             }
             """.trimIndent().toByteArray()
         }
-        "settings.gradle.kts"(content = """rootProject.name = "example-env-build"""")
+        "settings.gradle.kts"(
+          content =
+"""rootProject.name = "example-env-build""""
+        )
       }
       withSystemEnvironment()
     }

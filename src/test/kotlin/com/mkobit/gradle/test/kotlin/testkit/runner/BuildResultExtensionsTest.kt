@@ -30,7 +30,7 @@ internal class BuildResultExtensionsTest {
 
     val result = mockBuildResult[path]
     assertThat(result)
-        .isSameAs(buildTask)
+      .isSameAs(buildTask)
     verify { mockBuildResult.task(path) }
   }
 

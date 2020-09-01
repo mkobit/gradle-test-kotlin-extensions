@@ -62,7 +62,11 @@ internal class GradleRunnerCliExtensionsTest {
         Path("second", "second.gradle")
       )
       optionWithValueTestsFor(
-        "--max-workers", GradleRunner::maxWorkers, 1, 2)
+        "--max-workers",
+        GradleRunner::maxWorkers,
+        1,
+        2
+      )
       optionWithValueTestsFor(
         "--project-cache-dir",
         GradleRunner::projectCacheDir,
@@ -606,22 +610,26 @@ internal class GradleRunnerCliExtensionsTest {
           listOf("--other-arg", option, firstValue, option, secondValue),
           listOf("--other-arg", "otherArgValue", option, firstValue, option, secondValue),
           listOf("--other-arg", "otherArgValue", option, firstValue, option, secondValue, "--after-arg"),
-          listOf("--other-arg",
+          listOf(
+            "--other-arg",
             "otherArgValue",
             option,
             firstValue,
             option,
             secondValue,
             "--after-arg",
-            "afterArgValue"),
-          listOf(option,
+            "afterArgValue"
+          ),
+          listOf(
+            option,
             firstValue,
             "--other-arg",
             "otherArgValue",
             "--after-arg",
             "afterArgValue",
             option,
-            secondValue)
+            secondValue
+          )
         ).map { it.map { arg -> arg.toString() } }
           .forEach { argsContainingBothOptionsAndValues ->
             context(argsContainingBothOptionsAndValues.toString()) {

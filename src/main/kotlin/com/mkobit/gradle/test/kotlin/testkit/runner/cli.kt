@@ -83,8 +83,8 @@ private val systemPropertySplitPattern = Regex("=")
  */
 public var GradleRunner.systemProperties: Map<String, String?>
   get() = findRepeatableOptionValues { it == "--system-prop" }
-      .map { it.split(systemPropertySplitPattern, 2) }
-      .associateBy({ it.first() }, { it.getOrNull(1) })
+    .map { it.split(systemPropertySplitPattern, 2) }
+    .associateBy({ it.first() }, { it.getOrNull(1) })
   set(value) {
     // TODO: check for empty keys
     val properties = value.map { (key, value) ->
@@ -242,8 +242,8 @@ private val projectPropertySplitPattern = Regex("=")
  */
 public var GradleRunner.projectProperties: Map<String, String?>
   get() = findRepeatableOptionValues { it == "--project-prop" }
-      .map { it.split(projectPropertySplitPattern, 2) }
-      .associateBy({ it.first() }, { it.getOrNull(1) })
+    .map { it.split(projectPropertySplitPattern, 2) }
+    .associateBy({ it.first() }, { it.getOrNull(1) })
   set(value) {
     // TODO: make sure keys can't be empty
     val properties = value.map { (key, value) ->
@@ -332,7 +332,7 @@ private fun GradleRunner.ensureFlagOptionState(flag: String, include: Boolean) {
  */
 private fun GradleRunner.ensureRepeatableOptionHasValues(option: String, values: List<Any>) {
   withArguments(
-      filterKeyValueArgumentsFilteringOutOption { it == option } + values.flatMap { listOf(option, it.toString()) }
+    filterKeyValueArgumentsFilteringOutOption { it == option } + values.flatMap { listOf(option, it.toString()) }
   )
 }
 

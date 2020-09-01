@@ -10,14 +10,15 @@ import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import strikt.api.catching
 import strikt.api.expect
+import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.endsWith
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNull
 import strikt.assertions.isSameInstanceAs
+import strikt.assertions.isSuccess
 import strikt.assertions.startsWith
 import java.io.File
 import java.nio.file.Path
@@ -235,8 +236,8 @@ internal class GradleRunnerExtensionTest {
   internal fun `when withSystemEnvironment is called then the environment is set to null`() {
     every { mockGradleRunner.withEnvironment(any()) }.returns(mockGradleRunner)
 
-    expectThat(catching { mockGradleRunner.withSystemEnvironment() })
-      .isNull()
+    expectCatching { mockGradleRunner.withSystemEnvironment() }
+      .isSuccess()
 
     verify { mockGradleRunner.withEnvironment(null) }
   }
@@ -245,8 +246,8 @@ internal class GradleRunnerExtensionTest {
   internal fun `when withEnvironment is called with an empty variadic of pairs, then the environment is set to an empty map`() {
     every { mockGradleRunner.withEnvironment(any()) }.returns(mockGradleRunner)
 
-    expectThat(catching { mockGradleRunner.withEnvironment() })
-      .isNull()
+    expectCatching { mockGradleRunner.withEnvironment() }
+      .isSuccess()
 
     verify { mockGradleRunner.withEnvironment(emptyMap()) }
   }
@@ -255,8 +256,8 @@ internal class GradleRunnerExtensionTest {
   internal fun `when withEnvironment is called with pairs, then the environment is set to those values empty map`() {
     every { mockGradleRunner.withEnvironment(any()) }.returns(mockGradleRunner)
 
-    expectThat(catching { mockGradleRunner.withEnvironment("a" to "b", "c" to "d") })
-      .isNull()
+    expectCatching { mockGradleRunner.withEnvironment("a" to "b", "c" to "d") }
+      .isSuccess()
 
     verify { mockGradleRunner.withEnvironment(mapOf("a" to "b", "c" to "d")) }
   }

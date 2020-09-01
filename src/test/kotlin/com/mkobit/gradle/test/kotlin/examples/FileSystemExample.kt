@@ -28,7 +28,8 @@ internal class FileSystemExample {
           content = "rootProject.name = 'example-dsl-project'".toByteArray()
         }
         file("build.gradle") {
-          content = """
+          content =
+            """
             plugins {
               id 'lifecycle-base'
             }
@@ -37,7 +38,7 @@ internal class FileSystemExample {
               from(file('myFiles'))
               into("${'$'}buildDir/synced")
             }
-          """.trimIndent().toByteArray()
+            """.trimIndent().toByteArray()
         }
         directory("myFiles") {
           file("file1.txt") {
