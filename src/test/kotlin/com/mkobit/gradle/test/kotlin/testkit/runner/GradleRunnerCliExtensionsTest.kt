@@ -17,7 +17,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 import testsupport.minutest.testFactory
-import testsupport.stdlib.removeFirstSequnce
+import testsupport.stdlib.removeFirstSequence
 import testsupport.strikt.containsSequence
 import kotlin.reflect.KMutableProperty1
 import java.nio.file.Paths.get as Path
@@ -647,8 +647,8 @@ internal class GradleRunnerCliExtensionsTest {
                     assertArguments()
                       .hasSameElementsAs(
                         argsContainingBothOptionsAndValues
-                          .removeFirstSequnce(listOf(option, firstValue.toString()))
-                          .removeFirstSequnce(listOf(option, secondValue.toString()))
+                          .removeFirstSequence(listOf(option, firstValue.toString()))
+                          .removeFirstSequence(listOf(option, secondValue.toString()))
                       )
                   }
                   test("has size of the original - 4") {
@@ -671,7 +671,7 @@ internal class GradleRunnerCliExtensionsTest {
                   test("contain the other original arguments") {
                     assertArguments()
                       .hasSameElementsAs(
-                        argsContainingBothOptionsAndValues.removeFirstSequnce(
+                        argsContainingBothOptionsAndValues.removeFirstSequence(
                           listOf(option, secondValue.toString())
                         )
                       )
