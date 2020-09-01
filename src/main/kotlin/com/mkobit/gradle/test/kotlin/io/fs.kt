@@ -146,13 +146,12 @@ public sealed class FileContext(val path: Path) {
       replacement: (lineNumber: Int, text: String) -> CharSequence
     ) {
       val newLines = Files.readAllLines(path, charset)
-          .mapIndexed { index, line ->
-            val newLine = replacement(index + 1, line)
-            when (newLine) {
-              Original -> line
-              else -> newLine
-            }
+        .mapIndexed { index, line ->
+          when (val newLine = replacement(index + 1, line)) {
+            Original -> line
+            else -> newLine
           }
+        }
       Files.write(path, newLines, charset)
     }
   }
@@ -199,17 +198,22 @@ public sealed class FileContext(val path: Path) {
           is FileAction.MaybeCreate -> {
             if (Files.exists(filePath)) {
               if (!Files.isRegularFile(filePath)) {
-                throw FileAlreadyExistsException(filePath.toFile(),
-                    reason = "File at path $filePath already exists and is not a regular file")
+                throw FileAlreadyExistsException(
+                  filePath.toFile(),
+                  reason = "File at path $filePath already exists and is not a regular file"
+                )
               }
               RegularFileContext(filePath)
             } else {
               RegularFileContext(Files.createFile(filePath, *fileAction.fileAttributes.toTypedArray()))
             }
           }
-          is FileAction.Create -> RegularFileContext(Files.createFile(
+          is FileAction.Create -> RegularFileContext(
+            Files.createFile(
               filePath,
-              *fileAction.fileAttributes.toTypedArray()))
+              *fileAction.fileAttributes.toTypedArray()
+            )
+          )
         }.apply(action)
       }
     }
@@ -246,13 +250,19 @@ public sealed class FileContext(val path: Path) {
           is FileAction.MaybeCreate -> {
             if (Files.exists(filePath)) {
               if (!Files.isDirectory(filePath)) {
-                throw FileAlreadyExistsException(filePath.toFile(),
-                    reason = "File at path $filePath already exists and is not a directory")
+                throw FileAlreadyExistsException(
+                  filePath.toFile(),
+                  reason = "File at path $filePath already exists and is not a directory"
+                )
               }
               DirectoryContext(filePath)
             } else {
-              DirectoryContext(Files.createDirectories(filePath,
-                  *fileAction.fileAttributes.toTypedArray()))
+              DirectoryContext(
+                Files.createDirectories(
+                  filePath,
+                  *fileAction.fileAttributes.toTypedArray()
+                )
+              )
             }
           }
           is FileAction.Create -> {
@@ -292,7 +302,7 @@ public sealed class FileContext(val path: Path) {
      * @see directory
      */
     public operator fun CharSequence.div(action: DirectoryContext.() -> Unit): DirectoryContext =
-        this@DirectoryContext.directory(this, action = action)
+      this@DirectoryContext.directory(this, action = action)
 
     /**
      * Produces a [DirectoryContext] relative to the receiver and the provided [directoryPath] (in that order).
@@ -309,7 +319,7 @@ public sealed class FileContext(val path: Path) {
      * @see directory
      */
     public operator fun CharSequence.div(directoryPath: CharSequence): DirectoryContext =
-        directory(this).directory(directoryPath)
+      directory(this).directory(directoryPath)
 
     /**
      * Produces a [RegularFileContext] instance with a [Path] resolved from this instance's [path] and the [CharSequence]

@@ -25,7 +25,8 @@ internal class FileSystemDSLExample {
       setupProjectDir {
         "settings.gradle"(content = "rootProject.name = 'example-dsl-project'")
         "build.gradle" {
-          content = """
+          content =
+            """
             plugins {
               id 'lifecycle-base'
             }
@@ -34,7 +35,7 @@ internal class FileSystemDSLExample {
               from(file('myFiles'))
               into("${'$'}buildDir/synced")
             }
-          """.trimIndent().toByteArray()
+            """.trimIndent().toByteArray()
         }
         // The div ('/') operator can be used for simple directory operations
         "myFiles" / {

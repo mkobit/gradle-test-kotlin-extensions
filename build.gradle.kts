@@ -1,24 +1,22 @@
 import buildsrc.ProjectInfo
 import com.jfrog.bintray.gradle.BintrayExtension
-import java.io.ByteArrayOutputStream
-import java.net.URL
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.gradle.jvm.tasks.Jar
 import org.gradle.util.GradleVersion
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.io.ByteArrayOutputStream
+import java.net.URL
 
 plugins {
-  id("com.gradle.build-scan") version "2.3"
   `java-library`
   `maven-publish`
 
-  kotlin("jvm") version "1.3.31"
-  id("org.jlleitschuh.gradle.ktlint") version "8.0.0"
-  id("org.jetbrains.dokka") version "0.9.18"
+  kotlin("jvm") version "1.3.71" // use kotlin 1.4.0 when Gradle updates, as using gradleApi() causes conflicting versions during compilation and failures at runtime
+  id("org.jlleitschuh.gradle.ktlint") version "9.3.0"
+  id("org.jetbrains.dokka") version "0.10.1" // temporary as 1.4.0-rc is already out
 
-  id("nebula.release") version "10.1.1"
-  id("com.github.ben-manes.versions") version "0.21.0"
-  id("com.jfrog.bintray") version "1.8.4"
+  id("nebula.release") version "15.1.0"
+  id("com.github.ben-manes.versions") version "0.29.0"
+  id("com.jfrog.bintray") version "1.8.5"
 }
 
 group = "com.mkobit.gradle.test"
@@ -35,33 +33,30 @@ val gitCommitSha: String by lazy {
 }
 
 ktlint {
-  version.set("0.32.0")
+  version.set("0.37.2")
 }
 
-val SourceSet.kotlin: SourceDirectorySet
-  get() = withConvention(KotlinSourceSet::class) { kotlin }
+gradleEnterprise {
+  buildScan {
+    fun env(key: String): String? = System.getenv(key)
 
-buildScan {
-  fun env(key: String): String? = System.getenv(key)
+    termsOfServiceAgree = "yes"
+    termsOfServiceUrl = "https://gradle.com/terms-of-service"
 
-  termsOfServiceAgree = "yes"
-  termsOfServiceUrl = "https://gradle.com/terms-of-service"
-
-  // Env variables from https://circleci.com/docs/2.0/env-vars/
-  if (env("CI") != null) {
-    logger.lifecycle("Running in CI environment, setting build scan attributes.")
-    tag("CI")
-    env("CIRCLE_BRANCH")?.let { tag(it) }
-    env("CIRCLE_BUILD_NUM")?.let { value("Circle CI Build Number", it) }
-    env("CIRCLE_BUILD_URL")?.let { link("Build URL", it) }
-    env("CIRCLE_SHA1")?.let { value("Revision", it) }
-//    Issue with Circle CI/Gradle with caret (^) in URLs
-//    see: https://discuss.gradle.org/t/build-scan-plugin-1-10-3-issue-when-using-a-url-with-a-caret/24965
-//    see: https://discuss.circleci.com/t/circle-compare-url-does-not-url-escape-caret/18464
-//    env("CIRCLE_COMPARE_URL")?.let { link("Diff", it) }
-    env("CIRCLE_REPOSITORY_URL")?.let { value("Repository", it) }
-    env("CIRCLE_PR_NUMBER")?.let { value("Pull Request Number", it) }
     link("Repository", ProjectInfo.projectUrl)
+
+    // Env variables from https://docs.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables
+    if (env("GITHUB_ACTIONS") == "true") {
+      logger.lifecycle("Running in CI environment, setting build scan attributes.")
+      tag("CI")
+      env("GITHUB_WORKFLOW")?.let { value("GitHub Workflow", it) }
+      env("GITHUB_RUN_NUMBER")?.let { value("GitHub Workflow Run Id", it) }
+      env("GITHUB_ACTOR")?.let { value("GitHub Actor", it) }
+      env("GITHUB_SHA")?.let { value("Revision", it) }
+      env("GITHUB_REF")?.let { value("Reference", it) }
+      env("GITHUB_REPOSITORY")?.let { value("GitHub Repository", it) }
+      env("GITHUB_EVENT_NAME")?.let { value("GitHub Event", it) }
+    }
   }
 }
 
@@ -73,11 +68,12 @@ repositories {
 configurations.all {
   resolutionStrategy.eachDependency {
     when (requested.group) {
-      "dev.minutest" -> useVersion("1.6.0")
-      "org.junit.jupiter" -> useVersion("5.4.2")
-      "org.junit.platform" -> useVersion("1.4.2")
-      "io.strikt" -> useVersion("0.20.0")
+      "dev.minutest" -> useVersion("1.11.0")
+      "org.junit.jupiter" -> useVersion("5.6.2")
+      "org.junit.platform" -> useVersion("1.6.2")
+      "io.strikt" -> useVersion("0.26.1")
       "org.apache.logging.log4j" -> useVersion("2.11.2")
+      "org.jetbrains.kotlin" -> useVersion("1.3.71") // remove this when Gradle updates to 1.4, see note in plugins section
     }
   }
 }
@@ -85,13 +81,12 @@ configurations.all {
 dependencies {
   api(gradleApi())
   api(gradleTestKit())
-  api(kotlin("stdlib-jdk8"))
 
-  implementation("io.github.microutils:kotlin-logging:1.6.26")
+  implementation("io.github.microutils:kotlin-logging:1.8.3")
 
   testImplementation(kotlin("reflect"))
-  testImplementation("org.assertj:assertj-core:3.12.2")
-  testImplementation("io.mockk:mockk:1.9.3")
+  testImplementation("org.assertj:assertj-core:3.17.0")
+  testImplementation("io.mockk:mockk:1.10.0")
   testImplementation("org.junit.jupiter:junit-jupiter-api")
   testImplementation("org.junit.jupiter:junit-jupiter-params")
   testImplementation("dev.minutest:minutest")
@@ -117,7 +112,7 @@ sourceSets {
 
 tasks {
   wrapper {
-    gradleVersion = "5.4.1"
+    gradleVersion = "6.6.1"
   }
 
   withType<Jar>().configureEach {
@@ -126,12 +121,14 @@ tasks {
       into("META-INF")
     }
     manifest {
-      attributes(mapOf(
-        "Build-Revision" to gitCommitSha,
-        "Automatic-Module-Name" to ProjectInfo.automaticModuleName,
-        "Implementation-Version" to project.version
-        // TODO: include Gradle version?
-      ))
+      attributes(
+        mapOf(
+          "Build-Revision" to gitCommitSha,
+          "Automatic-Module-Name" to ProjectInfo.automaticModuleName,
+          "Implementation-Version" to project.version
+          // TODO: include Gradle version?
+        )
+      )
     }
   }
 
@@ -172,11 +169,14 @@ tasks {
     outputFormat = "html"
     outputDirectory = "$buildDir/javadoc"
     // See https://github.com/Kotlin/dokka/issues/196
-    externalDocumentationLink {
-      url = URL("https://docs.gradle.org/${GradleVersion.current().version}/javadoc/")
-    }
-    externalDocumentationLink {
-      url = URL("https://docs.oracle.com/javase/8/docs/api/")
+    configuration {
+      externalDocumentationLink {
+        url = URL("https://docs.gradle.org/${GradleVersion.current().version}/javadoc/")
+        packageListUrl = URL("https://docs.gradle.org/${GradleVersion.current().version}/javadoc/allpackages-index.html")
+      }
+      externalDocumentationLink {
+        url = URL("https://docs.oracle.com/javase/8/docs/api/")
+      }
     }
   }
 
@@ -233,15 +233,17 @@ bintray {
   key = findProperty("bintray.key") as String?
   publish = true
   setPublications(publicationName)
-  pkg(delegateClosureOf<BintrayExtension.PackageConfig> {
-    repo = "gradle"
-    name = project.name
-    userOrg = "mkobit"
-    setLabels("gradle", "test", "plugins", "kotlin")
-    setLicenses("MIT")
-    desc = project.description
-    websiteUrl = ProjectInfo.projectUrl
-    issueTrackerUrl = ProjectInfo.issuesUrl
-    vcsUrl = ProjectInfo.scmUrl
-  })
+  pkg(
+    delegateClosureOf<BintrayExtension.PackageConfig> {
+      repo = "gradle"
+      name = project.name
+      userOrg = "mkobit"
+      setLabels("gradle", "test", "plugins", "kotlin")
+      setLicenses("MIT")
+      desc = project.description
+      websiteUrl = ProjectInfo.projectUrl
+      issueTrackerUrl = ProjectInfo.issuesUrl
+      vcsUrl = ProjectInfo.scmUrl
+    }
+  )
 }

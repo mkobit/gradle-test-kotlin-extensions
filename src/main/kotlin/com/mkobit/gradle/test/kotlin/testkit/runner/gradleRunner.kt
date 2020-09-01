@@ -65,7 +65,7 @@ public fun GradleRunner.buildAndFail(vararg tasks: String): KBuildResult = build
  * @throws IllegalStateException when [GradleRunner.getProjectDir] is `null`
  * @throws IllegalArgumentException when [other] is an absolute path
  */
-@Deprecated("Superfluous method, will be removed in a future release")
+@Deprecated("Superfluous method, will be removed in a future release", level = DeprecationLevel.ERROR)
 fun GradleRunner.resolveFromProjectDir(other: Path): Path {
   require(!other.isAbsolute) { "Path $other must not be absolute" }
   val projectDirectory: File = projectDir ?: throw IllegalStateException("projectDir must not be null to resolve path")

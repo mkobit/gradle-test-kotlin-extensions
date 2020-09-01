@@ -1,21 +1,17 @@
 = Gradle Test Kotlin Extensions
 :toc:
 :github-repo-id: gradle-test-kotlin-extensions
-:uri-java-ServiceLoader: https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html
 :uri-GradleRunner: https://docs.gradle.org/current/javadoc/org/gradle/testkit/runner/GradleRunner.html
 :uri-gradle-userguide: https://docs.gradle.org/current/userguide
 :uri-testkit: {uri-gradle-userguide}/test_kit.html
-:uri-build-status-image: https://circleci.com/gh/mkobit/{github-repo-id}/tree/master.svg?style=svg
-:circle-ci-status-badge: image:{uri-build-status-image}["CircleCI", link="https://circleci.com/gh/mkobit/{github-repo-id}/tree/master"]
+:uri-github-actions-status-badge: https://github.com/mkobit/{github-repo-id}/workflows/CI/badge.svg
+:github-actions-status-badge: image:{uri-github-actions-status-badge}["GitHub Actions - CI", link="https://github.com/mkobit/{github-repo-id}/actions?query=workflow%3ACI"]
 :uri-version-badge-image: https://api.bintray.com/packages/mkobit/gradle/{github-repo-id}/images/download.svg
 :uri-bintray-package: https://bintray.com/mkobit/gradle/{github-repo-id}/_latestVersion
-:uri-zenhub-badge: https://raw.githubusercontent.com/ZenHubIO/support/master/zenhub-badge.png
 :version-badge: image:{uri-version-badge-image}["Latest Release Version", link="{uri-bintray-package}"]
-:zenhub-badge: image:{uri-zenhub-badge}["ZenHub Badge", link="https://www.zenhub.com/"]
 
 {version-badge}
-{circle-ci-status-badge}
-{zenhub-badge}
+{github-actions-status-badge}
 
 Kotlin extensions and utilities for testing Gradle projects.
 

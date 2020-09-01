@@ -17,7 +17,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 import testsupport.minutest.testFactory
-import testsupport.stdlib.removeFirstSequnce
+import testsupport.stdlib.removeFirstSequence
 import testsupport.strikt.containsSequence
 import kotlin.reflect.KMutableProperty1
 import java.nio.file.Paths.get as Path
@@ -62,7 +62,11 @@ internal class GradleRunnerCliExtensionsTest {
         Path("second", "second.gradle")
       )
       optionWithValueTestsFor(
-        "--max-workers", GradleRunner::maxWorkers, 1, 2)
+        "--max-workers",
+        GradleRunner::maxWorkers,
+        1,
+        2
+      )
       optionWithValueTestsFor(
         "--project-cache-dir",
         GradleRunner::projectCacheDir,
@@ -142,7 +146,7 @@ internal class GradleRunnerCliExtensionsTest {
               test("then the argument list does not change") {
                 assertArguments()
                   .doesNotContain(flag)
-                  .containsOnlyElementsOf(args)
+                  .hasSameElementsAs(args)
               }
             }
             context("and the property is set to true") {
@@ -177,7 +181,7 @@ internal class GradleRunnerCliExtensionsTest {
                 expectArguments().doesNotContain(flag)
               }
               test("then the argument list contains the original arguments minus the flag") {
-                assertArguments().containsOnlyElementsOf(args - flag)
+                assertArguments().hasSameElementsAs(args - flag)
               }
               test("then the property is false") {
                 expectPropertyFalse()
@@ -188,7 +192,7 @@ internal class GradleRunnerCliExtensionsTest {
               test("then the argument list retains all original elements") {
                 assertArguments()
                   .containsOnlyOnce(flag)
-                  .containsOnlyElementsOf(args)
+                  .hasSameElementsAs(args)
                   .hasSize(args.size)
               }
               test("then the property is true") {
@@ -564,7 +568,7 @@ internal class GradleRunnerCliExtensionsTest {
                 context("then the arguments") {
                   test("contain the other original arguments") {
                     assertArguments()
-                      .containsOnlyElementsOf(argsContainingOptionAndValue - listOf(option, firstValue.toString()))
+                      .hasSameElementsAs(argsContainingOptionAndValue - listOf(option, firstValue.toString()))
                   }
                   test("has size of the original - 2") {
                     expectArguments().hasSize(argsContainingOptionAndValue.size - 2)
@@ -584,7 +588,7 @@ internal class GradleRunnerCliExtensionsTest {
                   context("then the arguments") {
                     test("contain the other original arguments") {
                       assertArguments()
-                        .containsOnlyElementsOf(argsContainingOptionAndValue)
+                        .hasSameElementsAs(argsContainingOptionAndValue)
                     }
                     test("has size of the original + 2") {
                       expectArguments().hasSize(argsContainingOptionAndValue.size + 2)
@@ -606,22 +610,26 @@ internal class GradleRunnerCliExtensionsTest {
           listOf("--other-arg", option, firstValue, option, secondValue),
           listOf("--other-arg", "otherArgValue", option, firstValue, option, secondValue),
           listOf("--other-arg", "otherArgValue", option, firstValue, option, secondValue, "--after-arg"),
-          listOf("--other-arg",
+          listOf(
+            "--other-arg",
             "otherArgValue",
             option,
             firstValue,
             option,
             secondValue,
             "--after-arg",
-            "afterArgValue"),
-          listOf(option,
+            "afterArgValue"
+          ),
+          listOf(
+            option,
             firstValue,
             "--other-arg",
             "otherArgValue",
             "--after-arg",
             "afterArgValue",
             option,
-            secondValue)
+            secondValue
+          )
         ).map { it.map { arg -> arg.toString() } }
           .forEach { argsContainingBothOptionsAndValues ->
             context(argsContainingBothOptionsAndValues.toString()) {
@@ -637,10 +645,10 @@ internal class GradleRunnerCliExtensionsTest {
                 context("then the arguments") {
                   test("contain the other original arguments") {
                     assertArguments()
-                      .containsOnlyElementsOf(
+                      .hasSameElementsAs(
                         argsContainingBothOptionsAndValues
-                          .removeFirstSequnce(listOf(option, firstValue.toString()))
-                          .removeFirstSequnce(listOf(option, secondValue.toString()))
+                          .removeFirstSequence(listOf(option, firstValue.toString()))
+                          .removeFirstSequence(listOf(option, secondValue.toString()))
                       )
                   }
                   test("has size of the original - 4") {
@@ -662,8 +670,8 @@ internal class GradleRunnerCliExtensionsTest {
                 context("then the arguments") {
                   test("contain the other original arguments") {
                     assertArguments()
-                      .containsOnlyElementsOf(
-                        argsContainingBothOptionsAndValues.removeFirstSequnce(
+                      .hasSameElementsAs(
+                        argsContainingBothOptionsAndValues.removeFirstSequence(
                           listOf(option, secondValue.toString())
                         )
                       )
@@ -723,7 +731,7 @@ internal class GradleRunnerCliExtensionsTest {
                 assertProperty().isNull()
               }
               test("then the argument list does not change") {
-                assertArguments().containsOnlyElementsOf(args)
+                assertArguments().hasSameElementsAs(args)
               }
             }
             context("and the property is set to a value") {
@@ -754,7 +762,7 @@ internal class GradleRunnerCliExtensionsTest {
             context("and the property is set to null") {
               before { property.set(this, null) }
               test("then the argument list contains the original arguments minus the option and value") {
-                assertArguments().containsOnlyElementsOf(args - listOf(option, firstValue.toString()))
+                assertArguments().hasSameElementsAs(args - listOf(option, firstValue.toString()))
               }
               test("then the property is null") {
                 assertProperty().isNull()
@@ -769,7 +777,7 @@ internal class GradleRunnerCliExtensionsTest {
                 assertProperty().isEqualTo(firstValue)
               }
               test("then the argument list does not change") {
-                assertArguments().containsOnlyElementsOf(args)
+                assertArguments().hasSameElementsAs(args)
               }
               test("then the option and value are present") {
                 assertArguments().containsSequence(option, firstValue.toString())

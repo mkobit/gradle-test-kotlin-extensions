@@ -3,7 +3,6 @@ package com.mkobit.gradle.test.kotlin.testkit.runner
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.assertj.core.api.Assertions.assertThat
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.BuildTask
 import org.gradle.testkit.runner.TaskOutcome
@@ -29,8 +28,8 @@ internal class BuildResultExtensionsTest {
     every { mockBuildResult.task(path) }.returns(buildTask)
 
     val result = mockBuildResult[path]
-    assertThat(result)
-        .isSameAs(buildTask)
+    expectThat(result)
+      .isSameInstanceAs(buildTask)
     verify { mockBuildResult.task(path) }
   }
 
