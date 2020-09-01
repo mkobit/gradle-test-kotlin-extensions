@@ -147,8 +147,7 @@ public sealed class FileContext(val path: Path) {
     ) {
       val newLines = Files.readAllLines(path, charset)
         .mapIndexed { index, line ->
-          val newLine = replacement(index + 1, line)
-          when (newLine) {
+          when (val newLine = replacement(index + 1, line)) {
             Original -> line
             else -> newLine
           }
