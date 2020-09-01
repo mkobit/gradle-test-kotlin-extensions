@@ -51,7 +51,6 @@ gradleEnterprise {
       tag("CI")
       env("GITHUB_WORKFLOW")?.let { value("GitHub Workflow", it) }
       env("GITHUB_RUN_NUMBER")?.let { value("GitHub Workflow Run Id", it) }
-      env("GITHUB_RUN_ID")?.let { value("GitHub Run Id", it) }
       env("GITHUB_ACTOR")?.let { value("GitHub Actor", it) }
       env("GITHUB_SHA")?.let { value("Revision", it) }
       env("GITHUB_REF")?.let { value("Reference", it) }
