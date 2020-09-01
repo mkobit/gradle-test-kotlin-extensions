@@ -11,7 +11,9 @@ import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.contains
+import strikt.assertions.isDirectory
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFalse
 import strikt.assertions.isNotNull
 import strikt.assertions.isSuccess
 import strikt.assertions.message
@@ -36,54 +38,55 @@ import java.time.ZoneId
 
 internal class FileContextTest {
 
-  private fun ContextBuilder<out FileContext>.fileAttributesTests() {
+  private fun <F : FileContext> ContextBuilder<F>.fileAttributesTests() {
     // TODO: better context groupings
-    // needed for https://github.com/dmcg/minutest/issues/28
-    derivedContext<FileContext>("casted to FileContext (see https://github.com/dmcg/minutest/issues/28)") {
-      deriveFixture { this }
-      test("can get and set last modified time") {
-        val instant = Instant.from(
-          LocalDateTime.of(2011, Month.NOVEMBER, 26, 7, 2)
-            .atZone(ZoneId.systemDefault())
-        )
-        val clock = Clock.fixed(instant, ZoneId.systemDefault())
+    test("can get and set last modified time") {
+      val instant = Instant.from(
+        LocalDateTime.of(2011, Month.NOVEMBER, 26, 7, 2)
+          .atZone(ZoneId.systemDefault())
+      )
+      val clock = Clock.fixed(instant, ZoneId.systemDefault())
 
-        assertThat(fixture.lastModifiedTime)
-          .isNotNull()
-        fixture.lastModifiedTime = clock.instant()
-        assertThat(fixture.lastModifiedTime)
-          .isEqualTo(instant)
-      }
+      expectThat(fixture)
+        .get("last modified time") { lastModifiedTime }
+      expectCatching { fixture.lastModifiedTime }
+        .isSuccess()
+      fixture.lastModifiedTime = clock.instant()
+      expectThat(fixture)
+        .get("last modified time") { lastModifiedTime }
+        .isEqualTo(instant)
+    }
 
-      test("can get hidden status") {
-        // TODO: make a cross-platform test here to make sure true and false can both be tested
-        assertThat(fixture.isHidden).isFalse()
-      }
+    test("can get hidden status") {
+      // TODO: make a cross-platform test here to make sure true and false can both be tested
+      expectThat(fixture)
+        .get("is hidden") { isHidden }
+        .isFalse()
+    }
 
-      SKIP - test("can set hidden status") {
-        fail("make a cross-platform test here to make sure true and false can both be tested")
-      }
+    SKIP - test("can set hidden status") {
+      fail("make a cross-platform test here to make sure true and false can both be tested")
+    }
 
-      test("can get file owner") {
-        expectCatching { fixture.owner }.isSuccess()
-      }
+    test("can get file owner") {
+      expectCatching { fixture.owner }.isSuccess()
+    }
 
-      SKIP - test("can set file owner") {
-        fail("need to come up with a safe way to test this - see something like https://stackoverflow.com/questions/13241967/change-file-owner-group-under-linux-with-java-nio-files")
-      }
+    SKIP - test("can set file owner") {
+      fail("need to come up with a safe way to test this - see something like https://stackoverflow.com/questions/13241967/change-file-owner-group-under-linux-with-java-nio-files")
+    }
 
-      test("can read POSIX attributes") {
-        assertThat(fixture.posixFilePermissions)
-          .isNotEmpty
-      }
+    test("can read POSIX attributes") {
+      assertThat(fixture.posixFilePermissions)
+        .isNotEmpty
+    }
 
-      test("can set POSIX attributes") {
-        val old = fixture.posixFilePermissions
-        val new = old + PosixFilePermission.OWNER_EXECUTE - PosixFilePermission.GROUP_READ - PosixFilePermission.OTHERS_READ
-        fixture.posixFilePermissions = new
-        assertThat(Files.getPosixFilePermissions(fixture.path, LinkOption.NOFOLLOW_LINKS))
-          .isEqualTo(new)
-      }
+    test("can set POSIX attributes") {
+      val old = fixture.posixFilePermissions
+      val new = old + PosixFilePermission.OWNER_EXECUTE - PosixFilePermission.GROUP_READ - PosixFilePermission.OTHERS_READ
+      fixture.posixFilePermissions = new
+      assertThat(Files.getPosixFilePermissions(fixture.path, LinkOption.NOFOLLOW_LINKS))
+        .isEqualTo(new)
     }
   }
 
