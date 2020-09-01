@@ -43,21 +43,19 @@ gradleEnterprise {
     termsOfServiceAgree = "yes"
     termsOfServiceUrl = "https://gradle.com/terms-of-service"
 
-    // Env variables from https://circleci.com/docs/2.0/env-vars/
+    // Env variables from https://docs.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables
     tag("back-end-engineer") // TODO: remove - for application
-    if (env("CI") != null) {
+    if (env("GITHUB_ACTIONS") == "true") {
       logger.lifecycle("Running in CI environment, setting build scan attributes.")
       tag("CI")
-      env("CIRCLE_BRANCH")?.let { tag(it) }
-      env("CIRCLE_BUILD_NUM")?.let { value("Circle CI Build Number", it) }
-      env("CIRCLE_BUILD_URL")?.let { link("Build URL", it) }
-      env("CIRCLE_SHA1")?.let { value("Revision", it) }
-//    Issue with Circle CI/Gradle with caret (^) in URLs
-//    see: https://discuss.gradle.org/t/build-scan-plugin-1-10-3-issue-when-using-a-url-with-a-caret/24965
-//    see: https://discuss.circleci.com/t/circle-compare-url-does-not-url-escape-caret/18464
-//    env("CIRCLE_COMPARE_URL")?.let { link("Diff", it) }
-      env("CIRCLE_REPOSITORY_URL")?.let { value("Repository", it) }
-      env("CIRCLE_PR_NUMBER")?.let { value("Pull Request Number", it) }
+      env("GITHUB_WORKFLOW")?.let { value("GitHub Workflow", it) }
+      env("GITHUB_RUN_NUMBER")?.let { value("GitHub Workflow Run Id", it) }
+      env("GITHUB_RUN_ID")?.let { value("GitHub Run Id", it) }
+      env("GITHUB_ACTOR")?.let { value("GitHub Actor", it) }
+      env("GITHUB_SHA")?.let { value("Revision", it) }
+      env("GITHUB_REF")?.let { value("Reference", it) }
+      env("GITHUB_REPOSITORY")?.let { value("GitHub Repository", it) }
+      env("GITHUB_EVENT_NAME")?.let { value("GitHub Event", it) }
       link("Repository", ProjectInfo.projectUrl)
     }
   }
