@@ -7,13 +7,14 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.io.TempDir
+import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.contains
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
+import strikt.assertions.isSuccess
 import strikt.assertions.message
-import testsupport.assertj.assertNoExceptionThrownBy
 import testsupport.jdk.fileNameString
 import testsupport.jdk.newDirectory
 import testsupport.jdk.newFile
@@ -64,7 +65,7 @@ internal class FileContextTest {
       }
 
       test("can get file owner") {
-        assertNoExceptionThrownBy { fixture.owner }
+        expectCatching { fixture.owner }.isSuccess()
       }
 
       SKIP - test("can set file owner") {
@@ -129,7 +130,7 @@ internal class FileContextTest {
       context("a regular file") {
         deriveFixture { Files.createFile(fixture.resolve("regular-file")) }
         test("then no exception is thrown") {
-          assertNoExceptionThrownBy { FileContext.RegularFileContext(fixture) }
+          expectCatching { FileContext.RegularFileContext(fixture) }.isSuccess()
         }
       }
       context("a nonexistent file") {
@@ -272,7 +273,7 @@ internal class FileContextTest {
       context("a directory") {
         deriveFixture { Files.createDirectory(fixture.resolve("directory")) }
         test("then no exception is thrown") {
-          assertNoExceptionThrownBy { FileContext.DirectoryContext(fixture) }
+          expectCatching { FileContext.DirectoryContext(fixture) }.isSuccess()
         }
       }
       context("a symlink") {
