@@ -16,7 +16,7 @@ fun GradleRunner.setupProjectDir(action: FileContext.DirectoryContext.() -> Unit
 /**
  * The [GradleRunner.getProjectDir] as a [Path].
  */
-@Deprecated("Superfluous getter method, will be removed", replaceWith = ReplaceWith("projectDir?.toPath()"))
+@Deprecated("Superfluous getter method, will be removed", replaceWith = ReplaceWith("projectDir?.toPath()"), level = DeprecationLevel.ERROR)
 var GradleRunner.projectDirPath: Path?
   get() = projectDir?.toPath()
   set(value) {

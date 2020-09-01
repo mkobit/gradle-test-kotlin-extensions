@@ -1,10 +1,8 @@
 package com.mkobit.gradle.test.kotlin.testkit.runner
 
-import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestFactory
 import org.junit.jupiter.api.io.TempDir
 import strikt.api.expect
 import strikt.assertions.allLines
@@ -15,30 +13,9 @@ import strikt.assertions.isRegularFile
 import strikt.assertions.resolve
 import strikt.assertions.text
 import strikt.assertions.toFile
-import testsupport.minutest.testFactory
-import java.io.File
 import java.nio.file.Path
 
 internal class GradleRunnerFsExtensionsTest {
-
-  @TestFactory
-  internal fun `projectDirPath extension`() = testFactory<GradleRunner> {
-    fixture { GradleRunner.create() }
-    context("project directory is unset") {
-      test("then projectDir extension value is null") {
-        assertThat(projectDirPath)
-          .isNull()
-      }
-    }
-    context("project directory is set") {
-      test("then projectDir extension value is equal to the set value") {
-        val file = File("/tmp")
-        withProjectDir(file)
-        assertThat(projectDirPath)
-          .isEqualTo(file.toPath())
-      }
-    }
-  }
 
   @Test
   internal fun `cannot configure GradleRunner project directory if it is not set`() {
