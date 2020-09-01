@@ -1,7 +1,6 @@
 = Gradle Test Kotlin Extensions
 :toc:
 :github-repo-id: gradle-test-kotlin-extensions
-:uri-java-ServiceLoader: https://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html
 :uri-GradleRunner: https://docs.gradle.org/current/javadoc/org/gradle/testkit/runner/GradleRunner.html
 :uri-gradle-userguide: https://docs.gradle.org/current/userguide
 :uri-testkit: {uri-gradle-userguide}/test_kit.html
