@@ -1,14 +1,16 @@
 package com.mkobit.gradle.test.kotlin.testkit.runner
 
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import strikt.api.expect
+import strikt.api.expectCatching
 import strikt.assertions.allLines
 import strikt.assertions.containsExactly
+import strikt.assertions.isA
 import strikt.assertions.isDirectory
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFailure
 import strikt.assertions.isRegularFile
 import strikt.assertions.resolve
 import strikt.assertions.text
@@ -19,9 +21,10 @@ internal class GradleRunnerFsExtensionsTest {
 
   @Test
   internal fun `cannot configure GradleRunner project directory if it is not set`() {
-    assertThatThrownBy {
+    expectCatching {
       GradleRunner.create().setupProjectDir { }
-    }.isInstanceOf(IllegalStateException::class.java)
+    }.isFailure()
+      .isA<IllegalStateException>()
   }
 
   @Test
