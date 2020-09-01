@@ -44,7 +44,6 @@ gradleEnterprise {
     termsOfServiceUrl = "https://gradle.com/terms-of-service"
 
     // Env variables from https://docs.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables
-    tag("back-end-engineer") // TODO: remove - for application
     if (env("GITHUB_ACTIONS") == "true") {
       logger.lifecycle("Running in CI environment, setting build scan attributes.")
       tag("CI")
