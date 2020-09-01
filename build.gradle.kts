@@ -43,6 +43,8 @@ gradleEnterprise {
     termsOfServiceAgree = "yes"
     termsOfServiceUrl = "https://gradle.com/terms-of-service"
 
+    link("Repository", ProjectInfo.projectUrl)
+
     // Env variables from https://docs.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables
     if (env("GITHUB_ACTIONS") == "true") {
       logger.lifecycle("Running in CI environment, setting build scan attributes.")
@@ -55,7 +57,6 @@ gradleEnterprise {
       env("GITHUB_REF")?.let { value("Reference", it) }
       env("GITHUB_REPOSITORY")?.let { value("GitHub Repository", it) }
       env("GITHUB_EVENT_NAME")?.let { value("GitHub Event", it) }
-      link("Repository", ProjectInfo.projectUrl)
     }
   }
 }
