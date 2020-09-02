@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   java-8:
-    name: 'Java 8'
+    name: Java 8
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -21,7 +21,7 @@ jobs:
           key: test-${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle', '**/*.gradle.kts', '**/gradle.properties', 'gradle/**', 'buildSrc/src/main/**') }}
           restore-keys: |
             test-${{ runner.os }}-gradle-
-      - name: 'Build'
+      - name: Gradle Build
         run: |
           ./gradlew --version
           ./gradlew build --scan --warning-mode=all
@@ -31,7 +31,7 @@ jobs:
           path: build/
 
   java-11:
-    name: 'Java 11'
+    name: Java 11
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -48,7 +48,7 @@ jobs:
           key: test-${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle', '**/*.gradle.kts', '**/gradle.properties', 'gradle/**', 'buildSrc/src/main/**') }}
           restore-keys: |
             test-${{ runner.os }}-gradle-
-      - name: 'Build'
+      - name: Build
         run: |
           ./gradlew --version
           ./gradlew build --scan --warning-mode=all
