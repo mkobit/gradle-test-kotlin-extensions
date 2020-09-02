@@ -6,7 +6,7 @@ on:
       - '[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
-  extract-version:
+  extract_version:
     name: Extract version
     runs-on: ubuntu-latest
     steps:
@@ -16,7 +16,7 @@ jobs:
   assemble:
     name: Assemble
     runs-on: ubuntu-latest
-    needs: extract-version
+    needs: extract_version
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 1.8
@@ -35,7 +35,8 @@ jobs:
       - name: Gradle Assemble
         run: |
           ./gradlew --version
-          ./gradlew -P "release.version"="${{ needs.extract-version.outputs.version }}" assemble --scan --warning-mode=all
+          echo "ref=${GITHUB_REF}, command=${GITHUB_REF/refs\/tags\//}"
+          ./gradlew -P "release.version"="${{ needs.extract_version.outputs.version }}" assemble --scan --warning-mode=all
       - uses: actions/upload-artifact@v2
         with:
           name: build-output
@@ -44,7 +45,7 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     needs:
-      - extract-version
+      - extract_version
       - assemble
     steps:
       - uses: actions/checkout@v2
@@ -67,8 +68,8 @@ jobs:
             test-${{ runner.os }}-gradle-
       - name: Release
 #        with:
-#          version: ${{ needs.extract-version.outputs.extracted_version }}
+#          version: ${{ needs.extract_version.outputs.extracted_version }}
 #          bintray_user: ${{ secrets.BINTRAY_KEY }}
 #          bintray_key:  ${{ secrets.BINTRAY_USER }}
         run: |
-          echo "run gradle command here with version from needs='${{ needs.extract-version.outputs.version }}'"
+          echo "run gradle command here with version from needs='${{ needs.extract_version.outputs.version }}'"
