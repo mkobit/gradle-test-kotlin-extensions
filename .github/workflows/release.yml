@@ -64,9 +64,9 @@ jobs:
           restore-keys: |
             test-${{ runner.os }}-gradle-
       - name: Release
-        with:
-          version: ${{ needs.extract-version.outputs.extracted_version }}
-          bintray_user: ${{ secrets.BINTRAY_KEY }}
-          bintray_key:  ${{ secrets.BINTRAY_USER }}
+#        with:
+#          version: ${{ needs.extract-version.outputs.extracted_version }}
+#          bintray_user: ${{ secrets.BINTRAY_KEY }}
+#          bintray_key:  ${{ secrets.BINTRAY_USER }}
         run: |
-          echo "run gradle command here with version from needs='${{ needs.extract-version.outputs.extracted_version }}' version from input='${INPUT_VERSION}'"
+          echo "run gradle command here with version from needs='${{ needs.extract-version.outputs.extracted_version }}'"
