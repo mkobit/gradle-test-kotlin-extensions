@@ -24,6 +24,8 @@ For each release, a subsection should be added for each of the following if they
 
 == UNRELEASED (YYYY/MM/DD)
 
+== 0.8.0 (2020/09/02)
+
 === Removed
 
 * `GradleRunner.resolveFromProjectDir(...)` deprecation level changed to `DeprecationLevel.ERROR`
