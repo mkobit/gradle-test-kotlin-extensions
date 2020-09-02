@@ -1,10 +1,16 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
 
 jobs:
   java-8:
-    name: 'Java 8'
+    name: Java 8
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -21,13 +27,19 @@ jobs:
           key: test-${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle', '**/*.gradle.kts', '**/gradle.properties', 'gradle/**', 'buildSrc/src/main/**') }}
           restore-keys: |
             test-${{ runner.os }}-gradle-
-      - name: 'Build'
+      - name: Gradle Build
         run: |
           ./gradlew --version
           ./gradlew build --scan --warning-mode=all
+      - uses: actions/upload-artifact@v2
+        with:
+          name: build-output
+          path: |
+            build/
+            buildSrc/
 
   java-11:
-    name: 'Java 11'
+    name: Java 11
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -44,7 +56,13 @@ jobs:
           key: test-${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle', '**/*.gradle.kts', '**/gradle.properties', 'gradle/**', 'buildSrc/src/main/**') }}
           restore-keys: |
             test-${{ runner.os }}-gradle-
-      - name: 'Build'
+      - name: Build
         run: |
           ./gradlew --version
           ./gradlew build --scan --warning-mode=all
+      - uses: actions/upload-artifact@v2
+        with:
+          name: build-output
+          path: |
+            build/
+            buildSrc/
