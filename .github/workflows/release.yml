@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Store tag version in output
         id: extracted_version
-        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+        run: echo ::set-output name=version::${GITHUB_REF/refs\/tags\//}
   assemble:
     name: Assemble
     runs-on: ubuntu-latest
@@ -35,7 +35,7 @@ jobs:
       - name: Gradle Assemble
         run: |
           ./gradlew --version
-          ./gradlew -P "release.version"="${{ needs.extract-version.outputs.extracted_version }}" assemble --scan --warning-mode=all
+          ./gradlew -P "release.version"="${{ needs.extract-version.outputs.version }}" assemble --scan --warning-mode=all
       - uses: actions/upload-artifact@v2
         with:
           name: build-output
@@ -69,4 +69,4 @@ jobs:
 #          bintray_user: ${{ secrets.BINTRAY_KEY }}
 #          bintray_key:  ${{ secrets.BINTRAY_USER }}
         run: |
-          echo "run gradle command here with version from needs='${{ needs.extract-version.outputs.extracted_version }}'"
+          echo "run gradle command here with version from needs='${{ needs.extract-version.outputs.version }}'"
