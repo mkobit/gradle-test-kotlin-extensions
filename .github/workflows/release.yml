@@ -38,4 +38,4 @@ jobs:
         run: |
           ./gradlew --version
           echo "ref=${GITHUB_REF}, command=${GITHUB_REF/refs\/tags\//}"
-          ./gradlew final --scan --exclude-task test --warning-mode=all -P "release.version"="${{ needs.extract_version.outputs.version }}" -P "bintray.user"="${{ secrets.BINTRAY_USER }}" -P "bintray.key"="${{ secretes.secrets.BINTRAY_KEY }}"
+          ./gradlew final --scan --exclude-task test --warning-mode=all -P "release.version"="${{ needs.extract_version.outputs.version }}" -P "bintray.user"="${{ secrets.BINTRAY_USER }}" -P "bintray.key"="${{ secrets.BINTRAY_KEY }}"
