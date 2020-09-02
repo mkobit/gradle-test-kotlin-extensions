@@ -32,7 +32,7 @@ jobs:
           key: test-${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle', '**/*.gradle.kts', '**/gradle.properties', 'gradle/**', 'buildSrc/src/main/**') }}
           restore-keys: |
             test-${{ runner.os }}-gradle-
-      - name: 'Build'
+      - name: Gradle Assemble
         run: |
           ./gradlew --version
           ./gradlew -P "release.version"="${{ needs.extract-version.outputs.extracted_version }}" assemble --scan --warning-mode=all
@@ -68,5 +68,5 @@ jobs:
           version: ${{ needs.extract-version.outputs.extracted_version }}
           bintray_user: ${{ secrets.BINTRAY_KEY }}
           bintray_key:  ${{ secrets.BINTRAY_USER }}
-#          run: ./gradlew final --scan --exclude-task test -P "release.version"="${INPUT_VERSION}" -P "bintray.user"="${INPUT_BINTRAY_USER}" -P "bintray.key"="${INPUT_BINTRAY_KEY}"
-        run: echo "run gradle command here with version from needs='${{ needs.extract-version.outputs.extracted_version }}' version from input='${INPUT_VERSION}'"
+        run: |
+          echo "run gradle command here with version from needs='${{ needs.extract-version.outputs.extracted_version }}' version from input='${INPUT_VERSION}'"
