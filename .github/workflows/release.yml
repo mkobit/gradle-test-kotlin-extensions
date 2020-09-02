@@ -34,7 +34,7 @@ jobs:
           key: test-${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle', '**/*.gradle.kts', '**/gradle.properties', 'gradle/**', 'buildSrc/src/main/**') }}
           restore-keys: |
             test-${{ runner.os }}-gradle-
-      - name: Gradle Assemble
+      - name: Gradle Release
         run: |
           ./gradlew --version
           echo "ref=${GITHUB_REF}, command=${GITHUB_REF/refs\/tags\//}"
