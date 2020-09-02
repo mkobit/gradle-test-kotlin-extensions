@@ -9,6 +9,8 @@ jobs:
   extract_version:
     name: Extract version
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.step1.outputs.version }}
     steps:
       - name: Store tag version in output
         id: extracted_version
