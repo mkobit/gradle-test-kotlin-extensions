@@ -34,7 +34,9 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: build-output
-          path: build/
+          path: |
+            build/
+            buildSrc/
 
   java-11:
     name: Java 11
@@ -61,4 +63,6 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: build-output
-          path: build/
+          path: |
+            build/
+            buildSrc/
