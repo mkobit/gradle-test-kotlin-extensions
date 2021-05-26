@@ -6,5 +6,5 @@ object ProjectInfo {
   const val scmUrl = "https://github.com/mkobit/gradle-test-kotlin-extensions.git"
 
   // TODO: this should probably be a part of some buildSrc plugin that automatically configures the correct things
-  const val automaticModuleName = "com.mkobit.gradle.test.kotlin"
+  const val automaticModuleName = "io.github.mkobit.gradle.test.kotlin"
 }

@@ -24,6 +24,15 @@ For each release, a subsection should be added for each of the following if they
 
 == UNRELEASED (YYYY/MM/DD)
 
+=== Changed
+
+* All package prefixes changed from `com.mkobit` to `io.github.mkobit` as part of move to Maven Central and improving alignment
+
+=== Deprecated
+
+* Since Kotlin has introduced much better IO operations with `Path` in `kotlin-stdlib-jdk7`, the IO related operations have been deprecated
+** `fun GradleRunner.setupProjectDir` has also been deprecated
+
 == 0.8.0 (2020/09/02)
 
 === Removed
@@ -87,13 +96,13 @@ context.run {
   }
 }
 ----
-* `com.mkobit.gradle.test.kotlin.io.Original` changed from anonymous `object` to a top level `object`
+* `io.github.mkobit.gradle.test.kotlin.io.Original` changed from anonymous `object` to a top level `object`
 
 === Removed
 
 * *Breaking* - Removed `CharacterSequence.invoke` methods that produce a `DirectoryContext`.
 * *Breaking* - Removed `GradleRunner.buildWith` and `GradleRunner.buildAndFailWith` extensions.
-  The improved execution patterns are `com.mkobit.gradle.test.kotlin.testkit.runner.build` and `com.mkobit.gradle.test.kotlin.testkit.runner.buildAndFail` extensions that accept an amount of CLI build arguments to execute with.
+  The improved execution patterns are `io.github.mkobit.gradle.test.kotlin.testkit.runner.build` and `io.github.mkobit.gradle.test.kotlin.testkit.runner.buildAndFail` extensions that accept an amount of CLI build arguments to execute with.
 
 === Fixed
 
@@ -165,12 +174,12 @@ context.run {
 
 === Changed
 
-* Base package namespace of classes from `com.mkobit.gradle.test` to `com.mkobit.gradle.test.kotlin.testkit.runner`
+* Base package namespace of classes from `io.github.mkobit.gradle.test` to `io.github.mkobit.gradle.test.kotlin.testkit.runner`
 * Kotlin upgraded from 1.1.60 to 1.2.0
 
 === Added
 
-* `Automatic-Module-Name` of `com.mkobit.gradle.test.kotlin`
+* `Automatic-Module-Name` of `io.github.mkobit.gradle.test.kotlin`
 * `GradleRunner` file manipulation extensions (see README for example usage)
 ** `projectDirPath` - `Path?` to the project directory
 ** `setupProjectDir` method to configure the project directory

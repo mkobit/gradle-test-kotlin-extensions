@@ -1,7 +1,7 @@
 import buildsrc.ProjectInfo
-import com.jfrog.bintray.gradle.BintrayExtension
 import org.gradle.jvm.tasks.Jar
 import org.gradle.util.GradleVersion
+import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.ByteArrayOutputStream
 import java.net.URL
@@ -10,16 +10,15 @@ plugins {
   `java-library`
   `maven-publish`
 
-  kotlin("jvm") version "1.3.71" // use kotlin 1.4.0 when Gradle updates, as using gradleApi() causes conflicting versions during compilation and failures at runtime
-  id("org.jlleitschuh.gradle.ktlint") version "9.3.0"
-  id("org.jetbrains.dokka") version "0.10.1" // temporary as 1.4.0-rc is already out
+  kotlin("jvm") version "1.4.32" // use kotlin 1.4.0 when Gradle updates, as using gradleApi() causes conflicting versions during compilation and failures at runtime
+  id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
+  id("org.jetbrains.dokka") version "1.4.32"
 
-  id("nebula.release") version "15.1.0"
+  id("nebula.release") version "15.3.1"
   id("com.github.ben-manes.versions") version "0.29.0"
-  id("com.jfrog.bintray") version "1.8.5"
 }
 
-group = "com.mkobit.gradle.test"
+group = "io.github.mkobit.gradle.test"
 description = "Kotlin library to aid in writing tests for Gradle"
 
 val gitCommitSha: String by lazy {
@@ -33,7 +32,7 @@ val gitCommitSha: String by lazy {
 }
 
 ktlint {
-  version.set("0.37.2")
+  version.set("0.41.0")
 }
 
 gradleEnterprise {
@@ -61,41 +60,32 @@ gradleEnterprise {
 }
 
 repositories {
-  jcenter()
   mavenCentral()
 }
 
-configurations.all {
-  resolutionStrategy.eachDependency {
-    when (requested.group) {
-      "dev.minutest" -> useVersion("1.11.0")
-      "org.junit.jupiter" -> useVersion("5.6.2")
-      "org.junit.platform" -> useVersion("1.6.2")
-      "io.strikt" -> useVersion("0.26.1")
-      "org.apache.logging.log4j" -> useVersion("2.11.2")
-      "org.jetbrains.kotlin" -> useVersion("1.3.71") // remove this when Gradle updates to 1.4, see note in plugins section
-    }
-  }
-}
-
 dependencies {
+  val jupiterVersion = "5.7.2"
+  val log4jVersion = "2.14.1"
+  val striktVersion = "0.31.0"
   api(gradleApi())
   api(gradleTestKit())
 
   implementation("io.github.microutils:kotlin-logging:1.8.3")
 
   testImplementation(kotlin("reflect"))
+  testImplementation(kotlin("stdlib-jdk7"))
   testImplementation("org.assertj:assertj-core:3.17.0")
-  testImplementation("io.mockk:mockk:1.10.0")
-  testImplementation("org.junit.jupiter:junit-jupiter-api")
-  testImplementation("org.junit.jupiter:junit-jupiter-params")
-  testImplementation("dev.minutest:minutest")
-  testImplementation("io.strikt:strikt-core")
-  testImplementation("io.strikt:strikt-gradle")
+  testImplementation("io.mockk:mockk:1.11.0")
+  testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
+  testImplementation("org.junit.jupiter:junit-jupiter-params:$jupiterVersion")
+  testImplementation("dev.minutest:minutest:1.13.0")
+  testImplementation("io.strikt:strikt-core:$striktVersion")
+  testImplementation("io.strikt:strikt-gradle:$striktVersion")
+  testImplementation("io.strikt:strikt-jvm:$striktVersion")
 
-  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
-  testRuntimeOnly("org.apache.logging.log4j:log4j-core")
-  testRuntimeOnly("org.apache.logging.log4j:log4j-jul")
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
+  testRuntimeOnly("org.apache.logging.log4j:log4j-core:$log4jVersion")
+  testRuntimeOnly("org.apache.logging.log4j:log4j-jul:$log4jVersion")
 }
 
 java {
@@ -112,7 +102,7 @@ sourceSets {
 
 tasks {
   wrapper {
-    gradleVersion = "6.6.1"
+    gradleVersion = "7.0.2"
   }
 
   withType<Jar>().configureEach {
@@ -164,25 +154,30 @@ tasks {
     enabled = false
   }
 
-  dokka {
-    dependsOn(sourceSets.main.map { it.classesTaskName })
-    outputFormat = "html"
-    outputDirectory = "$buildDir/javadoc"
-    // See https://github.com/Kotlin/dokka/issues/196
-    configuration {
-      externalDocumentationLink {
-        url = URL("https://docs.gradle.org/${GradleVersion.current().version}/javadoc/")
-        packageListUrl = URL("https://docs.gradle.org/${GradleVersion.current().version}/javadoc/allpackages-index.html")
-      }
-      externalDocumentationLink {
-        url = URL("https://docs.oracle.com/javase/8/docs/api/")
+  withType<DokkaTask>().configureEach {
+    dokkaSourceSets {
+      configureEach {
+        externalDocumentationLink {
+          url.set(URL("https://docs.gradle.org/${GradleVersion.current().version}/javadoc/"))
+          packageListUrl.set(URL("https://docs.gradle.org/${GradleVersion.current().version}/javadoc/allpackages-index.html"))
+        }
+        externalDocumentationLink {
+          url.set(URL("https://docs.oracle.com/javase/8/docs/api/"))
+        }
       }
     }
   }
+//
+//  dokka {
+//    dependsOn(sourceSets.main.map { it.classesTaskName })
+//    outputFormat = "html"
+//    outputDirectory = "$buildDir/javadoc"
+//    // See https://github.com/Kotlin/dokka/issues/196
+//
+//  }
 
   val javadocJar by registering(Jar::class) {
-    dependsOn(dokka)
-    from(dokka.map { it.outputDirectory })
+    from(dokkaJavadoc)
     archiveClassifier.set("javadoc")
     description = "Assembles a JAR of the generated Javadoc"
     group = JavaBasePlugin.DOCUMENTATION_GROUP
@@ -198,7 +193,6 @@ tasks {
   }
 
   (release) {
-    dependsOn(bintrayUpload)
     // disabled to not push git tag
     enabled = false
   }
@@ -227,23 +221,23 @@ publishing {
     }
   }
 }
-
-bintray {
-  user = findProperty("bintray.user") as String?
-  key = findProperty("bintray.key") as String?
-  publish = true
-  setPublications(publicationName)
-  pkg(
-    delegateClosureOf<BintrayExtension.PackageConfig> {
-      repo = "gradle"
-      name = project.name
-      userOrg = "mkobit"
-      setLabels("gradle", "test", "plugins", "kotlin")
-      setLicenses("MIT")
-      desc = project.description
-      websiteUrl = ProjectInfo.projectUrl
-      issueTrackerUrl = ProjectInfo.issuesUrl
-      vcsUrl = ProjectInfo.scmUrl
-    }
-  )
-}
+//
+// bintray {
+//  user = findProperty("bintray.user") as String?
+//  key = findProperty("bintray.key") as String?
+//  publish = true
+//  setPublications(publicationName)
+//  pkg(
+//    delegateClosureOf<BintrayExtension.PackageConfig> {
+//      repo = "gradle"
+//      name = project.name
+//      userOrg = "mkobit"
+//      setLabels("gradle", "test", "plugins", "kotlin")
+//      setLicenses("MIT")
+//      desc = project.description
+//      websiteUrl = ProjectInfo.projectUrl
+//      issueTrackerUrl = ProjectInfo.issuesUrl
+//      vcsUrl = ProjectInfo.scmUrl
+//    }
+//  )
+// }

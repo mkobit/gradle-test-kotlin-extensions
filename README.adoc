@@ -32,7 +32,7 @@ repositories {
 }
 
 dependencies {
-  testImplementation("com.mkobit.gradle.test:gradle-test-kotlin-extensions:x.x.x")
+  testImplementation("io.github.mkobit.gradle.test:gradle-test-kotlin-extensions:x.x.x")
 }
 ----
 
