@@ -70,8 +70,6 @@ dependencies {
   api(gradleApi())
   api(gradleTestKit())
 
-  implementation("io.github.microutils:kotlin-logging:1.8.3")
-
   testImplementation(kotlin("reflect"))
   testImplementation(kotlin("stdlib-jdk7"))
   testImplementation("org.assertj:assertj-core:3.17.0")
