@@ -1,3 +1,4 @@
+@file:Suppress("DEPRECATION")
 package io.github.mkobit.gradle.test.kotlin.io
 
 import dev.minutest.ContextBuilder
