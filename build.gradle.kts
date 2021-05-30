@@ -167,14 +167,6 @@ tasks {
       }
     }
   }
-//
-//  dokka {
-//    dependsOn(sourceSets.main.map { it.classesTaskName })
-//    outputFormat = "html"
-//    outputDirectory = "$buildDir/javadoc"
-//    // See https://github.com/Kotlin/dokka/issues/196
-//
-//  }
 
   val javadocJar by registering(Jar::class) {
     from(dokkaJavadoc)
